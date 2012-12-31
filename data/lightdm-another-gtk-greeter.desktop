@@ -1,0 +1,8 @@
+
+[Desktop Entry]
+Name=LightDM Another GTK+ Greeter
+Comment=This runs the Another GTK+ greeter, it should only be run from LightDM
+Exec=lightdm-another-gtk-greeter
+Type=Application
+X-Ubuntu-Gettext-Domain=lightdm
+Comment[en]=This runs the Another GTK greeter, it should only be run from LightDM

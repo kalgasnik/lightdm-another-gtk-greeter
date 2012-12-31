@@ -1,0 +1,157 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: lightdm-another-gtk-greeter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-09 14:53+0300\n"
+"PO-Revision-Date: 2012-11-09 14:53+0300\n"
+"Last-Translator: hxa\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;__\n"
+"X-Poedit-Basepath: /home/hxa/dev/projects/0108.lightdm-another-gtk-greeter\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-SearchPath-0: src\n"
+"X-Poedit-SearchPath-1: data\n"
+
+#: src/main.c:530
+msgid "Guest Account"
+msgstr ""
+
+#: src/main.c:533
+msgid "Other..."
+msgstr ""
+
+#: src/main.c:817
+msgid "Cancel"
+msgstr ""
+
+#: src/main.c:819
+#: src/main.c:821
+msgid "Login"
+msgstr ""
+
+#: src/main.c:821
+msgid "Unlock"
+msgstr ""
+
+#: src/main.c:892
+msgid "Failed to start session"
+msgstr ""
+
+#: src/main.c:1050
+msgid "Incorrect password, please try again"
+msgstr ""
+
+#: src/main.c:1054
+msgid "Failed to authenticate"
+msgstr ""
+
+#: src/indicator_power.c:61
+msgid "Suspend"
+msgstr ""
+
+#: src/indicator_power.c:61
+msgid "Suspend the computer?"
+msgstr ""
+
+#: src/indicator_power.c:62
+msgid "Hibernate"
+msgstr ""
+
+#: src/indicator_power.c:62
+msgid "Hibernate the computer?"
+msgstr ""
+
+#: src/indicator_power.c:63
+msgid "Restart"
+msgstr ""
+
+#: src/indicator_power.c:63
+msgid "Are you sure you want to close all programs and restart the computer?"
+msgstr ""
+
+#: src/indicator_power.c:64
+msgid "Shutdown"
+msgstr ""
+
+#: src/indicator_power.c:64
+msgid "Are you sure you want to close all programs and shutdown the computer?"
+msgstr ""
+
+#: src/indicator_power.c:164
+msgid "Return to Login"
+msgstr ""
+
+#: src/indicator_power.c:193
+#, c-format
+msgid "Action \"%s\" failed with error: %s."
+msgstr ""
+
+#: src/indicator_power.c:198
+#, c-format
+msgid "Action \"%s\" failed."
+msgstr ""
+
+#: src/indicator_power.c:205
+msgid "Error"
+msgstr ""
+
+#: data/greeter.w.ui:12
+msgid "Large Font"
+msgstr ""
+
+#: data/greeter.w.ui:21
+msgid "High Contrast"
+msgstr ""
+
+#: data/greeter.w.ui:30
+#: data/greeter.ui:503
+msgid "On-screen keyboard"
+msgstr ""
+
+#: data/greeter.w.ui:97
+#: data/greeter.w.ui:429
+msgid "[host]"
+msgstr ""
+
+#: data/greeter.w.ui:110
+msgid "[date]"
+msgstr ""
+
+#: data/greeter.w.ui:169
+msgid "column"
+msgstr ""
+
+#: data/greeter.w.ui:376
+#: data/greeter.ui:341
+msgid "Login options"
+msgstr ""
+
+#: data/greeter.w.ui:439
+msgid "[time]"
+msgstr ""
+
+#: data/greeter.w.ui:457
+msgid "[layout]"
+msgstr ""
+
+#: data/greeter.w.ui:598
+msgid "Restart..."
+msgstr ""
+
+#: data/greeter.w.ui:607
+msgid "Shutdown..."
+msgstr ""
+
+#: data/greeter.ui:485
+msgid "Large font"
+msgstr ""
+
+#: data/greeter.ui:494
+msgid "High contrast"
+msgstr ""
+

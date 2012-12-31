@@ -1,0 +1,8 @@
+	../data/greeter.ui \
+	../src/configuration.c \
+	../src/main.c \
+	../src/menu_a11y.c \
+	../src/menu_layout.c \
+	../src/menu_power.c \
+	../src/menu_time.c \
+	../src/shares.c

@@ -1,0 +1,157 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: lightdm-another-gtk-greeter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-14 14:19+0300\n"
+"PO-Revision-Date: 2012-11-14 14:20+0300\n"
+"Last-Translator: hxa\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;__\n"
+"X-Poedit-Basepath: /home/hxa/dev/projects/0108.lightdm-another-gtk-greeter\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-SearchPath-0: src\n"
+"X-Poedit-SearchPath-1: data\n"
+
+#: src/main.c:529
+msgid "Guest Account"
+msgstr "Гостевой аккаунт"
+
+#: src/main.c:532
+msgid "Other..."
+msgstr "Другой пользователь..."
+
+#: src/main.c:824
+msgid "Unlock"
+msgstr "Разблокировать"
+
+#: src/main.c:824
+msgid "Login"
+msgstr "Войти"
+
+#: src/main.c:870
+msgid "Failed to start session"
+msgstr "Не удалось запустить сеанс"
+
+#: src/main.c:1026
+msgid "Incorrect password, please try again"
+msgstr "Неверный пароль, попробуйте ещё раз"
+
+#: src/main.c:1031
+msgid "Failed to authenticate"
+msgstr "Не удалось выполнить вход"
+
+#: src/indicator_power.c:63
+msgid "Suspend"
+msgstr "Ждущий режим"
+
+#: src/indicator_power.c:63
+msgid "Suspend the computer?"
+msgstr "Перевести компьютер в ждущий режим?"
+
+#: src/indicator_power.c:67
+msgid "Hibernate"
+msgstr "Спящий режим"
+
+#: src/indicator_power.c:67
+msgid "Hibernate the computer?"
+msgstr "Перевести компьютер в спящий режим?"
+
+#: src/indicator_power.c:71
+msgid "Restart"
+msgstr "Перезагрузка"
+
+#: src/indicator_power.c:71
+msgid "Are you sure you want to close all programs and restart the computer?"
+msgstr "Вы действительно хотите закрыть все приложения и перезагрузить компьютер?"
+
+#: src/indicator_power.c:75
+msgid "Shutdown"
+msgstr "Выключение"
+
+#: src/indicator_power.c:75
+msgid "Are you sure you want to close all programs and shutdown the computer?"
+msgstr "Вы действительно хотите закрыть все приложения и выключить компьютер?"
+
+#: src/indicator_power.c:173
+msgid "Return to Login"
+msgstr "Вернутся к выбору пользователя"
+
+#: src/indicator_power.c:202
+#, c-format
+msgid "Action \"%s\" failed with error: %s."
+msgstr "Не удалось выполнить действие \"%s\": %s"
+
+#: src/indicator_power.c:207
+#, c-format
+msgid "Action \"%s\" failed."
+msgstr "Не удалось выполнить действие \"%s\""
+
+#: src/indicator_power.c:214
+msgid "Error"
+msgstr "Ошибка"
+
+#: data/greeter.w.ui:12
+msgid "Large Font"
+msgstr "Крупный шрифт"
+
+#: data/greeter.w.ui:21
+msgid "High Contrast"
+msgstr "Высокая контрастность"
+
+#: data/greeter.w.ui:30
+#: data/greeter.ui:505
+msgid "On-screen keyboard"
+msgstr "Экранная клавиатура"
+
+#: data/greeter.w.ui:97
+#: data/greeter.w.ui:429
+msgid "[host]"
+msgstr ""
+
+#: data/greeter.w.ui:110
+msgid "[date]"
+msgstr ""
+
+#: data/greeter.w.ui:169
+msgid "column"
+msgstr ""
+
+#: data/greeter.w.ui:278
+#: data/greeter.ui:243
+msgid "Cancel"
+msgstr "Отмена"
+
+#: data/greeter.w.ui:376
+#: data/greeter.ui:343
+msgid "Login options"
+msgstr "Опции входа в систему"
+
+#: data/greeter.w.ui:439
+msgid "[time]"
+msgstr ""
+
+#: data/greeter.w.ui:457
+msgid "[layout]"
+msgstr ""
+
+#: data/greeter.w.ui:598
+msgid "Restart..."
+msgstr "Перезагрузка"
+
+#: data/greeter.w.ui:607
+msgid "Shutdown..."
+msgstr "Выключение"
+
+#: data/greeter.ui:487
+msgid "Large font"
+msgstr "Крупный шрифт"
+
+#: data/greeter.ui:496
+msgid "High contrast"
+msgstr "Высокая контрастность"
+
