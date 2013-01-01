@@ -47,7 +47,6 @@ struct _GreeterConfig
         gchar* theme;
         gchar* icon_theme;
         gchar* background;
-        gboolean no_background;
         gchar* logo_icon;
         gchar* logo_file;
         gboolean fixed_user_image_size;

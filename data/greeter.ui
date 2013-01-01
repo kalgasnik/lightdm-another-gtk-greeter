@@ -380,7 +380,7 @@
           <object class="GtkImage" id="power_menu_icon">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">system-shutdown-symbolic</property>
+            <property name="icon_name">system-shutdown</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -392,7 +392,7 @@
           <object class="GtkImage" id="a11y_menu_icon">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="icon_name">preferences-desktop-accessibility-symbolic</property>
+            <property name="icon_name">preferences-desktop-accessibility</property>
           </object>
           <packing>
             <property name="expand">False</property>

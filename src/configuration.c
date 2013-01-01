@@ -20,6 +20,8 @@
 #include "configuration.h"
 #include "shares.h"
 
+#include <string.h>
+
 /* Variables */
 
 GreeterConfig config;
@@ -71,8 +73,7 @@ gboolean load_settings()
     CONFIG_SECTION = "appearance";
     config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.ui");
     config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL);
-    config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", "#000000");
-    config.appearance.no_background = read_value_bool(config_file, CONFIG_SECTION, "do-not-set-background", FALSE);
+    config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL);
     config.appearance.logo_icon = read_value_string(config_file, CONFIG_SECTION, "logo-icon", NULL);
     config.appearance.logo_file = read_value_string(config_file, CONFIG_SECTION, "logo-file", NULL);
     config.appearance.fixed_user_image_size = read_value_bool(config_file, CONFIG_SECTION, "fixed-user-image-size", TRUE);
@@ -214,6 +215,11 @@ static gchar* read_value_string(GKeyFile* config_file, const gchar* section, con
                                 const gchar* default_value)
 {
     gchar* value = g_key_file_get_string(config_file, section, key, NULL);
+    if(value && strlen(value) == 0)
+    {
+        g_free(value);
+        value = NULL;
+    }
     return value ? value : g_strdup(default_value);
 }
 

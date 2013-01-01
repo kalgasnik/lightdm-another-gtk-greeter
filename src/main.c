@@ -388,7 +388,7 @@ static gboolean set_background(const char* value)
 
 static void show_gui()
 {
-    if(!config.appearance.no_background)
+    if(config.appearance.background)
         set_background(config.appearance.background);
 
     if(config.appearance.fixed_user_image_size && greeter.ui.user_image)
