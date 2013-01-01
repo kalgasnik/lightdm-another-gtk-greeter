@@ -117,6 +117,7 @@
                 <child>
                   <object class="GtkTreeView" id="user_view">
                     <property name="width_request">225</property>
+                    <property name="height_request">175</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="model">user_liststore</property>
@@ -244,7 +245,6 @@
                         <property name="label" translatable="yes">Cancel</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">False</property>
                         <signal name="clicked" handler="on_cancel_clicked" swapped="no"/>
                       </object>
                       <packing>
@@ -260,7 +260,6 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="halign">end</property>
-                        <property name="use_action_appearance">False</property>
                         <signal name="clicked" handler="on_login_clicked" swapped="no"/>
                       </object>
                       <packing>
@@ -322,7 +321,9 @@
                               </attributes>
                             </child>
                             <child>
-                              <object class="GtkCellRendererPixbuf" id="session_renderer_image"/>
+                              <object class="GtkCellRendererPixbuf" id="session_renderer_image">
+                                <property name="xalign">1</property>
+                              </object>
                               <attributes>
                                 <attribute name="pixbuf">2</attribute>
                               </attributes>
@@ -417,13 +418,11 @@
       <object class="GtkMenuBar" id="menubar">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="ubuntu_local">True</property>
         <property name="pack_direction">rtl</property>
         <child>
           <object class="GtkMenuItem" id="power_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="label">[power]</property>
             <child type="submenu">
               <object class="GtkMenu" id="power_menu">
@@ -433,7 +432,6 @@
                   <object class="GtkMenuItem" id="suspend_widget">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Suspend</property>
                     <signal name="activate" handler="on_suspend_activate" swapped="no"/>
                   </object>
@@ -442,7 +440,6 @@
                   <object class="GtkMenuItem" id="hibernate_widget">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Hibernate</property>
                     <signal name="activate" handler="on_hibernate_activate" swapped="no"/>
                   </object>
@@ -451,7 +448,6 @@
                   <object class="GtkMenuItem" id="restart_widget">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Restart</property>
                     <signal name="activate" handler="on_restart_activate" swapped="no"/>
                   </object>
@@ -460,7 +456,6 @@
                   <object class="GtkMenuItem" id="shutdown_widget">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Shutdown</property>
                     <signal name="activate" handler="on_shutdown_activate" swapped="no"/>
                   </object>
@@ -473,7 +468,6 @@
           <object class="GtkMenuItem" id="a11y_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="label">[a11y]</property>
             <child type="submenu">
               <object class="GtkMenu" id="a11y_menu">
@@ -483,7 +477,6 @@
                   <object class="GtkCheckMenuItem" id="large_font_menuitem">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Large font</property>
                     <signal name="toggled" handler="on_font_toggled" swapped="no"/>
                   </object>
@@ -492,7 +485,6 @@
                   <object class="GtkCheckMenuItem" id="high_contrast_menuitem">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">High contrast</property>
                     <signal name="toggled" handler="on_contrast_toggled" swapped="no"/>
                   </object>
@@ -501,7 +493,6 @@
                   <object class="GtkCheckMenuItem" id="osk_widget">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">On-screen keyboard</property>
                     <signal name="toggled" handler="on_osk_toggled" swapped="no"/>
                   </object>
@@ -514,7 +505,6 @@
           <object class="GtkMenuItem" id="time_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="label">[time]</property>
           </object>
         </child>
@@ -522,7 +512,6 @@
           <object class="GtkMenuItem" id="layout_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="label">[layout]</property>
             <child type="submenu">
               <object class="GtkMenu" id="layout_menu">
