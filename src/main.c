@@ -126,10 +126,12 @@ int main(int argc, char** argv)
         init_user_selection();
 
         show_gui();
-        gtk_main();
+        gtk_main();sudo
     }
+    else
+        g_error("Greeter initialization failed");
 
-    return inited ? EXIT_SUCCESS : EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------- *
@@ -219,7 +221,7 @@ static gboolean init_gui()
     else
         ui_file = g_build_filename(GREETER_DATA_DIR, config.appearance.ui_file, NULL);
 
-    g_debug("Loading UI file: %s", ui_file);
+    g_message("Loading UI file: %s", ui_file);
     if(!gtk_builder_add_from_file(builder, ui_file, &error))
     {
         g_warning("Error loading UI file: %s", error->message);
@@ -269,7 +271,7 @@ static gboolean init_gui()
         {&greeter.ui.layout.layout_widget, "layout_widget", FALSE},
         {&greeter.ui.layout.layout_menu, "layout_menu", FALSE},
 
-        {&greeter.ui.user_view, "user_view", FALSE},
+        {&greeter.ui.user_view, "user_view", TRUE},
         {&greeter.ui.session_view, "session_view", FALSE},
         {&greeter.ui.language_view, "language_view", FALSE},
         {&greeter.ui.user_view_box, "user_view_box", FALSE},
@@ -285,6 +287,8 @@ static gboolean init_gui()
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
         if(w->needed && *w->pwidget == NULL)
             g_error("Widget is not found: %s\n", w->name);
+        else
+            g_debug("Widget is not found: %s\n", w->name);
     }
 
     void update_widget_name(GObject* object, gpointer nothing)
