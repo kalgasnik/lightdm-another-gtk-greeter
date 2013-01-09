@@ -474,7 +474,8 @@ static void append_user(GtkTreeModel* model, LightDMUser* user, gboolean update_
     }
 
     GtkTreeIter iter;
-    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    //gtk_list_store_append
+    gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                        USER_COLUMN_NAME, user_name,
                        USER_COLUMN_TYPE, USER_TYPE_REGULAR,
@@ -697,7 +698,7 @@ static void init_user_selection()
     else if(get_first_logged_user(model, &iter))
         set_widget_active_iter(greeter.ui.user_view, &iter);
     else
-        set_widget_active_iter(greeter.ui.user_view, 0);
+        set_widget_active_first(greeter.ui.user_view);
     g_free(last_logged_user);
 }
 
