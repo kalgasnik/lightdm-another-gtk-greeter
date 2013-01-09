@@ -105,7 +105,6 @@ int main(int argc, char** argv)
     textdomain(GETTEXT_PACKAGE);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 
-    //g_thread_init(NULL);
     gtk_init(&argc, &argv);
 
     greeter.greeter = lightdm_greeter_new();
@@ -126,12 +125,12 @@ int main(int argc, char** argv)
         init_user_selection();
 
         show_gui();
-        gtk_main();sudo
+        gtk_main();
     }
     else
-        g_error("Greeter initialization failed");
+        g_critical("Greeter initialization failed");
 
-    return EXIT_SUCCESS;
+    return inited ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 /* ------------------------------------------------------------------------- *
@@ -172,7 +171,7 @@ static gboolean init_css()
 {
     if(!config.appearance.css_file)
     {
-        g_debug("No CSS file defined");
+        g_message("No CSS file defined");
         return TRUE;
     }
 
@@ -182,7 +181,7 @@ static gboolean init_css()
     else
         css_file = g_build_filename(GREETER_DATA_DIR, config.appearance.css_file, NULL);
 
-    g_debug("Loading CSS file: %s", css_file);
+    g_message("Loading CSS file: %s", css_file);
 
     if(!g_file_test(css_file, G_FILE_TEST_EXISTS))
     {
@@ -471,15 +470,14 @@ static void append_user(GtkTreeModel* model, LightDMUser* user, gboolean update_
         image = gdk_pixbuf_new_from_file(image_file, &error);
         if(error)
         {
-            g_warning("Failed to load user image: %s", error->message);
+            g_warning("Failed to load user image (%s): %s", user_name, error->message);
             g_clear_error(&error);
             image = greeter.state.default_user_image;
         }
     }
 
     GtkTreeIter iter;
-    //gtk_list_store_append
-    gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                        USER_COLUMN_NAME, user_name,
                        USER_COLUMN_TYPE, USER_TYPE_REGULAR,
@@ -507,7 +505,7 @@ static void append_custom_user(GtkTreeModel* model, gint type, const gchar* name
 
 static gboolean load_users_list()
 {
-    g_debug("Reading users list");
+    g_message("Reading users list");
 
     GtkTreeIter iter;
     GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
@@ -540,7 +538,7 @@ static gboolean load_users_list()
 
     if(!gtk_tree_model_get_iter_first(model, &iter))
     {
-        g_debug("No users to display");
+        g_warning("No users to display");
         return FALSE;
     }
 
@@ -584,7 +582,7 @@ static GdkPixbuf* get_session_image(const gchar* session, gboolean check_alter_n
 
 static gboolean load_sessions_list()
 {
-    g_debug("Reading sessions list");
+    g_message("Reading sessions list");
 
     const GList* items = lightdm_get_sessions();
 
@@ -621,7 +619,7 @@ static gboolean load_sessions_list()
 
 static gboolean load_languages_list()
 {
-    g_debug("Reading languages list");
+    g_message("Reading languages list");
 
     const GList* items = lightdm_get_languages();
     if(!items)
@@ -662,7 +660,6 @@ static gboolean load_languages_list()
 
 static gboolean get_first_logged_user(GtkTreeModel* model, GtkTreeIter* iter)
 {
-    g_debug("get_first_logged_user()");
     if(!gtk_tree_model_get_iter_first(model, iter))
         return FALSE;
     do
@@ -747,7 +744,7 @@ static void set_logo_image()
     }
     else if(config.appearance.logo_icon)
     {
-        g_debug("Setting logo from icon name: %s", config.appearance.logo_icon);
+        g_debug("Setting logo from icon: %s", config.appearance.logo_icon);
         gchar* comma = g_strrstr(config.appearance.logo_icon, ",");
         gchar* icon_name = NULL;
         if(comma)
@@ -810,7 +807,7 @@ static gboolean update_date_label(gpointer dummy)
 
 static void start_authentication(const gchar* user_name)
 {
-    g_debug("Starting authentication for user \"%s\"", user_name);
+    g_message("Starting authentication for user \"%s\"", user_name);
 
     save_last_logged_user(user_name);
 
@@ -834,7 +831,7 @@ static void start_authentication(const gchar* user_name)
 
 static void cancel_authentication(void)
 {
-    g_debug("Cancelling authentication for current user");
+    g_message("Cancelling authentication for current user");
 
     /* If in authentication then stop that first */
     greeter.state.cancelling = FALSE;
@@ -858,7 +855,7 @@ static void cancel_authentication(void)
 
 static void start_session()
 {
-    g_debug("Starting session for authenticated user");
+    g_message("Starting session for authenticated user");
 
     gchar* language = get_language();
     if(language)
@@ -1050,7 +1047,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
 
 static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
 {
-    g_debug("LightDM: autologin-timer-expired");
+    g_debug("LightDM signal: autologin-timer-expired");
     if(lightdm_greeter_get_autologin_guest_hint(greeter.greeter))
         start_authentication(USER_GUEST);
     else if(lightdm_greeter_get_autologin_user_hint(greeter.greeter))
@@ -1059,13 +1056,13 @@ static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
 
 static void on_user_added(LightDMUserList* user_list, LightDMUser* user)
 {
-    g_debug("LightDM: user-added");
+    g_debug("LightDM signal: user-added");
     append_user(get_widget_model(greeter.ui.user_view), user, TRUE);
 }
 
 static void on_user_changed(LightDMUserList* user_list, LightDMUser* user)
 {
-    g_debug("LightDM: user-changed");
+    g_debug("LightDM signal: user-changed");
     GtkTreeIter iter;
     GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
     const gchar* name = lightdm_user_get_name(user);
@@ -1081,7 +1078,7 @@ static void on_user_changed(LightDMUserList* user_list, LightDMUser* user)
 
 void on_user_removed(LightDMUserList* user_list, LightDMUser* user)
 {
-    g_debug("LightDM: user-removed");
+    g_debug("LightDM signal: user-removed");
     GtkTreeIter iter;
     GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
     const gchar* name = lightdm_user_get_name(user);
