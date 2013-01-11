@@ -54,6 +54,7 @@ struct _GreeterConfig
         gint default_user_image_size;
         UserNameFormat user_name_format;
         gchar* date_format;
+        gboolean fixed_login_button_width;
     } appearance;
 
     struct

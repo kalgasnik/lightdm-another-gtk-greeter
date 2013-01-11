@@ -44,6 +44,7 @@ struct _GreeterData
         GtkWidget* login_window;
         GtkWidget* panel_window;
         GtkWidget* login_widget;
+        GtkWidget* login_widget_label;
         GtkWidget* cancel_widget;
         GtkWidget* message_widget;
         GtkWidget* prompt_widget;
@@ -121,6 +122,13 @@ typedef enum
     USER_TYPE_GUEST,
     USER_TYPE_OTHER
 } UserType;
+
+typedef enum
+{
+    LOGIN_BUTTON_NONE,
+    LOGIN_BUTTON_LOGIN,
+    LOGIN_BUTTON_UNLOCK
+} LoginButtonState;
 
 typedef enum
 {

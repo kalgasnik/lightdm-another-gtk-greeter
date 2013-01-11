@@ -109,6 +109,7 @@ void init_power_indicator()
     if(!(allow_suspend || allow_hibernate ||
          allow_restart || allow_shutdown))
     {
+        g_warning("Power menu: no actions allowed, hiding widget");
         gtk_widget_hide(greeter.ui.power.power_widget);
         return;
     }

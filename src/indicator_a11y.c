@@ -97,6 +97,9 @@ void init_a11y_indicator()
     else
         OSK = NULL;
 
+    if(!OSK)
+        g_warning("a11y indicator: no virtual keyboard found");
+
     gtk_widget_set_visible(greeter.ui.a11y.osk_widget, OSK != NULL);
 }
 

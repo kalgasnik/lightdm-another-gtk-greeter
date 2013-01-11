@@ -34,6 +34,8 @@
 #include "indicator_clock.h"
 #include "indicator_layout.h"
 
+//#define LOGIN_BUTTON_FIXED_WIDTH
+
 /* Static functions */
 
 static gboolean connect_to_lightdm();
@@ -50,6 +52,7 @@ static void init_user_selection();
 static void load_user_options(LightDMUser* user);
 static void set_logo_image();
 static void set_message_label(const gchar* text);
+static void set_login_button_state(LoginButtonState state);
 static void update_minimal_user_image_size();
 static gboolean update_date_label(gpointer dummy);
 
@@ -112,7 +115,8 @@ int main(int argc, char** argv)
 
     gboolean inited = connect_to_lightdm();
     inited &= load_settings();
-    init_css();
+    if(inited)
+        init_css();
     inited &= init_gui();
 
     if(inited)
@@ -209,7 +213,7 @@ static gboolean init_css()
 
 static gboolean init_gui()
 {
-    g_debug("Creating GUI");
+    g_message("Creating GUI");
 
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
@@ -285,7 +289,10 @@ static gboolean init_gui()
     {
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
         if(w->needed && *w->pwidget == NULL)
-            g_error("Widget is not found: %s\n", w->name);
+        {
+            g_critical("Widget is not found: %s\n", w->name);
+            return FALSE;
+        }
         else
             g_debug("Widget is not found: %s\n", w->name);
     }
@@ -323,6 +330,16 @@ static gboolean init_gui()
 
     if(!load_users_list())
         return FALSE;
+
+    if(greeter.ui.login_widget && config.appearance.fixed_login_button_width &&
+       GTK_IS_BIN(greeter.ui.login_widget) &&
+       GTK_IS_LABEL(gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget))))
+    {
+        int a = strlen(_("Login")), b = strlen(_("Unlock"));
+        greeter.ui.login_widget_label = gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget));
+        gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_widget_label),
+                                  a > b ? a : b);
+    }
 
     set_logo_image();
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
@@ -720,6 +737,13 @@ static void set_message_label(const gchar* text)
     set_widget_text(greeter.ui.message_widget, text);
 }
 
+static void set_login_button_state(LoginButtonState state)
+{
+    const gchar* text = state == LOGIN_BUTTON_UNLOCK ? _("Unlock") : _("Login");
+    GtkWidget* widget = greeter.ui.login_widget_label ? greeter.ui.login_widget_label : greeter.ui.login_widget;
+    set_widget_text(widget, text);
+}
+
 static void set_logo_image()
 {
     if(!greeter.ui.logo_image)
@@ -825,7 +849,7 @@ static void start_authentication(const gchar* user_name)
         lightdm_greeter_authenticate(greeter.greeter, user_name);
     }
     load_user_options(user);
-    set_widget_text(greeter.ui.login_widget, user && lightdm_user_get_logged_in(user) ? _("Unlock") : _("Login"));
+    set_login_button_state(lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
     gtk_widget_hide(greeter.ui.cancel_widget);
 }
 

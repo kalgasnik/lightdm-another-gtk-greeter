@@ -82,6 +82,7 @@ gboolean load_settings()
     config.appearance.theme = set_and_save_gtk_property(config_file, CONFIG_SECTION, "theme-name", settings, "gtk-theme-name");
     config.appearance.icon_theme = set_and_save_gtk_property(config_file, CONFIG_SECTION, "icon-theme-name", settings, "gtk-icon-theme-name");
     config.appearance.font = set_and_save_gtk_property(config_file, CONFIG_SECTION, "font-name", settings, "gtk-font-name");
+    config.appearance.fixed_login_button_width = read_value_bool(config_file, CONFIG_SECTION, "fixed-login-button-width", TRUE);
     set_gtk_property(config_file, CONFIG_SECTION, "xft-hintstyle", settings, "gtk-xft-hintstyle");
     set_gtk_property(config_file, CONFIG_SECTION, "xft-rgba", settings, "gtk-xft-rgba");
     set_gtk_property_bool(config_file, CONFIG_SECTION, "xft-antialias", settings, "gtk-xft-antialias");
