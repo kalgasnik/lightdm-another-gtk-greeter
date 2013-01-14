@@ -34,8 +34,6 @@
 #include "indicator_clock.h"
 #include "indicator_layout.h"
 
-//#define LOGIN_BUTTON_FIXED_WIDTH
-
 /* Static functions */
 
 static gboolean connect_to_lightdm();
