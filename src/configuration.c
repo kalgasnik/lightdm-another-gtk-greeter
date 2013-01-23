@@ -74,15 +74,14 @@ gboolean load_settings()
     config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.ui");
     config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL);
     config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL);
-    config.appearance.logo_icon = read_value_string(config_file, CONFIG_SECTION, "logo-icon", NULL);
-    config.appearance.logo_file = read_value_string(config_file, CONFIG_SECTION, "logo-file", NULL);
+    config.appearance.logo = read_value_string(config_file, CONFIG_SECTION, "logo", NULL);
     config.appearance.fixed_user_image_size = read_value_bool(config_file, CONFIG_SECTION, "fixed-user-image-size", TRUE);
     config.appearance.list_view_image_size = read_value_int(config_file, CONFIG_SECTION, "list-view-image-size", 48);
     config.appearance.default_user_image_size = read_value_int(config_file, CONFIG_SECTION, "default-user-image-size", 96);
     config.appearance.theme = set_and_save_gtk_property(config_file, CONFIG_SECTION, "theme-name", settings, "gtk-theme-name");
     config.appearance.icon_theme = set_and_save_gtk_property(config_file, CONFIG_SECTION, "icon-theme-name", settings, "gtk-icon-theme-name");
     config.appearance.font = set_and_save_gtk_property(config_file, CONFIG_SECTION, "font-name", settings, "gtk-font-name");
-    config.appearance.fixed_login_button_width = read_value_bool(config_file, CONFIG_SECTION, "fixed-login-button-width", TRUE);
+    config.appearance.fixed_login_button_width = read_value_bool(config_file, CONFIG_SECTION, "fixed-login-button-width", FALSE);
     set_gtk_property(config_file, CONFIG_SECTION, "xft-hintstyle", settings, "gtk-xft-hintstyle");
     set_gtk_property(config_file, CONFIG_SECTION, "xft-rgba", settings, "gtk-xft-rgba");
     set_gtk_property_bool(config_file, CONFIG_SECTION, "xft-antialias", settings, "gtk-xft-antialias");

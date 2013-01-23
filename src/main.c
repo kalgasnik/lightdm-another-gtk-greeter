@@ -744,16 +744,36 @@ static void set_login_button_state(LoginButtonState state)
 
 static void set_logo_image()
 {
-    if(!greeter.ui.logo_image)
+    if(!greeter.ui.logo_image || strlen(config.appearance.logo) == 0)
         return;
-    if(config.appearance.logo_file)
+    if(config.appearance.logo[0] == '#')
+    {
+        g_debug("Setting logo from icon: %s", config.appearance.logo);
+        gchar* logo_string = config.appearance.logo + 1;
+        gchar* comma = g_strrstr(logo_string, ",");
+        gchar* icon_name = NULL;
+        if(comma)
+        {
+            gint pixel_size = atol(comma + 1);
+            if(comma > logo_string)
+                icon_name = g_strndup(logo_string, comma - logo_string);
+            if(pixel_size)
+                gtk_image_set_pixel_size(GTK_IMAGE(greeter.ui.logo_image), pixel_size);
+        }
+        else
+            icon_name = g_strdup(logo_string);
+        if(icon_name)
+            gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.logo_image), icon_name, GTK_ICON_SIZE_INVALID);
+        g_free(icon_name);
+    }
+    else
     {
         GError* error = NULL;
         gchar* path = NULL;
-        if(g_path_is_absolute(config.appearance.logo_file))
-            path = g_strdup(config.appearance.logo_file);
+        if(g_path_is_absolute(config.appearance.logo))
+            path = g_strdup(config.appearance.logo);
         else
-            path = g_build_filename(GREETER_DATA_DIR, config.appearance.logo_file, NULL);
+            path = g_build_filename(GREETER_DATA_DIR, config.appearance.logo, NULL);
 
         g_debug("Loading logo from file: %s", path);
         GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(path, &error);
@@ -763,27 +783,6 @@ static void set_logo_image()
             g_warning("Failed to load logo: %s", error->message);
         g_object_unref(pixbuf);
         g_clear_error(&error);
-    }
-    else if(config.appearance.logo_icon)
-    {
-        g_debug("Setting logo from icon: %s", config.appearance.logo_icon);
-        gchar* comma = g_strrstr(config.appearance.logo_icon, ",");
-        gchar* icon_name = NULL;
-        if(comma)
-        {
-            gint pixel_size = atol(comma + 1);
-            if(comma > config.appearance.logo_icon)
-                icon_name = g_strndup(config.appearance.logo_icon, comma - config.appearance.logo_icon);
-            if(pixel_size)
-                gtk_image_set_pixel_size(GTK_IMAGE(greeter.ui.logo_image), pixel_size);
-        }
-        else
-            icon_name = g_strdup(config.appearance.logo_icon);
-        if(icon_name)
-            gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.logo_image),
-                                         icon_name ? icon_name : config.appearance.logo_icon,
-                                         GTK_ICON_SIZE_INVALID);
-        g_free(icon_name);
     }
 }
 
