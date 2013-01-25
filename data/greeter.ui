@@ -16,7 +16,6 @@
     <property name="decorated">False</property>
     <property name="has_resize_grip">False</property>
     <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
-    <signal name="size-allocate" handler="_on_center_window" swapped="no"/>
     <child>
       <object class="GtkBox" id="box22">
         <property name="visible">True</property>

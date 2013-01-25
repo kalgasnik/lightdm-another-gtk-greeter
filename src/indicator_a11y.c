@@ -122,6 +122,12 @@ void osk_kill()
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
+gboolean center_window_callback(GtkWidget* widget)
+{
+    center_window(widget);
+    return False;
+}
+
 G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
 {
     gtk_widget_hide(greeter.ui.login_window);
@@ -157,7 +163,9 @@ G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
     }
 
     gtk_widget_show(greeter.ui.login_window);
-    center_window(greeter.ui.login_window);
+
+    g_idle_add((GSourceFunc)center_window_callback, greeter.ui.login_window);
+    //center_window(greeter.ui.login_window);
 }
 
 G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data)

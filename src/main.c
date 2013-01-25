@@ -212,7 +212,6 @@ static gboolean init_css()
 static gboolean init_gui()
 {
     g_message("Creating GUI");
-
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
 
@@ -744,7 +743,7 @@ static void set_login_button_state(LoginButtonState state)
 
 static void set_logo_image()
 {
-    if(!greeter.ui.logo_image || strlen(config.appearance.logo) == 0)
+    if(!greeter.ui.logo_image || !config.appearance.logo || strlen(config.appearance.logo) == 0)
         return;
     if(config.appearance.logo[0] == '#')
     {
@@ -1212,5 +1211,6 @@ G_MODULE_EXPORT void on_show_menu(GtkWidget* widget, GtkWidget* menu)
     if(gtk_widget_get_visible(menu))
         gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, GDK_CURRENT_TIME);
 }
+
 
 
