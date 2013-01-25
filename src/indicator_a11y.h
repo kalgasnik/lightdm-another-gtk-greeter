@@ -26,8 +26,8 @@
 
 void init_a11y_indicator();
 
-void osk_open();
-void osk_close();
-void osk_kill();
+void a11y_osk_open();
+void a11y_osk_close();
+void a11y_osk_kill();
 
 #endif // _INDICATOR_A11Y_H_INCLUDED_

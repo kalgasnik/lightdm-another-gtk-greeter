@@ -27,6 +27,8 @@
 #include "configuration.h"
 #include "indicator_a11y.h"
 
+//#define A11Y_CHECK_THEMES
+
 /* Types */
 
 struct OSKInfo
@@ -39,13 +41,16 @@ struct OSKInfo
 
 /* Exported functions */
 
-G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_osk_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data);
 
 /* Static functions */
 
 static gboolean check_program(const gchar* name);
+#ifdef A11Y_CHECK_THEMES
+static gboolean check_theme_installed(const gchar* theme);
+#endif
 
 static gboolean osk_check_custom();
 static void osk_open_custom();
@@ -98,22 +103,33 @@ void init_a11y_indicator()
         OSK = NULL;
 
     if(!OSK)
+    {
         g_warning("a11y indicator: no virtual keyboard found");
+        gtk_widget_hide(greeter.ui.a11y.osk_widget);
+    }
 
-    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, OSK != NULL);
+    if(!config.a11y.theme_contrast || strlen(config.a11y.theme_contrast) == 0)
+        gtk_widget_hide(greeter.ui.a11y.contrast_widget);
+    #ifdef A11Y_CHECK_THEMES
+    else if(!check_theme_installed(config.a11y.theme_contrast))
+    {
+        g_warning("a11y indicator: contrast theme is not found (%s)", config.a11y.theme_contrast);
+        gtk_widget_hide(greeter.ui.a11y.contrast_widget);
+    }
+    #endif
 }
 
-void osk_open()
+void a11y_osk_open()
 {
     if(OSK) OSK->open();
 }
 
-void osk_close()
+void a11y_osk_close()
 {
     if(OSK) OSK->close();
 }
 
-void osk_kill()
+void a11y_osk_kill()
 {
     if(OSK) OSK->kill();
 }
@@ -128,7 +144,7 @@ gboolean center_window_callback(GtkWidget* widget)
     return False;
 }
 
-G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data)
 {
     gtk_widget_hide(greeter.ui.login_window);
 
@@ -168,7 +184,7 @@ G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
     //center_window(greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data)
 {
     gtk_widget_hide(greeter.ui.login_window);
 
@@ -183,12 +199,12 @@ G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data)
     center_window(greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_osk_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data)
 {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
-        osk_open();
+        a11y_osk_open();
     else
-        osk_close();
+        a11y_osk_close();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -202,6 +218,32 @@ static gboolean check_program(const gchar* name)
     g_free(cmd);
     return result == 0;
 }
+
+#ifdef A11Y_CHECK_THEMES
+static gboolean check_theme_in_dir(const gchar* theme, const gchar* path, gboolean dot)
+{
+    gboolean found = FALSE;
+    gchar* path_to_check = g_build_filename(path,
+                                            dot ? ".themes/" : "themes/",
+                                            theme,
+                                            GTK_MAJOR_VERSION == 3 ? "gtk-3.0" : "gtk-2.0", NULL);
+    if(g_file_test(path_to_check, G_FILE_TEST_IS_DIR))
+        found = TRUE;
+    g_free(path_to_check);
+    return found;
+}
+
+static gboolean check_theme_installed(const gchar* theme)
+{
+    for(const gchar* const* path = g_get_system_data_dirs(); *path; ++path)
+        if(check_theme_in_dir(theme, *path, FALSE))
+            return TRUE;
+
+    return check_theme_in_dir(theme, g_get_user_data_dir(), FALSE) ||
+           check_theme_in_dir(theme, g_get_home_dir(), TRUE);
+    exit(0);
+}
+#endif
 
 static gboolean osk_check_custom()
 {

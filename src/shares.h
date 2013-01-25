@@ -75,6 +75,7 @@ struct _GreeterData
             GtkWidget* a11y_menu;
             GtkWidget* a11y_menu_icon;
             GtkWidget* osk_widget;
+            GtkWidget* contrast_widget;
         } a11y;
 
         struct

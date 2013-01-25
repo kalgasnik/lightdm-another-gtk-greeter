@@ -30,7 +30,8 @@ GreeterConfig config;
 
 static gboolean read_value_bool(GKeyFile* config_file, const gchar* section, const gchar* key, gboolean default_value);
 static gint read_value_int(GKeyFile* config_file, const gchar* section, const gchar* key, gint default_value);
-static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key, const gchar* default_value);
+static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key,
+                                const gchar* default_value, gboolean empty_as_absent);
 static int read_value_enum(GKeyFile* config_file, const gchar* section, const gchar* key,
                            const gchar** names, int default_value);
 static void set_gtk_property(GKeyFile* config_file, const gchar* section, const gchar* key,
@@ -71,10 +72,10 @@ gboolean load_settings()
     config.greeter.show_session_icon = read_value_bool(config_file, CONFIG_SECTION, "show-session-icon", FALSE);
 
     CONFIG_SECTION = "appearance";
-    config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.ui");
-    config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL);
-    config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL);
-    config.appearance.logo = read_value_string(config_file, CONFIG_SECTION, "logo", NULL);
+    config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.ui", TRUE);
+    config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL, TRUE);
+    config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL, TRUE);
+    config.appearance.logo = read_value_string(config_file, CONFIG_SECTION, "logo", NULL, TRUE);
     config.appearance.fixed_user_image_size = read_value_bool(config_file, CONFIG_SECTION, "fixed-user-image-size", TRUE);
     config.appearance.list_view_image_size = read_value_int(config_file, CONFIG_SECTION, "list-view-image-size", 48);
     config.appearance.default_user_image_size = read_value_int(config_file, CONFIG_SECTION, "default-user-image-size", 96);
@@ -94,7 +95,7 @@ gboolean load_settings()
     const gchar* USER_NAME_FORMAT_VALUES[] = {"name", "display-name", "both", NULL};
     config.appearance.user_name_format = read_value_enum(config_file, CONFIG_SECTION, "user-name-format",
                                                          USER_NAME_FORMAT_VALUES, USER_NAME_FORMAT_DISPLAYNAME);
-    config.appearance.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B");
+    config.appearance.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B", TRUE);
 
     CONFIG_SECTION = "panel";
     config.panel.show_panel = read_value_bool(config_file, CONFIG_SECTION, "show-panel", TRUE);
@@ -110,18 +111,18 @@ gboolean load_settings()
     CONFIG_SECTION = "clock";
     config.clock.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
     config.clock.calendar = read_value_bool(config_file, CONFIG_SECTION, "show-calendar", TRUE);
-    config.clock.time_format = read_value_string(config_file, CONFIG_SECTION, "time-format", "%T");
-    config.clock.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B %Y");
+    config.clock.time_format = read_value_string(config_file, CONFIG_SECTION, "time-format", "%T", TRUE);
+    config.clock.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B %Y", TRUE);
 
     CONFIG_SECTION = "a11y";
     config.a11y.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
-    config.a11y.theme_contrast = read_value_string(config_file, CONFIG_SECTION, "theme-name-contrast", "HighContrastInverse");
-    config.a11y.icon_theme_contrast = read_value_string(config_file, CONFIG_SECTION, "icon-theme-name-contrast", "HighContrastInverse");
+    config.a11y.theme_contrast = read_value_string(config_file, CONFIG_SECTION, "theme-name-contrast", "HighContrastInverse", FALSE);
+    config.a11y.icon_theme_contrast = read_value_string(config_file, CONFIG_SECTION, "icon-theme-name-contrast", "HighContrastInverse", TRUE);
     config.a11y.font_increment = read_value_int(config_file, CONFIG_SECTION, "font-increment", 10);
     config.a11y.osk_use_onboard = read_value_bool(config_file, CONFIG_SECTION, "osk-use-onboard", FALSE);
 
     gint argp;
-    gchar* osk_command = read_value_string(config_file, CONFIG_SECTION, "osk-command", NULL);
+    gchar* osk_command = read_value_string(config_file, CONFIG_SECTION, "osk-command", NULL, TRUE);
     if(!osk_command || !g_shell_parse_argv(osk_command, &argp, &config.a11y.osk_command_array, NULL))
         config.a11y.osk_command_array = NULL;
     g_free(osk_command);
@@ -212,10 +213,10 @@ static gint read_value_int(GKeyFile* config_file, const gchar* section, const gc
 }
 
 static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key,
-                                const gchar* default_value)
+                                const gchar* default_value, gboolean empty_as_absent)
 {
     gchar* value = g_key_file_get_string(config_file, section, key, NULL);
-    if(value && strlen(value) == 0)
+    if(value && empty_as_absent && strlen(value) == 0)
     {
         g_free(value);
         value = NULL;
