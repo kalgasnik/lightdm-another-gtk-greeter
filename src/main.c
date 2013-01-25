@@ -258,14 +258,16 @@ static gboolean init_gui()
         {&greeter.ui.power.power_widget, "power_widget", FALSE},
         {&greeter.ui.power.power_menu, "power_menu", FALSE},
         {&greeter.ui.power.power_menu_icon, "power_menu_icon", FALSE},
-        {&greeter.ui.power.suspend_widget, "suspend_widget", FALSE},
-        {&greeter.ui.power.hibernate_widget, "hibernate_widget", FALSE},
-        {&greeter.ui.power.restart_widget, "restart_widget", FALSE},
-        {&greeter.ui.power.shutdown_widget, "shutdown_widget", FALSE},
+        {&greeter.ui.power.suspend_widget, "power_suspend_widget", FALSE},
+        {&greeter.ui.power.hibernate_widget, "power_hibernate_widget", FALSE},
+        {&greeter.ui.power.restart_widget, "power_restart_widget", FALSE},
+        {&greeter.ui.power.shutdown_widget, "power_shutdown_widget", FALSE},
         {&greeter.ui.a11y.a11y_widget, "a11y_widget", FALSE},
         {&greeter.ui.a11y.a11y_menu, "a11y_menu", FALSE},
         {&greeter.ui.a11y.a11y_menu_icon, "a11y_menu_icon", FALSE},
-        {&greeter.ui.a11y.osk_widget, "osk_widget", FALSE},
+        {&greeter.ui.a11y.osk_widget, "a11y_osk_widget", FALSE},
+        {&greeter.ui.a11y.contrast_widget, "a11y_contrast_widget", FALSE},
+        {&greeter.ui.a11y.font_widget, "a11y_font_widget", FALSE},
         {&greeter.ui.clock.time_widget, "time_widget", FALSE},
         {&greeter.ui.clock.time_menu, "time_menu", FALSE},
         {&greeter.ui.layout.layout_widget, "layout_widget", FALSE},
@@ -887,7 +889,7 @@ static void start_session()
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
-        osk_kill();
+        a11y_osk_kill();
     }
     else
     {

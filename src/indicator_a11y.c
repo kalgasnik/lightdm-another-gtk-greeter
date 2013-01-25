@@ -39,13 +39,14 @@ struct OSKInfo
 
 /* Exported functions */
 
-G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_osk_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data);
 
 /* Static functions */
 
 static gboolean check_program(const gchar* name);
+static gboolean check_theme_installed(const gchar* theme);
 
 static gboolean osk_check_custom();
 static void osk_open_custom();
@@ -83,9 +84,11 @@ static struct OSKInfo OSKInfoOnboard =
 
 void init_a11y_indicator()
 {
-    gtk_widget_set_visible(greeter.ui.a11y.a11y_widget, config.a11y.enabled);
     if(!config.a11y.enabled)
+    {
+        gtk_widget_hide(greeter.ui.a11y.a11y_widget);
         return;
+    }
 
     if(greeter.ui.a11y.a11y_menu_icon && GTK_IS_MENU_ITEM(greeter.ui.a11y.a11y_widget))
         replace_container_content(greeter.ui.a11y.a11y_widget, greeter.ui.a11y.a11y_menu_icon);
@@ -95,25 +98,41 @@ void init_a11y_indicator()
     else if(osk_check_custom())
         OSK = &OSKInfoCustom;
     else
+    {
         OSK = NULL;
-
-    if(!OSK)
         g_warning("a11y indicator: no virtual keyboard found");
+    }
+
+    gboolean allow_contrast = FALSE;
+    if(!config.a11y.theme_contrast || strlen(config.a11y.theme_contrast) == 0)
+        ;
+    else if(config.a11y.check_theme && !check_theme_installed(config.a11y.theme_contrast))
+        g_warning("a11y indicator: contrast theme is not found (%s)", config.a11y.theme_contrast);
+    else
+        allow_contrast = TRUE;
+
+    if(!OSK && !allow_contrast && config.a11y.font_scale <= 0)
+    {
+        gtk_widget_hide(greeter.ui.a11y.a11y_widget);
+        return;
+    }
 
     gtk_widget_set_visible(greeter.ui.a11y.osk_widget, OSK != NULL);
+    gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, allow_contrast);
+    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font_scale > 0);
 }
 
-void osk_open()
+void a11y_osk_open()
 {
     if(OSK) OSK->open();
 }
 
-void osk_close()
+void a11y_osk_close()
 {
     if(OSK) OSK->close();
 }
 
-void osk_kill()
+void a11y_osk_kill()
 {
     if(OSK) OSK->kill();
 }
@@ -128,7 +147,7 @@ gboolean center_window_callback(GtkWidget* widget)
     return False;
 }
 
-G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data)
 {
     gtk_widget_hide(greeter.ui.login_window);
 
@@ -148,7 +167,7 @@ G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
             if(size > 0)
             {
                 g_free(tokens[length - 1]);
-                tokens[length - 1] = g_strdup_printf("%d", size + config.a11y.font_increment);
+                tokens[length - 1] = g_strdup_printf("%d", (int)(size*config.a11y.font_scale/100.0));
                 g_free(font_name);
                 font_name = g_strjoinv(" ", tokens);
                 g_object_set(settings, "gtk-font-name", font_name, NULL);
@@ -168,7 +187,7 @@ G_MODULE_EXPORT void on_font_toggled(GtkWidget* widget, gpointer data)
     //center_window(greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data)
 {
     gtk_widget_hide(greeter.ui.login_window);
 
@@ -183,12 +202,12 @@ G_MODULE_EXPORT void on_contrast_toggled(GtkWidget* widget, gpointer data)
     center_window(greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_osk_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data)
 {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
-        osk_open();
+        a11y_osk_open();
     else
-        osk_close();
+        a11y_osk_close();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -201,6 +220,26 @@ static gboolean check_program(const gchar* name)
     int result = system(cmd);
     g_free(cmd);
     return result == 0;
+}
+
+static gboolean check_theme_in_dir(const gchar* theme, const gchar* path, gboolean dot)
+{
+    gboolean found = FALSE;
+    gchar* path_to_check = g_build_filename(path, dot ? ".themes/" : "themes/",
+                                            theme, GTK_MAJOR_VERSION == 3 ? "gtk-3.0" : "gtk-2.0", NULL);
+    if(g_file_test(path_to_check, G_FILE_TEST_IS_DIR))
+        found = TRUE;
+    g_free(path_to_check);
+    return found;
+}
+
+static gboolean check_theme_installed(const gchar* theme)
+{
+    for(const gchar* const* path = g_get_system_data_dirs(); *path; ++path)
+        if(check_theme_in_dir(theme, *path, FALSE))
+            return TRUE;
+    return check_theme_in_dir(theme, g_get_user_data_dir(), FALSE) ||
+           check_theme_in_dir(theme, g_get_home_dir(), TRUE);
 }
 
 static gboolean osk_check_custom()

@@ -30,7 +30,11 @@ GreeterConfig config;
 
 static gboolean read_value_bool(GKeyFile* config_file, const gchar* section, const gchar* key, gboolean default_value);
 static gint read_value_int(GKeyFile* config_file, const gchar* section, const gchar* key, gint default_value);
+static gint read_value_ex_int(GKeyFile* config_file, const gchar* section, const gchar* key,
+                              gint missing_value, gint empty_value);
 static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key, const gchar* default_value);
+static gchar* read_value_ex_string(GKeyFile* config_file, const gchar* section, const gchar* key,
+                                   const gchar* missing_value, const gchar* empty_value);
 static int read_value_enum(GKeyFile* config_file, const gchar* section, const gchar* key,
                            const gchar** names, int default_value);
 static void set_gtk_property(GKeyFile* config_file, const gchar* section, const gchar* key,
@@ -71,7 +75,7 @@ gboolean load_settings()
     config.greeter.show_session_icon = read_value_bool(config_file, CONFIG_SECTION, "show-session-icon", FALSE);
 
     CONFIG_SECTION = "appearance";
-    config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.ui");
+    config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.classic.ui");
     config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL);
     config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL);
     config.appearance.logo = read_value_string(config_file, CONFIG_SECTION, "logo", NULL);
@@ -115,9 +119,11 @@ gboolean load_settings()
 
     CONFIG_SECTION = "a11y";
     config.a11y.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
-    config.a11y.theme_contrast = read_value_string(config_file, CONFIG_SECTION, "theme-name-contrast", "HighContrastInverse");
-    config.a11y.icon_theme_contrast = read_value_string(config_file, CONFIG_SECTION, "icon-theme-name-contrast", "HighContrastInverse");
-    config.a11y.font_increment = read_value_int(config_file, CONFIG_SECTION, "font-increment", 10);
+    config.a11y.theme_contrast = read_value_ex_string(config_file, CONFIG_SECTION, "theme-name-contrast",
+                                                      "HighContrast", NULL);
+    config.a11y.icon_theme_contrast = read_value_string(config_file, CONFIG_SECTION, "icon-theme-name-contrast", "HighContrast");
+    config.a11y.check_theme = read_value_bool(config_file, CONFIG_SECTION, "check-theme", TRUE);
+    config.a11y.font_scale = read_value_ex_int(config_file, CONFIG_SECTION, "font-scale", 140, -1);
     config.a11y.osk_use_onboard = read_value_bool(config_file, CONFIG_SECTION, "osk-use-onboard", FALSE);
 
     gint argp;
@@ -198,8 +204,7 @@ static gboolean read_value_bool(GKeyFile* config_file, const gchar* section, con
     return value;
 }
 
-static gint read_value_int(GKeyFile* config_file, const gchar* section, const gchar* key,
-                           gint default_value)
+static gint read_value_int(GKeyFile* config_file, const gchar* section, const gchar* key, gint default_value)
 {
     GError* error = NULL;
     gint value = g_key_file_get_integer(config_file, section, key, &error);
@@ -211,16 +216,28 @@ static gint read_value_int(GKeyFile* config_file, const gchar* section, const gc
     return value;
 }
 
-static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key,
-                                const gchar* default_value)
+static gint read_value_ex_int(GKeyFile* config_file, const gchar* section, const gchar* key,
+                              gint missing_value, gboolean empty_value)
+{
+    if(!g_key_file_has_key(config_file, section, key, NULL))
+        return missing_value;
+    else
+        return read_value_int(config_file, section, key, empty_value);
+}
+
+static gchar* read_value_string(GKeyFile* config_file, const gchar* section, const gchar* key, const gchar* default_value)
 {
     gchar* value = g_key_file_get_string(config_file, section, key, NULL);
-    if(value && strlen(value) == 0)
-    {
-        g_free(value);
-        value = NULL;
-    }
     return value ? value : g_strdup(default_value);
+}
+
+static gchar* read_value_ex_string(GKeyFile* config_file, const gchar* section, const gchar* key,
+                                   const gchar* missing_value, const gchar* empty_value)
+{
+    if(!g_key_file_has_key(config_file, section, key, NULL))
+        return missing_value ? g_strdup(missing_value) : NULL;
+    else
+        return read_value_string(config_file, section, key, empty_value);
 }
 
 static int read_value_enum(GKeyFile* config_file, const gchar* section, const gchar* key,
