@@ -98,7 +98,7 @@ gboolean load_settings()
     const gchar* USER_NAME_FORMAT_VALUES[] = {"name", "display-name", "both", NULL};
     config.appearance.user_name_format = read_value_enum(config_file, CONFIG_SECTION, "user-name-format",
                                                          USER_NAME_FORMAT_VALUES, USER_NAME_FORMAT_DISPLAYNAME);
-    config.appearance.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B", TRUE);
+    config.appearance.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B");
 
     CONFIG_SECTION = "panel";
     config.panel.show_panel = read_value_bool(config_file, CONFIG_SECTION, "show-panel", TRUE);
@@ -114,8 +114,8 @@ gboolean load_settings()
     CONFIG_SECTION = "clock";
     config.clock.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
     config.clock.calendar = read_value_bool(config_file, CONFIG_SECTION, "show-calendar", TRUE);
-    config.clock.time_format = read_value_string(config_file, CONFIG_SECTION, "time-format", "%T", TRUE);
-    config.clock.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B %Y", TRUE);
+    config.clock.time_format = read_value_string(config_file, CONFIG_SECTION, "time-format", "%T");
+    config.clock.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B %Y");
 
     CONFIG_SECTION = "a11y";
     config.a11y.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
@@ -127,7 +127,7 @@ gboolean load_settings()
     config.a11y.osk_use_onboard = read_value_bool(config_file, CONFIG_SECTION, "osk-use-onboard", FALSE);
 
     gint argp;
-    gchar* osk_command = read_value_string(config_file, CONFIG_SECTION, "osk-command", NULL, TRUE);
+    gchar* osk_command = read_value_string(config_file, CONFIG_SECTION, "osk-command", NULL);
     if(!osk_command || !g_shell_parse_argv(osk_command, &argp, &config.a11y.osk_command_array, NULL))
         config.a11y.osk_command_array = NULL;
     g_free(osk_command);
