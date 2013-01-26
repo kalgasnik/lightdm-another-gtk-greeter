@@ -267,6 +267,7 @@ static gboolean init_gui()
         {&greeter.ui.a11y.a11y_menu_icon, "a11y_menu_icon", FALSE},
         {&greeter.ui.a11y.osk_widget, "a11y_osk_widget", FALSE},
         {&greeter.ui.a11y.contrast_widget, "a11y_contrast_widget", FALSE},
+        {&greeter.ui.a11y.font_widget, "a11y_font_widget", FALSE},
         {&greeter.ui.clock.time_widget, "time_widget", FALSE},
         {&greeter.ui.clock.time_menu, "time_menu", FALSE},
         {&greeter.ui.layout.layout_widget, "layout_widget", FALSE},

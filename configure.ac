@@ -29,7 +29,7 @@ AC_PROG_INSTALL
 AC_ARG_ENABLE(ido-calendar,
 [  --enable-ido-calendar    Show calendar on click on time label (disabled by default). Using calendar from Ido libary.],
     [if test x$enableval = xyes; then
-        AC_DEFINE(USE_IDO_CALENDAR, [], [Show calendar on click on time label. Using Ido library.])
+        AC_DEFINE(CLOCK_USE_IDO_CALENDAR, [], [Show calendar on click on time label. Using Ido library.])
     fi]
 )
 

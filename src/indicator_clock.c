@@ -23,7 +23,7 @@
 
 #include <glib/gi18n.h>
 
-#ifdef USE_IDO_CALENDAR
+#ifdef CLOCK_USE_IDO_CALENDAR
     #include <libido/libido.h>
 #endif
 
@@ -38,7 +38,7 @@ static gulong visibility_notify_id = 0;
 /* Static functions */
 
 static gboolean clock_handler(gpointer* data);
-#ifndef USE_IDO_CALENDAR
+#ifndef CLOCK_USE_IDO_CALENDAR
 static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out);
 #endif
 static gboolean on_visibility_notify(GtkWidget* widget, GdkEvent* event, gpointer data);
@@ -59,7 +59,7 @@ void init_clock_indicator()
     {
         GtkWidget* calendar_menuitem = NULL;
 
-        #ifdef USE_IDO_CALENDAR
+        #ifdef CLOCK_USE_IDO_CALENDAR
         calendar_menuitem = ido_calendar_menu_item_new();
         greeter.ui.clock.calendar_widget = ido_calendar_menu_item_get_calendar(IDO_CALENDAR_MENU_ITEM(calendar_menuitem));
         #else
@@ -111,7 +111,7 @@ static gboolean clock_handler(gpointer* data)
     return data != NULL;
 }
 
-#ifndef USE_IDO_CALENDAR
+#ifndef CLOCK_USE_IDO_CALENDAR
 static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out)
 {
     g_assert(calendar_out != NULL);

@@ -82,9 +82,10 @@ struct _GreeterConfig
         gboolean enabled;
         gchar* theme_contrast;
         gchar* icon_theme_contrast;
+        gboolean check_theme;
         gchar** osk_command_array;
         gboolean osk_use_onboard;
-        gint font_increment;
+        gint font_scale;
     } a11y;
     struct
     {
