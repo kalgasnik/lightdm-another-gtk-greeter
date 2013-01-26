@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 
-define(_PACKAGE_VERSION, 1.0.0)
+define(_PACKAGE_VERSION, 1.0.2)
 
 AC_INIT(lightdm-another-gtk-greeter, _PACKAGE_VERSION, pan.pav.7c5@gmail.com)
 AC_CONFIG_MACRO_DIR([m4])

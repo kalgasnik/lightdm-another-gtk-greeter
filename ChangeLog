@@ -1,0 +1,8 @@
+lightdm-another-gtk-greeter 1.0.2
+    * Some errors fixed
+    * font-increment replaced with font-scale
+    * Merging logo-icon and logo-file
+    * Cosmetic GUI fixes
+
+lightdm-another-gtk-greeter 1.0.0
+    * First public version
