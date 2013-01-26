@@ -847,7 +847,7 @@ static void start_authentication(const gchar* user_name)
         lightdm_greeter_authenticate(greeter.greeter, user_name);
     }
     load_user_options(user);
-    set_login_button_state(lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
+    set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
     gtk_widget_hide(greeter.ui.cancel_widget);
 }
 
@@ -1128,7 +1128,11 @@ G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget, gpointer data)
         lightdm_greeter_respond(greeter.greeter, text);
         gtk_widget_show(greeter.ui.cancel_widget);
         if(get_user_type() == USER_TYPE_OTHER && gtk_entry_get_visibility(GTK_ENTRY(greeter.ui.prompt_entry)))
-            load_user_options(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), text));
+        {
+            LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), text);
+            set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
+            load_user_options(user);
+        }
     }
     else
     {
@@ -1197,15 +1201,20 @@ G_MODULE_EXPORT gboolean on_arrows_press(GtkWidget* widget, GdkEventKey* event, 
 
 G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget, GdkEventKey* event, gpointer data)
 {
-    if(event->keyval == GDK_KEY_F10)
+    switch(event->keyval)
     {
-        if(greeter.ui.panel.menubar)
-            gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel.menubar), FALSE);
-        else
-            gtk_widget_grab_focus(greeter.ui.panel_window);
-        return TRUE;
+        case GDK_KEY_F10:
+            if(greeter.ui.panel.menubar)
+                gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel.menubar), FALSE);
+            else
+                gtk_widget_grab_focus(greeter.ui.panel_window);
+            return TRUE;
+        case GDK_KEY_Escape:
+            cancel_authentication();
+            return TRUE;
+        default:
+            return FALSE;
     }
-    return FALSE;
 }
 
 G_MODULE_EXPORT void on_show_menu(GtkWidget* widget, GtkWidget* menu)
@@ -1213,6 +1222,3 @@ G_MODULE_EXPORT void on_show_menu(GtkWidget* widget, GtkWidget* menu)
     if(gtk_widget_get_visible(menu))
         gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, GDK_CURRENT_TIME);
 }
-
-
-
