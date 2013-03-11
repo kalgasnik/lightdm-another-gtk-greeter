@@ -37,6 +37,7 @@ struct _GreeterData
         gboolean cancelling;
         GdkPixbuf* default_user_image;
         GdkPixbuf* default_user_image_scaled;
+        const gchar* last_background;
     } state;
 
     struct

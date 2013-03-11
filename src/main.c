@@ -39,7 +39,7 @@
 static gboolean connect_to_lightdm();
 static gboolean init_css();
 static gboolean init_gui();
-static gboolean set_background(const char* value);
+static void set_background(const char* value);
 static void show_gui();
 
 static gboolean load_users_list();
@@ -347,9 +347,12 @@ static gboolean init_gui()
     return TRUE;
 }
 
-static gboolean set_background(const char* value)
+static void set_background(const char* value)
 {
     g_debug("Background: %s", value);
+    if(g_strcmp0(value, greeter.state.last_background) == 0)
+        return;
+
     GdkPixbuf* background_pixbuf = NULL;
     GdkRGBA background_color;
 
@@ -365,10 +368,14 @@ static gboolean set_background(const char* value)
         g_debug("Loading background: %s", path);
 
         background_pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        if(!background_pixbuf)
-           g_warning("Failed to load background: %s", error->message);
         g_clear_error(&error);
         g_free(path);
+
+        if(!background_pixbuf)
+        {
+            g_warning("Failed to load background: %s", error->message);
+            return;
+        }
     }
     else
         g_debug("Using background color: %s", value);
@@ -387,8 +394,13 @@ static gboolean set_background(const char* value)
             if(background_pixbuf)
             {
                 GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(background_pixbuf, monitor_geometry.width, monitor_geometry.height, GDK_INTERP_BILINEAR);
+                if(!gdk_pixbuf_get_has_alpha(pixbuf))
+                {
+                    GdkPixbuf* p = gdk_pixbuf_add_alpha (pixbuf, FALSE, 255, 255, 255);
+                    g_object_unref(pixbuf);
+                    pixbuf = p;
+                }
                 gdk_cairo_set_source_pixbuf(c, pixbuf, monitor_geometry.x, monitor_geometry.y);
-                g_object_unref(pixbuf);
             }
             else
                 gdk_cairo_set_source_rgba(c, &background_color);
@@ -402,12 +414,11 @@ static gboolean set_background(const char* value)
 
     if(background_pixbuf)
         g_object_unref(background_pixbuf);
-    return TRUE;
 }
 
 static void show_gui()
 {
-    if(config.appearance.background)
+    if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
 
     if(config.appearance.fixed_user_image_size && greeter.ui.user_image)
@@ -723,6 +734,12 @@ static void load_user_options(LightDMUser* user)
 {
     set_session(user ? lightdm_user_get_session(user) : NULL);
     set_language(user ? lightdm_user_get_language(user) : NULL);
+
+    if(config.appearance.user_background)
+    {
+        const gchar* bg = user ? lightdm_user_get_background(user) : config.appearance.background;
+        set_background(bg ? bg : config.appearance.background);
+    }
 }
 
 static void set_prompt_label(const gchar* text)
@@ -984,13 +1001,13 @@ static cairo_surface_t* create_root_surface(GdkScreen* screen)
 
     /* Convert into a Cairo surface*/
     surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen),
-                                         pixmap,
-                                         GDK_VISUAL_XVISUAL(gdk_screen_get_system_visual(screen)),
-                                         width, height);
+                                        pixmap,
+                                        GDK_VISUAL_XVISUAL(gdk_screen_get_system_visual(screen)),
+                                        width, height);
     /* Use this pixmap for the background*/
     XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
-                                RootWindow(GDK_SCREEN_XDISPLAY(screen), number),
-                                cairo_xlib_surface_get_drawable(surface));
+                               RootWindow(GDK_SCREEN_XDISPLAY(screen), number),
+                               cairo_xlib_surface_get_drawable(surface));
 
 
     return surface;
@@ -1070,6 +1087,8 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
 static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
 {
     g_debug("LightDM signal: autologin-timer-expired");
+    lightdm_greeter_authenticate_autologin(greeter_ptr);
+    return;
     if(lightdm_greeter_get_autologin_guest_hint(greeter.greeter))
         start_authentication(USER_GUEST);
     else if(lightdm_greeter_get_autologin_user_hint(greeter.greeter))
@@ -1160,7 +1179,7 @@ G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget, gpointer data)
     g_debug("User selection changed: %s", user_name);
 
     LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
-    gboolean logged_in = (user != NULL) && lightdm_user_get_logged_in(user);
+    gboolean logged_in = user && lightdm_user_get_logged_in(user);
 
     gtk_widget_set_sensitive(greeter.ui.session_view, !logged_in);
     gtk_widget_set_sensitive(greeter.ui.language_view, !logged_in);

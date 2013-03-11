@@ -78,6 +78,7 @@ gboolean load_settings()
     config.appearance.ui_file = read_value_string(config_file, CONFIG_SECTION, "ui-file", "greeter.classic.ui");
     config.appearance.css_file = read_value_string(config_file, CONFIG_SECTION, "css-file", NULL);
     config.appearance.background = read_value_string(config_file, CONFIG_SECTION, "background", NULL);
+    config.appearance.user_background = read_value_bool(config_file, CONFIG_SECTION, "user-background", TRUE);
     config.appearance.logo = read_value_string(config_file, CONFIG_SECTION, "logo", NULL);
     config.appearance.fixed_user_image_size = read_value_bool(config_file, CONFIG_SECTION, "fixed-user-image-size", TRUE);
     config.appearance.list_view_image_size = read_value_int(config_file, CONFIG_SECTION, "list-view-image-size", 48);

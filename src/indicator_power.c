@@ -128,30 +128,28 @@ void init_power_indicator()
         POWER_ACTIONS[i].prompt = gettext(POWER_ACTIONS[i].prompt);
         POWER_ACTIONS[i].title = gettext(POWER_ACTIONS[i].title);
     }
-
-    return;
 }
 
 /* ------------------------------------------------------------------------- *
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_suspend_activate(GtkWidget* widget, gpointer* data)
+G_MODULE_EXPORT void on_power_suspend_activate(GtkWidget* widget, gpointer* data)
 {
     power_action(POWER_SUSPEND);
 }
 
-G_MODULE_EXPORT void on_hibernate_activate(GtkWidget* widget, gpointer* data)
+G_MODULE_EXPORT void on_power_hibernate_activate(GtkWidget* widget, gpointer* data)
 {
     power_action(POWER_HIBERNATE);
 }
 
-G_MODULE_EXPORT void on_restart_activate(GtkWidget* widget, gpointer* data)
+G_MODULE_EXPORT void on_power_restart_activate(GtkWidget* widget, gpointer* data)
 {
     power_action(POWER_RESTART);
 }
 
-G_MODULE_EXPORT void on_shutdown_activate(GtkWidget* widget, gpointer* data)
+G_MODULE_EXPORT void on_power_shutdown_activate(GtkWidget* widget, gpointer* data)
 {
     power_action(POWER_SHUTDOWN);
 }
