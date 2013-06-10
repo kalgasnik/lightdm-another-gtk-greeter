@@ -84,7 +84,7 @@ void init_clock_indicator()
     else
         gtk_widget_hide(greeter.ui.clock.time_menu);
 
-    g_timeout_add_seconds(0, (GSourceFunc)clock_handler, NULL);
+    clock_handler(NULL);
     g_timeout_add_seconds(1, (GSourceFunc)clock_handler, (gpointer)TRUE);
     gtk_widget_show(greeter.ui.clock.time_widget);
 }

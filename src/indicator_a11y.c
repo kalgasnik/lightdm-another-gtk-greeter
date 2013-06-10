@@ -60,6 +60,8 @@ static void osk_open_onboard();
 static void osk_close_onboard();
 static void osk_kill_onboard();
 
+gboolean center_window_callback(GtkWidget* widget);
+
 /* Static variables */
 
 static GPid keyboard_pid = 0;

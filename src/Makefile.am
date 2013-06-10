@@ -1,4 +1,4 @@
-sbin_PROGRAMS = lightdm-another-gtk-greeter
+bin_PROGRAMS = lightdm-another-gtk-greeter
 
 lightdm_another_gtk_greeter_SOURCES = \
 	main.c \

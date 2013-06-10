@@ -34,6 +34,11 @@ gboolean lightdm_restart(GError** error) { g_message("lightdm_restart()"); retur
 gboolean lightdm_shutdown(GError** error) { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
 #endif
 
+G_MODULE_EXPORT void on_power_suspend_activate(GtkWidget* widget, gpointer* data);
+G_MODULE_EXPORT void on_power_hibernate_activate(GtkWidget* widget, gpointer* data);
+G_MODULE_EXPORT void on_power_restart_activate(GtkWidget* widget, gpointer* data);
+G_MODULE_EXPORT void on_power_shutdown_activate(GtkWidget* widget, gpointer* data);
+
 /* Types */
 
 typedef struct
