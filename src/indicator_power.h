@@ -25,6 +25,6 @@
 /* Functions */
 
 /* Return FALSE if error occurred or if panel is empty */
-void init_power_indicator();
+void init_power_indicator              (void);
 
 #endif // _POWER_MENU_H_INCLUDED_

@@ -36,60 +36,77 @@
 
 /* Static functions */
 
-static gboolean connect_to_lightdm();
-static gboolean init_css();
-static gboolean init_gui();
-static void set_background(const char* value);
-static void show_gui();
+static gboolean connect_to_lightdm          (void);
+static gboolean init_css                    (void);
+static gboolean init_gui                    (void);
+static void set_background                  (const char* value);
+static void show_gui                        (void);
 
-static gboolean load_users_list();
-static gboolean load_sessions_list();
-static gboolean load_languages_list();
+static gboolean load_users_list             (void);
+static gboolean load_sessions_list          (void);
+static gboolean load_languages_list         (void);
 
-static void init_user_selection();
-static void load_user_options(LightDMUser* user);
-static void set_logo_image();
-static void set_message_label(const gchar* text);
-static void set_login_button_state(LoginButtonState state);
-static void update_minimal_user_image_size();
-static gboolean update_date_label(gpointer dummy);
+static void init_user_selection             (void);
+static void load_user_options               (LightDMUser* user);
+static void set_logo_image                  (void);
+static void set_message_label               (const gchar* text);
+static void set_login_button_state          (LoginButtonState state);
+static void update_minimal_user_image_size  (void);
+static gboolean update_date_label           (gpointer dummy);
 
-static void start_authentication(const gchar* username);
-static void cancel_authentication();
-static void start_session();
+static void start_authentication            (const gchar* username);
+static void cancel_authentication           (void);
+static void start_session                   (void);
 
-static gchar* get_user();
-static UserType get_user_type();
+static gchar* get_user                      (void);
+static UserType get_user_type               (void);
 
-static gchar* get_session();
-static void set_session(const gchar* session);
+static gchar* get_session                   (void);
+static void set_session                     (const gchar* session);
 
-static gchar* get_language();
-static void set_language(const gchar* language);
+static gchar* get_language                  (void);
+static void set_language                    (const gchar* language);
 
-static cairo_surface_t* create_root_surface(GdkScreen* screen);
+static cairo_surface_t* create_root_surface (GdkScreen* screen);
 
 /* Callbacks and events */
-static void sigterm_callback(int signum);
+static void sigterm_callback                (int signum);
 
 /* LightDM callbacks */
-static void on_show_prompt(LightDMGreeter* greeter_ptr, const gchar* text, LightDMPromptType type);
-static void on_show_message(LightDMGreeter* greeter_ptr, const gchar* text, LightDMMessageType type);
-static void on_authentication_complete(LightDMGreeter* greeter_ptr);
-static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr);
-static void on_user_added(LightDMUserList* user_list, LightDMUser* user);
-static void on_user_changed(LightDMUserList* user_list, LightDMUser* user);
-static void on_user_removed(LightDMUserList* user_list, LightDMUser* user);
+static void on_show_prompt                  (LightDMGreeter* greeter_ptr,
+                                             const gchar* text,
+                                             LightDMPromptType type);
+static void on_show_message                 (LightDMGreeter* greeter_ptr,
+                                             const gchar* text,
+                                             LightDMMessageType type);
+static void on_authentication_complete      (LightDMGreeter* greeter_ptr);
+static void on_autologin_timer_expired      (LightDMGreeter* greeter_ptr);
+static void on_user_added                   (LightDMUserList* user_list,
+                                             LightDMUser* user);
+static void on_user_changed                 (LightDMUserList* user_list,
+                                             LightDMUser* user);
+static void on_user_removed                 (LightDMUserList* user_list,
+                                             LightDMUser* user);
 
 /* GUI callbacks */
-void on_center_window(GtkWidget* widget, gpointer data);
-void on_login_clicked(GtkWidget* widget, gpointer data);
-void on_cancel_clicked(GtkWidget* widget, gpointer data);
-void on_promt_activate(GtkWidget* widget, gpointer data);
-void on_user_selection_changed(GtkWidget* widget, gpointer data);
-gboolean on_arrows_press(GtkWidget* widget, GdkEventKey* event, gpointer data);
-gboolean on_login_window_key_press(GtkWidget* widget, GdkEventKey* event, gpointer data);
-void on_show_menu(GtkWidget* widget, GtkWidget* menu);
+void on_center_window                       (GtkWidget* widget,
+                                             gpointer data);
+void on_login_clicked                       (GtkWidget* widget,
+                                             gpointer data);
+void on_cancel_clicked                      (GtkWidget* widget,
+                                             gpointer data);
+void on_promt_activate                      (GtkWidget* widget,
+                                             gpointer data);
+void on_user_selection_changed              (GtkWidget* widget,
+                                             gpointer data);
+gboolean on_arrows_press                    (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data);
+gboolean on_login_window_key_press          (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data);
+void on_show_menu                           (GtkWidget* widget,
+                                             GtkWidget* menu);
 
 /* ------------------------------------------------------------------------- *
  * Definition: main
@@ -139,7 +156,7 @@ int main(int argc, char** argv)
  * Definitions: static
  * ------------------------------------------------------------------------- */
 
-static gboolean connect_to_lightdm()
+static gboolean connect_to_lightdm(void)
 {
     g_debug("Connecting to LightDM");
 
@@ -169,7 +186,7 @@ static gboolean connect_to_lightdm()
     return TRUE;
 }
 
-static gboolean init_css()
+static gboolean init_css(void)
 {
     if(!config.appearance.css_file)
     {
@@ -209,7 +226,7 @@ static gboolean init_css()
     return loaded;
 }
 
-static gboolean init_gui()
+static gboolean init_gui(void)
 {
     g_message("Creating GUI");
     GError* error = NULL;
@@ -242,46 +259,46 @@ static gboolean init_gui()
 
     const struct BuilderWidget WIDGETS[] =
     {
-        {&greeter.ui.login_window, "login_window", TRUE},
-        {&greeter.ui.panel_window, "panel_window", FALSE},
-        {&greeter.ui.login_box, "login_box", FALSE},
-        {&greeter.ui.login_widget, "login_widget", FALSE},
-        {&greeter.ui.cancel_widget, "cancel_widget", FALSE},
-        {&greeter.ui.prompt_box, "prompt_box", FALSE},
-        {&greeter.ui.prompt_widget, "prompt_widget", FALSE},
-        {&greeter.ui.prompt_entry, "prompt_entry", TRUE},
-        {&greeter.ui.message_widget, "message_widget", FALSE},
-        {&greeter.ui.user_image, "user_image", FALSE},
-        {&greeter.ui.date_widget, "date_widget", FALSE},
+        {&greeter.ui.login_window,           "login_window",            TRUE},
+        {&greeter.ui.panel_window,           "panel_window",            FALSE},
+        {&greeter.ui.login_box,              "login_box",               FALSE},
+        {&greeter.ui.login_widget,           "login_widget",            FALSE},
+        {&greeter.ui.cancel_widget,          "cancel_widget",           FALSE},
+        {&greeter.ui.prompt_box,             "prompt_box",              FALSE},
+        {&greeter.ui.prompt_widget,          "prompt_widget",           FALSE},
+        {&greeter.ui.prompt_entry,           "prompt_entry",            TRUE},
+        {&greeter.ui.message_widget,         "message_widget",          FALSE},
+        {&greeter.ui.user_image,             "user_image",              FALSE},
+        {&greeter.ui.date_widget,            "date_widget",             FALSE},
 
-        {&greeter.ui.panel.menubar, "menubar", FALSE},
-        {&greeter.ui.power.power_widget, "power_widget", FALSE},
-        {&greeter.ui.power.power_menu, "power_menu", FALSE},
-        {&greeter.ui.power.power_menu_icon, "power_menu_icon", FALSE},
-        {&greeter.ui.power.suspend_widget, "power_suspend_widget", FALSE},
-        {&greeter.ui.power.hibernate_widget, "power_hibernate_widget", FALSE},
-        {&greeter.ui.power.restart_widget, "power_restart_widget", FALSE},
-        {&greeter.ui.power.shutdown_widget, "power_shutdown_widget", FALSE},
-        {&greeter.ui.a11y.a11y_widget, "a11y_widget", FALSE},
-        {&greeter.ui.a11y.a11y_menu, "a11y_menu", FALSE},
-        {&greeter.ui.a11y.a11y_menu_icon, "a11y_menu_icon", FALSE},
-        {&greeter.ui.a11y.osk_widget, "a11y_osk_widget", FALSE},
-        {&greeter.ui.a11y.contrast_widget, "a11y_contrast_widget", FALSE},
-        {&greeter.ui.a11y.font_widget, "a11y_font_widget", FALSE},
-        {&greeter.ui.clock.time_widget, "time_widget", FALSE},
-        {&greeter.ui.clock.time_menu, "time_menu", FALSE},
-        {&greeter.ui.layout.layout_widget, "layout_widget", FALSE},
-        {&greeter.ui.layout.layout_menu, "layout_menu", FALSE},
+        {&greeter.ui.panel.menubar,          "menubar",                 FALSE},
+        {&greeter.ui.power.power_widget,     "power_widget",            FALSE},
+        {&greeter.ui.power.power_menu,       "power_menu",              FALSE},
+        {&greeter.ui.power.power_menu_icon,  "power_menu_icon",         FALSE},
+        {&greeter.ui.power.suspend_widget,   "power_suspend_widget",    FALSE},
+        {&greeter.ui.power.hibernate_widget, "power_hibernate_widget",  FALSE},
+        {&greeter.ui.power.restart_widget,   "power_restart_widget",    FALSE},
+        {&greeter.ui.power.shutdown_widget,  "power_shutdown_widget",   FALSE},
+        {&greeter.ui.a11y.a11y_widget,       "a11y_widget",             FALSE},
+        {&greeter.ui.a11y.a11y_menu,         "a11y_menu",               FALSE},
+        {&greeter.ui.a11y.a11y_menu_icon,    "a11y_menu_icon",          FALSE},
+        {&greeter.ui.a11y.osk_widget,        "a11y_osk_widget",         FALSE},
+        {&greeter.ui.a11y.contrast_widget,   "a11y_contrast_widget",    FALSE},
+        {&greeter.ui.a11y.font_widget,       "a11y_font_widget",        FALSE},
+        {&greeter.ui.clock.time_widget,      "time_widget",             FALSE},
+        {&greeter.ui.clock.time_menu,        "time_menu",               FALSE},
+        {&greeter.ui.layout.layout_widget,   "layout_widget",           FALSE},
+        {&greeter.ui.layout.layout_menu,     "layout_menu",             FALSE},
 
-        {&greeter.ui.user_view, "user_view", TRUE},
-        {&greeter.ui.session_view, "session_view", FALSE},
-        {&greeter.ui.language_view, "language_view", FALSE},
-        {&greeter.ui.user_view_box, "user_view_box", FALSE},
+        {&greeter.ui.user_view,              "user_view",               TRUE},
+        {&greeter.ui.session_view,           "session_view",            FALSE},
+        {&greeter.ui.language_view,          "language_view",           FALSE},
+        {&greeter.ui.user_view_box,          "user_view_box",           FALSE},
 
-        {&greeter.ui.host_widget, "host_widget", FALSE},
-        {&greeter.ui.logo_image, "logo_image", FALSE},
+        {&greeter.ui.host_widget,            "host_widget",             FALSE},
+        {&greeter.ui.logo_image,             "logo_image",              FALSE},
 
-        {NULL, NULL}
+        {NULL, NULL, FALSE}
     };
 
     for(const struct BuilderWidget* w = WIDGETS; w->pwidget != NULL; ++w)
@@ -296,7 +313,8 @@ static gboolean init_gui()
             g_debug("Widget is not found: %s\n", w->name);
     }
 
-    void update_widget_name(GObject* object, gpointer nothing)
+    void update_widget_name(GObject* object,
+                            gpointer nothing)
     {
         if(GTK_IS_WIDGET(object))
             gtk_widget_set_name(GTK_WIDGET(object), gtk_buildable_get_name(GTK_BUILDABLE(object)));
@@ -416,7 +434,7 @@ static void set_background(const char* value)
         g_object_unref(background_pixbuf);
 }
 
-static void show_gui()
+static void show_gui(void)
 {
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
@@ -442,7 +460,7 @@ static void show_gui()
     gtk_widget_show(greeter.ui.login_window);
     gtk_widget_show(greeter.ui.panel_window);
 
-    center_window(greeter.ui.login_window);
+    set_window_position(greeter.ui.login_window, &config.greeter.position);
 
     const gint panel_y_delta = config.panel.panel_at_top ? 0 : monitor_geometry.height - allocation.height;
     gtk_window_move(GTK_WINDOW(greeter.ui.panel_window), monitor_geometry.x, monitor_geometry.y + panel_y_delta);
@@ -468,7 +486,9 @@ static gint get_same_name_count(const gchar* display_name)
     return value ? *value : 0;
 }
 
-static void append_user(GtkTreeModel* model, LightDMUser* user, gboolean update_hash_table)
+static void append_user(GtkTreeModel* model,
+                        LightDMUser* user,
+                        gboolean update_hash_table)
 {
     const gchar* base_display_name = lightdm_user_get_display_name(user);
     const gchar* user_name = lightdm_user_get_name(user);
@@ -515,7 +535,10 @@ static void append_user(GtkTreeModel* model, LightDMUser* user, gboolean update_
                        -1);
 }
 
-static void append_custom_user(GtkTreeModel* model, gint type, const gchar* name, const gchar* display_name)
+static void append_custom_user(GtkTreeModel* model,
+                               gint type,
+                               const gchar* name,
+                               const gchar* display_name)
 {
     g_debug("Adding not real user: %s (%s)", display_name, name);
 
@@ -530,7 +553,7 @@ static void append_custom_user(GtkTreeModel* model, gint type, const gchar* name
                        -1);
 }
 
-static gboolean load_users_list()
+static gboolean load_users_list(void)
 {
     g_message("Reading users list");
 
@@ -572,7 +595,8 @@ static gboolean load_users_list()
     return TRUE;
 }
 
-static GdkPixbuf* get_session_image(const gchar* session, gboolean check_alter_names)
+static GdkPixbuf* get_session_image(const gchar* session,
+                                    gboolean check_alter_names)
 {
     static GHashTable* images_cache = NULL;
     if(!images_cache)
@@ -607,7 +631,7 @@ static GdkPixbuf* get_session_image(const gchar* session, gboolean check_alter_n
     return pixbuf;
 }
 
-static gboolean load_sessions_list()
+static gboolean load_sessions_list(void)
 {
     g_message("Reading sessions list");
 
@@ -644,7 +668,7 @@ static gboolean load_sessions_list()
     return TRUE;
 }
 
-static gboolean load_languages_list()
+static gboolean load_languages_list(void)
 {
     g_message("Reading languages list");
 
@@ -685,7 +709,8 @@ static gboolean load_languages_list()
     return TRUE;
 }
 
-static gboolean get_first_logged_user(GtkTreeModel* model, GtkTreeIter* iter)
+static gboolean get_first_logged_user(GtkTreeModel* model,
+                                      GtkTreeIter* iter)
 {
     if(!gtk_tree_model_get_iter_first(model, iter))
         return FALSE;
@@ -705,7 +730,7 @@ static gboolean get_first_logged_user(GtkTreeModel* model, GtkTreeIter* iter)
     return FALSE;
 }
 
-static void init_user_selection()
+static void init_user_selection(void)
 {
     g_debug("init_user_selection()");
 
@@ -760,7 +785,7 @@ static void set_login_button_state(LoginButtonState state)
     set_widget_text(widget, text);
 }
 
-static void set_logo_image()
+static void set_logo_image(void)
 {
     if(!greeter.ui.logo_image || !config.appearance.logo || strlen(config.appearance.logo) == 0)
         return;
@@ -804,7 +829,7 @@ static void set_logo_image()
     }
 }
 
-static void update_minimal_user_image_size()
+static void update_minimal_user_image_size(void)
 {
     GtkTreeIter iter;
     GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
@@ -892,7 +917,7 @@ static void cancel_authentication(void)
     }
 }
 
-static void start_session()
+static void start_session(void)
 {
     g_message("Starting session for authenticated user");
 
@@ -916,17 +941,17 @@ static void start_session()
     g_free(session);
 }
 
-static gchar* get_user()
+static gchar* get_user(void)
 {
     return get_widget_selection_str(greeter.ui.user_view, USER_COLUMN_NAME, NULL);
 }
 
-static UserType get_user_type()
+static UserType get_user_type(void)
 {
     return get_widget_selection_int(greeter.ui.user_view, USER_COLUMN_TYPE, USER_TYPE_REGULAR);
 }
 
-static gchar* get_session()
+static gchar* get_session(void)
 {
     return get_widget_selection_str(greeter.ui.session_view,
                                     SESSION_COLUMN_NAME,
@@ -951,7 +976,7 @@ static void set_session(const gchar* session)
         set_widget_active_first(greeter.ui.session_view);
 }
 
-static gchar* get_language()
+static gchar* get_language(void)
 {
     return get_widget_selection_str(greeter.ui.language_view, LANGUAGE_COLUMN_CODE, NULL);
 }
@@ -1026,7 +1051,9 @@ static void sigterm_callback(int signum)
  * Definitions: LightDM callbacks
  * ------------------------------------------------------------------------- */
 
-static void on_show_prompt(LightDMGreeter* greeter_ptr, const gchar* text, LightDMPromptType type)
+static void on_show_prompt(LightDMGreeter* greeter_ptr,
+                           const gchar* text,
+                           LightDMPromptType type)
 {
     g_debug("LightDM signal: show-prompt (%s)", text);
 
@@ -1042,7 +1069,9 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr, const gchar* text, Light
     gtk_widget_grab_focus(greeter.ui.prompt_entry);
 }
 
-static void on_show_message(LightDMGreeter* greeter_ptr, const gchar* text, LightDMMessageType type)
+static void on_show_message(LightDMGreeter* greeter_ptr,
+                            const gchar* text,
+                            LightDMMessageType type)
 {
     g_debug("LightDM signal: show-message(%d: %s)", type, text);
     set_message_label(text);
@@ -1095,13 +1124,15 @@ static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
         start_authentication(lightdm_greeter_get_autologin_user_hint(greeter.greeter));
 }
 
-static void on_user_added(LightDMUserList* user_list, LightDMUser* user)
+static void on_user_added(LightDMUserList* user_list,
+                          LightDMUser* user)
 {
     g_debug("LightDM signal: user-added");
     append_user(get_widget_model(greeter.ui.user_view), user, TRUE);
 }
 
-static void on_user_changed(LightDMUserList* user_list, LightDMUser* user)
+static void on_user_changed(LightDMUserList* user_list,
+                            LightDMUser* user)
 {
     g_debug("LightDM signal: user-changed");
     GtkTreeIter iter;
@@ -1117,7 +1148,8 @@ static void on_user_changed(LightDMUserList* user_list, LightDMUser* user)
                        -1);
 }
 
-void on_user_removed(LightDMUserList* user_list, LightDMUser* user)
+void on_user_removed(LightDMUserList* user_list,
+                     LightDMUser* user)
 {
     g_debug("LightDM signal: user-removed");
     GtkTreeIter iter;
@@ -1132,12 +1164,14 @@ void on_user_removed(LightDMUserList* user_list, LightDMUser* user)
  * Definitions: GUI callbacks
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_center_window(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_center_window(GtkWidget* widget,
+                                      gpointer data)
 {
-    center_window(widget);
+    set_window_position(widget, &config.greeter.position);
 }
 
-G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget,
+                                      gpointer data)
 {
     if(lightdm_greeter_get_is_authenticated(greeter.greeter))
         start_session();
@@ -1163,17 +1197,20 @@ G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget, gpointer data)
     set_message_label(NULL);
 }
 
-G_MODULE_EXPORT void on_cancel_clicked(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_cancel_clicked(GtkWidget* widget,
+                                       gpointer data)
 {
     cancel_authentication();
 }
 
-G_MODULE_EXPORT void on_promt_activate(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_promt_activate(GtkWidget* widget,
+                                       gpointer data)
 {
     on_login_clicked(widget, NULL);
 }
 
-G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget,
+                                               gpointer data)
 {
     gchar* user_name = get_user();
     g_debug("User selection changed: %s", user_name);
@@ -1199,7 +1236,9 @@ G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget, gpointer data)
     g_free(user_name);
 }
 
-G_MODULE_EXPORT gboolean on_arrows_press(GtkWidget* widget, GdkEventKey* event, gpointer data)
+G_MODULE_EXPORT gboolean on_arrows_press(GtkWidget* widget,
+                                         GdkEventKey* event,
+                                         gpointer data)
 {
     if(event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down)
     {
@@ -1218,7 +1257,9 @@ G_MODULE_EXPORT gboolean on_arrows_press(GtkWidget* widget, GdkEventKey* event, 
     return FALSE;
 }
 
-G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget, GdkEventKey* event, gpointer data)
+G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
+                                                   GdkEventKey* event,
+                                                   gpointer data)
 {
     switch(event->keyval)
     {
@@ -1236,7 +1277,8 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget, GdkEventKe
     }
 }
 
-G_MODULE_EXPORT void on_show_menu(GtkWidget* widget, GtkWidget* menu)
+G_MODULE_EXPORT void on_show_menu(GtkWidget* widget,
+                                  GtkWidget* menu)
 {
     if(gtk_widget_get_visible(menu))
         gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, GDK_CURRENT_TIME);

@@ -29,6 +29,7 @@
 
 #include "shares.h"
 #include "configuration.h"
+#include "indicator_clock.h"
 
 /* Static variables */
 
@@ -37,17 +38,19 @@ static gulong visibility_notify_id = 0;
 
 /* Static functions */
 
-static gboolean clock_handler(gpointer* data);
+static gboolean clock_handler                    (gpointer* data);
 #ifndef CLOCK_USE_IDO_CALENDAR
-static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out);
+static GtkWidget* create_simple_calendar_item    (GtkWidget** calendar_out);
 #endif
-static gboolean on_visibility_notify(GtkWidget* widget, GdkEvent* event, gpointer data);
+static gboolean on_visibility_notify             (GtkWidget* widget,
+                                                  GdkEvent* event,
+                                                  gpointer data);
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
  * -------------------------------------------------------------------------- */
 
-void init_clock_indicator()
+void init_clock_indicator(void)
 {
     if(!config.clock.enabled)
     {
@@ -128,7 +131,9 @@ static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out)
 }
 #endif
 
-static gboolean on_visibility_notify(GtkWidget* widget, GdkEvent* event, gpointer data)
+static gboolean on_visibility_notify(GtkWidget* widget,
+                                     GdkEvent* event,
+                                     gpointer data)
 {
     GDateTime* datetime = g_date_time_new_now_local();
     if(!datetime)

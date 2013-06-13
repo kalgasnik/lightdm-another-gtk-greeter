@@ -27,7 +27,7 @@
 
 #include "shares.h"
 #include "configuration.h"
-
+#include "indicator_layout.h"
 /* Types */
 
 struct _KeyboardInfo;
@@ -53,25 +53,31 @@ typedef struct _KeyboardInfo
 
 /* Events */
 
-static void on_layout_clicked(GtkRadioMenuItem* menuitem, GroupInfo* group);
-static void state_callback(XklEngine* engine,
-                           XklEngineStateChange changeType,
-                           gint group, gboolean restore, KeyboardInfo* kbd);
-static GdkFilterReturn xkb_evt_filter(GdkXEvent* xev, GdkEvent* event, KeyboardInfo* kbd);
+static void on_layout_clicked          (GtkRadioMenuItem* menuitem,
+                                        GroupInfo* group);
+static void state_callback             (XklEngine* engine,
+                                        XklEngineStateChange changeType,
+                                        gint group,
+                                        gboolean restore,
+                                        KeyboardInfo* kbd);
+static GdkFilterReturn xkb_evt_filter  (GdkXEvent* xev,
+                                        GdkEvent* event,
+                                        KeyboardInfo* kbd);
 
 /* Static functions */
 
-static KeyboardInfo* init_kbd();
-static void start_monitoring(KeyboardInfo* kbd);
-static unsigned char* get_short_names(Display* display);
-static GroupInfo* get_groups(Display* display, int* size);
-static void update_menu(GroupInfo* group_info);
+static KeyboardInfo* init_kbd          (void);
+static void start_monitoring           (KeyboardInfo* kbd);
+static unsigned char* get_short_names  (Display* display);
+static GroupInfo* get_groups           (Display* display,
+                                        int* size);
+static void update_menu                (GroupInfo* group_info);
 
 /* ------------------------------------------------------------------------- *
  * Definitions: public
  * ------------------------------------------------------------------------- */
 
-void init_layout_indicator()
+void init_layout_indicator(void)
 {
     if(!config.layout.enabled)
     {
@@ -113,7 +119,8 @@ void init_layout_indicator()
  * Definitions: events
  * ------------------------------------------------------------------------- */
 
-static void on_layout_clicked(GtkRadioMenuItem* menu_item, GroupInfo* group)
+static void on_layout_clicked(GtkRadioMenuItem* menu_item,
+                              GroupInfo* group)
 {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menu_item)))
     {
@@ -124,13 +131,17 @@ static void on_layout_clicked(GtkRadioMenuItem* menu_item, GroupInfo* group)
 
 static void state_callback(XklEngine* engine,
                            XklEngineStateChange changeType,
-                           gint group, gboolean restore, KeyboardInfo* kbd)
+                           gint group,
+                           gboolean restore,
+                           KeyboardInfo* kbd)
 {
 	if(changeType == GROUP_CHANGED)
         update_menu(&kbd->groups[group]);
 }
 
-static GdkFilterReturn xkb_evt_filter(GdkXEvent* xev, GdkEvent* event, KeyboardInfo* kbd)
+static GdkFilterReturn xkb_evt_filter(GdkXEvent* xev,
+                                      GdkEvent* event,
+                                      KeyboardInfo* kbd)
 {
 	xkl_engine_filter_events(kbd->engine, (XEvent*)xev);
 	return GDK_FILTER_CONTINUE;
@@ -236,7 +247,8 @@ unsigned char* get_short_names(Display* display)
     return prop_value;
 }
 
-static GroupInfo* get_groups(Display* display, int* size)
+static GroupInfo* get_groups(Display* display,
+                             int* size)
 {
     unsigned char* short_names_str = get_short_names(display);
     if(!short_names_str)

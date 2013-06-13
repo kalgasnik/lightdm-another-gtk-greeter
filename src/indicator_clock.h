@@ -24,7 +24,7 @@
 
 /* Functions */
 
-void init_clock_indicator();
+void init_clock_indicator              (void);
 
 
 #endif // _INDICATOR_CLOCK_H_INCLUDED_

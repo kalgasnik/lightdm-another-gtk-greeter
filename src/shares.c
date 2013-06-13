@@ -18,6 +18,7 @@
  */
 
 #include "shares.h"
+#include <string.h>
 
 /* Variables */
 
@@ -27,6 +28,16 @@ const gchar* const USER_OTHER = "*other";
 
 const gchar* const APP_NAME = "lightdm-another-gtk-greeter";
 const gchar* const DEFAULT_USER_ICON = "avatar-default";
+
+const WindowPosition WINDOW_POSITION_CENTER =
+{
+    .x_is_absolute = FALSE,
+    .x = 50,
+    .y_is_absolute = FALSE,
+    .y = 50,
+    .anchor = {.width=0, .height=0}
+};
+
 #ifdef _DEBUG_
 const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
 const gchar* const LOCALE_DIR = "/usr/local/share.locale";
@@ -37,7 +48,8 @@ const gchar* const PACKAGE_VERSION = "<DEBUG>";
 
 /* Static functions */
 
-static void UNSUPPORTED_WIDGET(const gchar* func, GtkWidget* widget)
+static void UNSUPPORTED_WIDGET(const gchar* func,
+                               GtkWidget* widget)
 {
     if(widget)
         g_critical("%s(%s): unsupported widget", func, gtk_widget_get_name(widget));
@@ -71,19 +83,39 @@ void show_error_and_exit(const gchar* message_format, ...)
 
 void center_window(GtkWidget* window)
 {
+    set_window_position(window, &WINDOW_POSITION_CENTER);
+}
+
+void set_window_position(GtkWidget* window,
+                         const WindowPosition* p)
+{
     GdkScreen* screen;
-    GtkAllocation allocation;
+    GtkRequisition size;
     GdkRectangle monitor_geometry;
+    gint dx, dy;
 
     screen = gtk_window_get_screen(GTK_WINDOW(window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &monitor_geometry);
-    gtk_widget_get_allocation(window, &allocation);
-    gtk_window_move(GTK_WINDOW(window),
-                    monitor_geometry.x + (monitor_geometry.width - allocation.width)/2,
-                    monitor_geometry.y + (monitor_geometry.height - allocation.height)/2);
+    gtk_widget_get_preferred_size(window, NULL, &size);
+
+    dx = p->x_is_absolute ? (p->x < 0 ? monitor_geometry.width + p->x : p->x) : (monitor_geometry.width)*p->x/100.0;
+    dy = p->y_is_absolute ? (p->y < 0 ? monitor_geometry.height + p->y : p->y) : (monitor_geometry.height)*p->y/100.0;
+
+    if(p->anchor.width == 0)
+        dx -= size.width/2;
+    else if(p->anchor.width > 0)
+        dx -= size.width;
+
+    if(p->anchor.height == 0)
+        dy -= size.height/2;
+    else if(p->anchor.height > 0)
+        dy -= size.height;
+
+    gtk_window_move(GTK_WINDOW(window), monitor_geometry.x + dx, monitor_geometry.y + dy);
 }
 
-void set_widget_text(GtkWidget* widget, const gchar* text)
+void set_widget_text(GtkWidget* widget,
+                     const gchar* text)
 {
     if(GTK_IS_MENU_ITEM(widget))
         gtk_menu_item_set_label(GTK_MENU_ITEM(widget), text);
@@ -94,7 +126,8 @@ void set_widget_text(GtkWidget* widget, const gchar* text)
     else UNSUPPORTED_WIDGET(__func__, widget);
 }
 
-GdkPixbuf* scale_image(GdkPixbuf* source, int new_width)
+GdkPixbuf* scale_image(GdkPixbuf* source,
+                       int new_width)
 {
     GdkPixbuf* image = source;
     if(new_width > 0)
@@ -124,7 +157,9 @@ GtkTreeModel* get_widget_model(GtkWidget* widget)
     return NULL;
 }
 
-gchar* get_widget_selection_str(GtkWidget* widget, gint column, const gchar* default_value)
+gchar* get_widget_selection_str(GtkWidget* widget,
+                                gint column,
+                                const gchar* default_value)
 {
     GtkTreeIter iter;
     if(!get_widget_active_iter(widget, &iter))
@@ -134,7 +169,9 @@ gchar* get_widget_selection_str(GtkWidget* widget, gint column, const gchar* def
     return value;
 }
 
-GdkPixbuf* get_widget_selection_image(GtkWidget* widget, gint column, GdkPixbuf* default_value)
+GdkPixbuf* get_widget_selection_image(GtkWidget* widget,
+                                      gint column,
+                                      GdkPixbuf* default_value)
 {
     GtkTreeIter iter;
     if(!get_widget_active_iter(widget, &iter))
@@ -144,7 +181,9 @@ GdkPixbuf* get_widget_selection_image(GtkWidget* widget, gint column, GdkPixbuf*
     return value;
 }
 
-gint get_widget_selection_int(GtkWidget* widget, gint column, gint default_value)
+gint get_widget_selection_int(GtkWidget* widget,
+                              gint column,
+                              gint default_value)
 {
     GtkTreeIter iter;
     if(get_widget_active_iter(widget, &iter))
@@ -152,7 +191,8 @@ gint get_widget_selection_int(GtkWidget* widget, gint column, gint default_value
     return default_value;
 }
 
-gboolean get_widget_active_iter(GtkWidget* widget, GtkTreeIter* iter)
+gboolean get_widget_active_iter(GtkWidget* widget,
+                                GtkTreeIter* iter)
 {
     if(GTK_IS_COMBO_BOX(widget))
         return gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), iter);
@@ -162,7 +202,8 @@ gboolean get_widget_active_iter(GtkWidget* widget, GtkTreeIter* iter)
     return FALSE;
 }
 
-void set_widget_active_iter(GtkWidget* widget, GtkTreeIter* iter)
+void set_widget_active_iter(GtkWidget* widget,
+                            GtkTreeIter* iter)
 {
     if(GTK_IS_COMBO_BOX(widget))
         gtk_combo_box_set_active_iter(GTK_COMBO_BOX(widget), iter);
@@ -193,7 +234,10 @@ void set_widget_active_first(GtkWidget* widget)
     else UNSUPPORTED_WIDGET(__func__, widget);
 }
 
-gboolean get_model_iter_str(GtkTreeModel* model, int column, const gchar* value, GtkTreeIter* iter)
+gboolean get_model_iter_str(GtkTreeModel* model,
+                            int column,
+                            const gchar* value,
+                            GtkTreeIter* iter)
 {
     if(!gtk_tree_model_get_iter_first(model, iter))
         return FALSE;
@@ -211,7 +255,8 @@ gboolean get_model_iter_str(GtkTreeModel* model, int column, const gchar* value,
     return FALSE;
 }
 
-void replace_container_content(GtkWidget* widget, GtkWidget* new_content)
+void replace_container_content(GtkWidget* widget,
+                               GtkWidget* new_content)
 {
     gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_destroy, NULL);
     gtk_widget_reparent(new_content, widget);

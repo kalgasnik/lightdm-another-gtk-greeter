@@ -22,6 +22,8 @@
 
 #include <glib.h>
 
+#include "shares.h"
+
 /* Types */
 
 typedef enum
@@ -38,6 +40,7 @@ struct _GreeterConfig
         gboolean allow_other_users;
         gboolean show_language_selector;
         gboolean show_session_icon;
+        WindowPosition position;
     } greeter;
     struct
     {
@@ -102,9 +105,9 @@ extern GreeterConfig config;
 
 /* Functions */
 
-gboolean load_settings();
+gboolean load_settings(void);
 
-gchar* get_last_logged_user();
+gchar* get_last_logged_user(void);
 void save_last_logged_user(const gchar* user);
 
 #endif // _CONFIGURAION_H_INCLUDED_

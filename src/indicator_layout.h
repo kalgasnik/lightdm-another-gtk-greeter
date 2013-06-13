@@ -24,7 +24,7 @@
 
 /* Functions */
 
-void init_layout_indicator();
+void init_layout_indicator             (void);
 
 
 #endif // _INDICATOR_LAYOUT_H_INCLUDED_

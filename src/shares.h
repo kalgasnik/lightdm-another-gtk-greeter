@@ -146,6 +146,23 @@ typedef enum
     LANGUAGE_COLUMN_DISPLAY_NAME
 } LanguagesModelColumn;
 
+struct _WindowPosition
+{
+    gboolean x_is_absolute;
+    gboolean y_is_absolute;
+
+    struct
+    {
+        /* -1: start, 0: center, +1: end */
+        int width;
+        int height;
+    } anchor;
+    int x;
+    int y;
+};
+
+typedef struct _WindowPosition WindowPosition;
+
 /* Variables */
 
 extern GreeterData greeter;
@@ -154,6 +171,9 @@ extern const gchar* const USER_OTHER;
 
 extern const gchar* const APP_NAME;
 extern const gchar* const DEFAULT_USER_ICON;
+
+extern const WindowPosition WINDOW_POSITION_CENTER;
+
 #ifdef _DEBUG_
 extern const gchar* const GETTEXT_PACKAGE;
 extern const gchar* const LOCALE_DIR;
@@ -164,22 +184,42 @@ extern const gchar* const PACKAGE_VERSION;
 
 /* Functions */
 
-void show_error_and_exit(const gchar* message_format, ...) G_GNUC_PRINTF (1, 2);
-void center_window(GtkWidget* window);
-void set_widget_text(GtkWidget* widget, const gchar* text);
-GdkPixbuf* scale_image(GdkPixbuf* source, int new_width);
-void grab_widget_focus(GtkWidget* widget);
+void show_error_and_exit               (const gchar* message_format, ...) G_GNUC_PRINTF (1, 2);
+void center_window                     (GtkWidget* window);
+WindowPosition parse_window_position   (const gchar* s);
+void set_window_position               (GtkWidget* window,
+                                        const WindowPosition* p);
+void set_widget_text                   (GtkWidget* widget,
+                                        const gchar* text);
+GdkPixbuf* scale_image                 (GdkPixbuf* source,
+                                        int new_width);
+void grab_widget_focus                 (GtkWidget* widget);
 
-GtkTreeModel* get_widget_model(GtkWidget* widget);
-gchar* get_widget_selection_str(GtkWidget* widget, gint column, const gchar* default_value);
-GdkPixbuf* get_widget_selection_image(GtkWidget* widget, gint column, GdkPixbuf* default_value);
-gint get_widget_selection_int(GtkWidget* widget, gint column, gint default_value);
-gboolean get_widget_active_iter(GtkWidget* widget, GtkTreeIter* iter);
-void set_widget_active_iter(GtkWidget* widget, GtkTreeIter* iter);
-void set_widget_active_first(GtkWidget* widget);
+GtkTreeModel* get_widget_model         (GtkWidget* widget);
+gchar* get_widget_selection_str        (GtkWidget* widget,
+                                        gint column,
+                                        const gchar* default_value);
+GdkPixbuf* get_widget_selection_image  (GtkWidget* widget,
+                                        gint column,
+                                        GdkPixbuf* default_value);
+gint get_widget_selection_int          (GtkWidget* widget,
+                                        gint column,
+                                        gint default_value);
+gboolean get_widget_active_iter        (GtkWidget* widget,
+                                        GtkTreeIter* iter);
+void set_widget_active_iter            (GtkWidget* widget,
+                                        GtkTreeIter* iter);
+void set_widget_active_first           (GtkWidget* widget);
 
-gboolean get_model_iter_match(GtkTreeModel* model, int column, gboolean f(const gpointer), GtkTreeIter* iter);
-gboolean get_model_iter_str(GtkTreeModel* model, int column, const gchar* value, GtkTreeIter* iter);
-void replace_container_content(GtkWidget* widget, GtkWidget* new_content);
+gboolean get_model_iter_match          (GtkTreeModel* model,
+                                        int column,
+                                        gboolean f(const gpointer),
+                                        GtkTreeIter* iter);
+gboolean get_model_iter_str            (GtkTreeModel* model,
+                                        int column,
+                                        const gchar* value,
+                                        GtkTreeIter* iter);
+void replace_container_content         (GtkWidget* widget,
+                                        GtkWidget* new_content);
 
 #endif // _SHARES_H_INCLUDED_

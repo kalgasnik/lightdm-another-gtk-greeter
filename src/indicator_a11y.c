@@ -27,40 +27,43 @@
 #include "configuration.h"
 #include "indicator_a11y.h"
 
-//#define A11Y_CHECK_THEMES
+/* #define A11Y_CHECK_THEMES */
 
 /* Types */
 
 struct OSKInfo
 {
-    gboolean (*check)();
-    void (*open)();
-    void (*close)();
-    void (*kill)();
+    gboolean (*check) (void);
+    void (*open) (void);
+    void (*close) (void);
+    void (*kill) (void);
 }* OSK = NULL;
 
 /* Exported functions */
 
-G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data);
-G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data);
+G_MODULE_EXPORT void on_a11y_font_toggled       (GtkWidget* widget,
+                                                 gpointer data);
+G_MODULE_EXPORT void on_a11y_contrast_toggled   (GtkWidget* widget,
+                                                 gpointer data);
+G_MODULE_EXPORT void on_a11y_osk_toggled        (GtkWidget* widget,
+                                                 gpointer data);
 
 /* Static functions */
 
-static gboolean check_program(const gchar* name);
-static gboolean check_theme_installed(const gchar* theme);
+static gboolean check_program                   (const gchar* name);
+static gboolean check_theme_installed           (const gchar* theme);
 
-static gboolean osk_check_custom();
-static void osk_open_custom();
-static void osk_close_custom();
-static void osk_kill_custom();
+static gboolean osk_check_custom                (void);
+static void osk_open_custom                     (void);
+static void osk_close_custom                    (void);
+static void osk_kill_custom                     (void);
 
-static gboolean osk_check_onboard();
-static void osk_open_onboard();
-static void osk_close_onboard();
-static void osk_kill_onboard();
+static gboolean osk_check_onboard               (void);
+static void osk_open_onboard                    (void);
+static void osk_close_onboard                   (void);
+static void osk_kill_onboard                    (void);
 
-gboolean center_window_callback(GtkWidget* widget);
+gboolean center_window_callback                 (GtkWidget* widget);
 
 /* Static variables */
 
@@ -74,19 +77,25 @@ static struct
 
 static struct OSKInfo OSKInfoCustom =
 {
-    osk_check_custom, osk_open_custom, osk_close_custom, osk_kill_custom
+    .check = osk_check_custom,
+    .open = osk_open_custom,
+    .close = osk_close_custom,
+    .kill = osk_kill_custom
 };
 
 static struct OSKInfo OSKInfoOnboard =
 {
-    osk_check_onboard, osk_open_onboard, osk_close_onboard, osk_kill_onboard
+    .check = osk_check_onboard,
+    .open = osk_open_onboard,
+    .close = osk_close_onboard,
+    .kill = osk_kill_onboard
 };
 
 /* ------------------------------------------------------------------------- *
  * Definitions: public
  * ------------------------------------------------------------------------- */
 
-void init_a11y_indicator()
+void init_a11y_indicator(void)
 {
     if(!config.a11y.enabled)
     {
@@ -126,17 +135,17 @@ void init_a11y_indicator()
     gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font_scale > 0);
 }
 
-void a11y_osk_open()
+void a11y_osk_open(void)
 {
     if(OSK) OSK->open();
 }
 
-void a11y_osk_close()
+void a11y_osk_close(void)
 {
     if(OSK) OSK->close();
 }
 
-void a11y_osk_kill()
+void a11y_osk_kill(void)
 {
     if(OSK) OSK->kill();
 }
@@ -147,14 +156,13 @@ void a11y_osk_kill()
 
 gboolean center_window_callback(GtkWidget* widget)
 {
-    center_window(widget);
-    return False;
+    set_window_position(widget, &config.greeter.position);
+    return FALSE;
 }
 
-G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
+                                          gpointer data)
 {
-    gtk_widget_hide(greeter.ui.login_window);
-
     GtkSettings* settings = gtk_settings_get_default();
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
     {
@@ -184,29 +192,24 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget, gpointer data)
     {
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
-
-    gtk_widget_show(greeter.ui.login_window);
-
     g_idle_add((GSourceFunc)center_window_callback, greeter.ui.login_window);
-    //center_window(greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
+                                              gpointer data)
 {
-    gtk_widget_hide(greeter.ui.login_window);
-
     GtkSettings* settings = gtk_settings_get_default();
     gboolean contrast = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
     g_object_set(settings, "gtk-theme-name",
                  contrast ? config.a11y.theme_contrast : config.appearance.theme, NULL);
     g_object_set(settings, "gtk-icon-theme-name",
                  contrast ? config.a11y.icon_theme_contrast : config.appearance.icon_theme, NULL);
-
-    gtk_widget_show(greeter.ui.login_window);
-    center_window(greeter.ui.login_window);
+    center_window_callback(greeter.ui.login_window);
+    g_idle_add((GSourceFunc)center_window_callback, greeter.ui.login_window);
 }
 
-G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget, gpointer data)
+G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
+                                         gpointer data)
 {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
         a11y_osk_open();
@@ -226,7 +229,9 @@ static gboolean check_program(const gchar* name)
     return result == 0;
 }
 
-static gboolean check_theme_in_dir(const gchar* theme, const gchar* path, gboolean dot)
+static gboolean check_theme_in_dir(const gchar* theme,
+                                   const gchar* path,
+                                   gboolean dot)
 {
     gboolean found = FALSE;
     gchar* path_to_check = g_build_filename(path, dot ? ".themes/" : "themes/",
@@ -246,12 +251,12 @@ static gboolean check_theme_installed(const gchar* theme)
            check_theme_in_dir(theme, g_get_home_dir(), TRUE);
 }
 
-static gboolean osk_check_custom()
+static gboolean osk_check_custom(void)
 {
     return config.a11y.osk_command_array && check_program(config.a11y.osk_command_array[0]);
 }
 
-static void osk_open_custom()
+static void osk_open_custom(void)
 {
     if(!config.a11y.osk_command_array)
     {
@@ -271,7 +276,7 @@ static void osk_open_custom()
     }
 }
 
-static void osk_close_custom()
+static void osk_close_custom(void)
 {
     if(keyboard_pid != 0)
     {
@@ -282,12 +287,12 @@ static void osk_close_custom()
     }
 }
 
-static void osk_kill_custom()
+static void osk_kill_custom(void)
 {
     osk_close_custom();
 }
 
-static gboolean osk_check_onboard()
+static gboolean osk_check_onboard(void)
 {
     return check_program("onboard");
 }
@@ -298,7 +303,7 @@ static void hide_onboard_window(GtkWidget* widget, gpointer data)
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
 }
 
-static gboolean spawn_onboard()
+static gboolean spawn_onboard(void)
 {
     gint argp;
     gchar** argv = NULL;
@@ -390,7 +395,7 @@ static gboolean spawn_onboard()
     return window != NULL;
 }
 
-static void osk_open_onboard()
+static void osk_open_onboard(void)
 {
     if(!onboard.window && !spawn_onboard())
     {
@@ -401,13 +406,13 @@ static void osk_open_onboard()
     gtk_widget_show(GTK_WIDGET(onboard.window));
 }
 
-static void osk_close_onboard()
+static void osk_close_onboard(void)
 {
     if(onboard.window)
         gtk_widget_hide(GTK_WIDGET(onboard.window));
 }
 
-static void osk_kill_onboard()
+static void osk_kill_onboard(void)
 {
     if(onboard.pid != 0)
     {
