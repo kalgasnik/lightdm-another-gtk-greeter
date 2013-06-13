@@ -451,18 +451,18 @@ static void show_gui(void)
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter) && greeter.ui.user_view_box)
         gtk_widget_hide(greeter.ui.user_view_box);
 
-    GtkAllocation allocation;
+    int panel_height;
     GdkRectangle monitor_geometry;
 
     gdk_screen_get_monitor_geometry(gdk_screen_get_default(), gdk_screen_get_primary_monitor(gdk_screen_get_default()), &monitor_geometry);
     gtk_widget_set_size_request(greeter.ui.panel_window, monitor_geometry.width, -1);
-    gtk_widget_get_allocation(greeter.ui.panel_window, &allocation);
+    gtk_widget_get_preferred_height(greeter.ui.panel_window, NULL, &panel_height);
     gtk_widget_show(greeter.ui.login_window);
     gtk_widget_show(greeter.ui.panel_window);
 
     set_window_position(greeter.ui.login_window, &config.greeter.position);
 
-    const gint panel_y_delta = config.panel.panel_at_top ? 0 : monitor_geometry.height - allocation.height;
+    const gint panel_y_delta = config.panel.panel_at_top ? 0 : monitor_geometry.height - panel_height;
     gtk_window_move(GTK_WINDOW(greeter.ui.panel_window), monitor_geometry.x, monitor_geometry.y + panel_y_delta);
 
     gdk_window_focus(gtk_widget_get_window(greeter.ui.login_window), GDK_CURRENT_TIME);
