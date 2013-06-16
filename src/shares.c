@@ -17,8 +17,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "shares.h"
 #include <string.h>
+#include "shares.h"
+#include "configuration.h"
 
 /* Variables */
 
@@ -38,6 +39,24 @@ const WindowPosition WINDOW_POSITION_CENTER =
     .anchor = {.width=0, .height=0}
 };
 
+const WindowPosition WINDOW_POSITION_TOP =
+{
+    .x_is_absolute = FALSE,
+    .x = 50,
+    .y_is_absolute = TRUE,
+    .y = 0,
+    .anchor = {.width=0, .height=-1}
+};
+
+const WindowPosition WINDOW_POSITION_BOTTOM =
+{
+    .x_is_absolute = FALSE,
+    .x = 50,
+    .y_is_absolute = FALSE,
+    .y = 100,
+    .anchor = {.width=0, .height=1}
+};
+
 #ifdef _DEBUG_
 const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
 const gchar* const LOCALE_DIR = "/usr/local/share.locale";
@@ -48,13 +67,6 @@ const gchar* const PACKAGE_VERSION = "<DEBUG>";
 
 /* Static functions */
 
-static void UNSUPPORTED_WIDGET(const gchar* func,
-                               GtkWidget* widget)
-{
-    if(widget)
-        g_critical("%s(%s): unsupported widget", func, gtk_widget_get_name(widget));
-}
-
 static gboolean _grab_focus(GtkWidget* widget)
 {
     gtk_widget_grab_focus(widget);
@@ -64,6 +76,63 @@ static gboolean _grab_focus(GtkWidget* widget)
 /* ---------------------------------------------------------------------------*
  * Definitions: public
  * -------------------------------------------------------------------------- */
+
+void update_windows_layout(void)
+{
+    GdkRectangle geometry;
+    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.login_window));
+    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+
+    //gtk_widget_set_size_request(greeter.ui.login_window,-1, -1);
+    set_window_position(greeter.ui.login_window, &config.greeter.position);
+
+    if(config.panel.enabled)
+    {
+        gtk_widget_set_size_request(greeter.ui.panel_window, geometry.width, -1);
+        set_window_position(greeter.ui.panel_window, &greeter.state.panel.position);
+    }
+
+    if(greeter.ui.onboard && gtk_widget_get_visible(GTK_WIDGET(greeter.ui.onboard)))
+    {
+        gboolean panel_at_top = config.panel.position == PANEL_POS_TOP;
+        gboolean at_top;
+        switch(config.onboard.position)
+        {
+            case ONBOARD_POS_PANEL: at_top = panel_at_top; break;
+            case ONBOARD_POS_PANEL_OPPOSITE: at_top =  !panel_at_top; break;
+            case ONBOARD_POS_BOTTOM: at_top = FALSE; break;
+            case ONBOARD_POS_TOP: ;
+            default: at_top = TRUE;
+        };
+
+        gint onboard_height = config.onboard.height_is_percent ? geometry.height*config.onboard.height/100 : config.onboard.height;
+        gint onboard_y = at_top ? 0 : geometry.height - onboard_height;
+
+        if(at_top ==  panel_at_top
+           && greeter.ui.panel_window
+           && gtk_widget_get_visible(greeter.ui.panel_window))
+        {
+            gint panel_height;
+            gtk_widget_get_preferred_height(greeter.ui.panel_window, NULL, &panel_height);
+            onboard_y += at_top ? + panel_height : -panel_height;
+        }
+
+        gtk_window_resize(greeter.ui.onboard, geometry.width - geometry.x, onboard_height);
+        gtk_window_move(greeter.ui.onboard, geometry.x, geometry.y + onboard_y);
+
+        gint login_x, login_y, login_height;
+
+        gtk_window_get_position(GTK_WINDOW(greeter.ui.login_window), &login_x, &login_y);
+        gtk_widget_get_preferred_height(greeter.ui.login_window, NULL, &login_height);
+
+        gint new_login_y = login_y;
+        if(at_top && login_y < onboard_y + onboard_height)
+            new_login_y = onboard_y + onboard_height + 5;
+        else if(!at_top && login_y + login_height > onboard_y)
+            new_login_y = onboard_y - login_height - 5;
+        gtk_window_move(GTK_WINDOW(greeter.ui.login_window), login_x, new_login_y);
+    }
+}
 
 void show_error_and_exit(const gchar* message_format, ...)
 {
@@ -76,14 +145,8 @@ void show_error_and_exit(const gchar* message_format, ...)
                            "cancel", GTK_RESPONSE_CANCEL,
                            "ok", GTK_RESPONSE_OK, NULL);
     gtk_widget_show_all(dialog);
-    center_window(dialog);
-
+    set_window_position(dialog, &WINDOW_POSITION_CENTER);
     gtk_dialog_run(GTK_DIALOG(dialog));
-}
-
-void center_window(GtkWidget* window)
-{
-    set_window_position(window, &WINDOW_POSITION_CENTER);
 }
 
 void set_window_position(GtkWidget* window,
@@ -91,15 +154,15 @@ void set_window_position(GtkWidget* window,
 {
     GdkScreen* screen;
     GtkRequisition size;
-    GdkRectangle monitor_geometry;
+    GdkRectangle geometry;
     gint dx, dy;
 
     screen = gtk_window_get_screen(GTK_WINDOW(window));
-    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &monitor_geometry);
+    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_widget_get_preferred_size(window, NULL, &size);
 
-    dx = p->x_is_absolute ? (p->x < 0 ? monitor_geometry.width + p->x : p->x) : (monitor_geometry.width)*p->x/100.0;
-    dy = p->y_is_absolute ? (p->y < 0 ? monitor_geometry.height + p->y : p->y) : (monitor_geometry.height)*p->y/100.0;
+    dx = p->x_is_absolute ? (p->x < 0 ? geometry.width + p->x : p->x) : (geometry.width)*p->x/100.0;
+    dy = p->y_is_absolute ? (p->y < 0 ? geometry.height + p->y : p->y) : (geometry.height)*p->y/100.0;
 
     if(p->anchor.width == 0)
         dx -= size.width/2;
@@ -111,7 +174,7 @@ void set_window_position(GtkWidget* window,
     else if(p->anchor.height > 0)
         dy -= size.height;
 
-    gtk_window_move(GTK_WINDOW(window), monitor_geometry.x + dx, monitor_geometry.y + dy);
+    gtk_window_move(GTK_WINDOW(window), geometry.x + dx, geometry.y + dy);
 }
 
 void set_widget_text(GtkWidget* widget,
@@ -123,7 +186,7 @@ void set_widget_text(GtkWidget* widget,
         gtk_button_set_label(GTK_BUTTON(widget), text);
     else if(GTK_IS_LABEL(widget))
         gtk_label_set_label(GTK_LABEL(widget), text);
-    else UNSUPPORTED_WIDGET(__func__, widget);
+    else g_return_val_if_reached(NULL);
 }
 
 GdkPixbuf* scale_image(GdkPixbuf* source,
@@ -153,8 +216,7 @@ GtkTreeModel* get_widget_model(GtkWidget* widget)
         return gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
-    UNSUPPORTED_WIDGET(__func__, widget);
-    return NULL;
+    g_return_val_if_reached(NULL);
 }
 
 gchar* get_widget_selection_str(GtkWidget* widget,
@@ -198,8 +260,7 @@ gboolean get_widget_active_iter(GtkWidget* widget,
         return gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), iter);
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), NULL, iter);
-    UNSUPPORTED_WIDGET(__func__, widget);
-    return FALSE;
+    g_return_val_if_reached(NULL);
 }
 
 void set_widget_active_iter(GtkWidget* widget,
@@ -217,7 +278,7 @@ void set_widget_active_iter(GtkWidget* widget,
             gtk_tree_path_free(path);
         }
     }
-    else UNSUPPORTED_WIDGET(__func__, widget);
+    else g_return_val_if_reached(NULL);
 }
 
 void set_widget_active_first(GtkWidget* widget)
@@ -231,7 +292,7 @@ void set_widget_active_first(GtkWidget* widget)
             gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), &iter);
         gtk_tree_view_scroll_to_point(GTK_TREE_VIEW(widget), 0, 0);
     }
-    else UNSUPPORTED_WIDGET(__func__, widget);
+    else g_return_val_if_reached(NULL);
 }
 
 gboolean get_model_iter_str(GtkTreeModel* model,
@@ -260,6 +321,23 @@ void replace_container_content(GtkWidget* widget,
 {
     gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_destroy, NULL);
     gtk_widget_reparent(new_content, widget);
+}
+
+gboolean get_widget_toggled(GtkWidget* widget)
+{
+    g_return_val_if_fail(GTK_IS_TOGGLE_BUTTON(widget) || GTK_IS_CHECK_MENU_ITEM(widget), FALSE);
+    if(GTK_IS_TOGGLE_BUTTON(widget))
+        return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
+    return gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
+}
+
+void set_widget_toggled(GtkWidget* widget,
+                        gboolean state)
+{
+    g_return_if_fail(GTK_IS_TOGGLE_BUTTON(widget) || GTK_IS_CHECK_MENU_ITEM(widget));
+    if(GTK_IS_TOGGLE_BUTTON(widget))
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), state);
+    return gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
 }
 
 /* ---------------------------------------------------------------------------*

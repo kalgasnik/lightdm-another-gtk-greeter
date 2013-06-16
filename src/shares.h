@@ -26,6 +26,23 @@
 
 /* Types */
 
+struct _WindowPosition
+{
+    gboolean x_is_absolute;
+    gboolean y_is_absolute;
+
+    struct
+    {
+        /* -1: start, 0: center, +1: end */
+        int width;
+        int height;
+    } anchor;
+    int x;
+    int y;
+};
+
+typedef struct _WindowPosition WindowPosition;
+
 struct _GreeterData
 {
     LightDMGreeter* greeter;
@@ -38,6 +55,10 @@ struct _GreeterData
         GdkPixbuf* default_user_image;
         GdkPixbuf* default_user_image_scaled;
         const gchar* last_background;
+        struct
+        {
+            WindowPosition position;
+        } panel;
     } state;
 
     struct
@@ -104,6 +125,7 @@ struct _GreeterData
         GtkWidget* prompt_entry;
         GtkWidget* host_widget;
         GtkWidget* logo_image;
+        GtkWindow* onboard;
     } ui;
 };
 
@@ -146,23 +168,6 @@ typedef enum
     LANGUAGE_COLUMN_DISPLAY_NAME
 } LanguagesModelColumn;
 
-struct _WindowPosition
-{
-    gboolean x_is_absolute;
-    gboolean y_is_absolute;
-
-    struct
-    {
-        /* -1: start, 0: center, +1: end */
-        int width;
-        int height;
-    } anchor;
-    int x;
-    int y;
-};
-
-typedef struct _WindowPosition WindowPosition;
-
 /* Variables */
 
 extern GreeterData greeter;
@@ -173,6 +178,9 @@ extern const gchar* const APP_NAME;
 extern const gchar* const DEFAULT_USER_ICON;
 
 extern const WindowPosition WINDOW_POSITION_CENTER;
+extern const WindowPosition WINDOW_POSITION_TOP;
+extern const WindowPosition WINDOW_POSITION_BOTTOM;
+
 
 #ifdef _DEBUG_
 extern const gchar* const GETTEXT_PACKAGE;
@@ -184,9 +192,10 @@ extern const gchar* const PACKAGE_VERSION;
 
 /* Functions */
 
+/* Set positions of all application windows according to settings and current program state */
+void update_windows_layout             (void);
+
 void show_error_and_exit               (const gchar* message_format, ...) G_GNUC_PRINTF (1, 2);
-void center_window                     (GtkWidget* window);
-WindowPosition parse_window_position   (const gchar* s);
 void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
@@ -221,5 +230,8 @@ gboolean get_model_iter_str            (GtkTreeModel* model,
                                         GtkTreeIter* iter);
 void replace_container_content         (GtkWidget* widget,
                                         GtkWidget* new_content);
+gboolean get_widget_toggled            (GtkWidget* widget);
+void set_widget_toggled                (GtkWidget* widget,
+                                        gboolean state);
 
 #endif // _SHARES_H_INCLUDED_

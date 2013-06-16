@@ -88,7 +88,7 @@ void init_layout_indicator(void)
     KeyboardInfo* kbd = init_kbd();
     if(!kbd)
     {
-        g_warning("Layout indicator: initialization failed, hiding widget");
+        g_critical("Layout indicator: initialization failed, hiding widget");
         gtk_widget_hide(greeter.ui.layout.layout_widget);
         return;
     }

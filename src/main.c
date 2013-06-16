@@ -40,7 +40,7 @@ static gboolean connect_to_lightdm          (void);
 static gboolean init_css                    (void);
 static gboolean init_gui                    (void);
 static void set_background                  (const char* value);
-static void show_gui                        (void);
+static void run_gui                         (void);
 
 static gboolean load_users_list             (void);
 static gboolean load_sessions_list          (void);
@@ -125,10 +125,9 @@ int main(int argc, char** argv)
 
     gtk_init(&argc, &argv);
 
-    greeter.greeter = lightdm_greeter_new();
-    g_assert(greeter.greeter != NULL);
+    gboolean inited;
 
-    gboolean inited = connect_to_lightdm();
+    inited = connect_to_lightdm();
     inited &= load_settings();
     if(inited)
         init_css();
@@ -143,8 +142,7 @@ int main(int argc, char** argv)
 
         init_user_selection();
 
-        show_gui();
-        gtk_main();
+        run_gui();
     }
     else
         g_critical("Greeter initialization failed");
@@ -159,6 +157,10 @@ int main(int argc, char** argv)
 static gboolean connect_to_lightdm(void)
 {
     g_debug("Connecting to LightDM");
+
+    greeter.greeter = lightdm_greeter_new();
+
+    g_assert(greeter.greeter != NULL);
 
     GError* error = NULL;
     if(!lightdm_greeter_connect_sync(greeter.greeter, &error))
@@ -362,6 +364,7 @@ static gboolean init_gui(void)
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
     gtk_builder_connect_signals(builder, greeter.greeter);
+
     return TRUE;
 }
 
@@ -434,7 +437,7 @@ static void set_background(const char* value)
         g_object_unref(background_pixbuf);
 }
 
-static void show_gui(void)
+static void run_gui(void)
 {
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
@@ -445,27 +448,21 @@ static void show_gui(void)
     if(greeter.ui.date_widget)
     {
         update_date_label(NULL);
-        g_timeout_add_seconds(60, (GSourceFunc)update_date_label, NULL);
+        g_timeout_add_seconds(30, (GSourceFunc)update_date_label, NULL);
     }
 
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter) && greeter.ui.user_view_box)
         gtk_widget_hide(greeter.ui.user_view_box);
 
-    int panel_height;
-    GdkRectangle monitor_geometry;
+    greeter.state.panel.position = config.panel.position == PANEL_POS_TOP ? WINDOW_POSITION_TOP : WINDOW_POSITION_BOTTOM;
 
-    gdk_screen_get_monitor_geometry(gdk_screen_get_default(), gdk_screen_get_primary_monitor(gdk_screen_get_default()), &monitor_geometry);
-    gtk_widget_set_size_request(greeter.ui.panel_window, monitor_geometry.width, -1);
-    gtk_widget_get_preferred_height(greeter.ui.panel_window, NULL, &panel_height);
     gtk_widget_show(greeter.ui.login_window);
     gtk_widget_show(greeter.ui.panel_window);
 
-    set_window_position(greeter.ui.login_window, &config.greeter.position);
-
-    const gint panel_y_delta = config.panel.panel_at_top ? 0 : monitor_geometry.height - panel_height;
-    gtk_window_move(GTK_WINDOW(greeter.ui.panel_window), monitor_geometry.x, monitor_geometry.y + panel_y_delta);
+    update_windows_layout();
 
     gdk_window_focus(gtk_widget_get_window(greeter.ui.login_window), GDK_CURRENT_TIME);
+    gtk_main();
 }
 
 static gint update_users_names_table(const gchar* display_name)
@@ -787,9 +784,14 @@ static void set_login_button_state(LoginButtonState state)
 
 static void set_logo_image(void)
 {
-    if(!greeter.ui.logo_image || !config.appearance.logo || strlen(config.appearance.logo) == 0)
+    if(!greeter.ui.logo_image || !config.appearance.logo)
         return;
-    if(config.appearance.logo[0] == '#')
+    if(strlen(config.appearance.logo) == 0)
+    {
+        g_debug("Setting logo: empty => hiding");
+        gtk_widget_hide(greeter.ui.logo_image);
+    }
+    else if(config.appearance.logo[0] == '#')
     {
         g_debug("Setting logo from icon: %s", config.appearance.logo);
         gchar* logo_string = config.appearance.logo + 1;
@@ -1268,13 +1270,26 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
                 gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel.menubar), FALSE);
             else
                 gtk_widget_grab_focus(greeter.ui.panel_window);
-            return TRUE;
+            break;
         case GDK_KEY_Escape:
             cancel_authentication();
-            return TRUE;
+            break;
+        case GDK_KEY_F1:
+            a11y_toggle_osk();
+            break;
+        case GDK_KEY_F2:
+            a11y_toggle_font();
+            break;
+        case GDK_KEY_F3:
+            a11y_toggle_contrast();
+            break;
+        case GDK_KEY_F12:
+            //TODO: Screenshot
+            break;
         default:
             return FALSE;
     }
+    return TRUE;
 }
 
 G_MODULE_EXPORT void on_show_menu(GtkWidget* widget,

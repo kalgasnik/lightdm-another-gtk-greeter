@@ -33,6 +33,20 @@ typedef enum
     USER_NAME_FORMAT_BOTH
 } UserNameFormat;
 
+typedef enum
+{
+    ONBOARD_POS_TOP,
+    ONBOARD_POS_BOTTOM,
+    ONBOARD_POS_PANEL,
+    ONBOARD_POS_PANEL_OPPOSITE
+} OnboardPosition;
+
+typedef enum
+{
+    PANEL_POS_TOP,
+    PANEL_POS_BOTTOM
+} PanelPosition;
+
 struct _GreeterConfig
 {
     struct
@@ -62,8 +76,8 @@ struct _GreeterConfig
 
     struct
     {
-        gboolean show_panel;
-        gboolean panel_at_top;
+        gboolean enabled;
+        PanelPosition position;
     } panel;
 
     struct
@@ -89,12 +103,20 @@ struct _GreeterConfig
         gboolean check_theme;
         gchar** osk_command_array;
         gboolean osk_use_onboard;
-        gint font_scale;
+
+        gint font_increment;
+        gboolean font_increment_is_percent;
     } a11y;
     struct
     {
         gboolean enabled;
     } layout;
+    struct
+    {
+        OnboardPosition position;
+        gint height;
+        gboolean height_is_percent;
+    } onboard;
 };
 
 typedef struct _GreeterConfig GreeterConfig;

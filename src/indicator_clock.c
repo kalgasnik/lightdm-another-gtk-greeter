@@ -117,7 +117,7 @@ static gboolean clock_handler(gpointer* data)
 #ifndef CLOCK_USE_IDO_CALENDAR
 static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out)
 {
-    g_assert(calendar_out != NULL);
+    g_return_val_if_fail(calendar_out != NULL, NULL);
 
     GtkWidget* calendar = *calendar_out = gtk_calendar_new();
     gtk_calendar_set_display_options(GTK_CALENDAR(calendar),
@@ -135,6 +135,8 @@ static gboolean on_visibility_notify(GtkWidget* widget,
                                      GdkEvent* event,
                                      gpointer data)
 {
+    g_return_val_if_fail(GTK_IS_WIDGET(greeter.ui.clock.date_widget), TRUE);
+
     GDateTime* datetime = g_date_time_new_now_local();
     if(!datetime)
     {

@@ -53,6 +53,9 @@ G_MODULE_EXPORT void on_a11y_osk_toggled        (GtkWidget* widget,
 static gboolean check_program                   (const gchar* name);
 static gboolean check_theme_installed           (const gchar* theme);
 
+static gboolean update_windows_callback         (gpointer data);
+static void update_windows_idle                 (void);
+
 static gboolean osk_check_custom                (void);
 static void osk_open_custom                     (void);
 static void osk_close_custom                    (void);
@@ -63,17 +66,13 @@ static void osk_open_onboard                    (void);
 static void osk_close_onboard                   (void);
 static void osk_kill_onboard                    (void);
 
-gboolean center_window_callback                 (GtkWidget* widget);
-
 /* Static variables */
-
-static GPid keyboard_pid = 0;
 
 static struct
 {
-    GPid pid;
-    GtkWindow* window;
-} onboard;
+    GPid custom;
+    GPid onboard;
+} osk_pid;
 
 static struct OSKInfo OSKInfoCustom =
 {
@@ -124,7 +123,7 @@ void init_a11y_indicator(void)
     else
         allow_contrast = TRUE;
 
-    if(!OSK && !allow_contrast && config.a11y.font_scale <= 0)
+    if(!OSK && !allow_contrast && config.a11y.font_increment <= 0)
     {
         gtk_widget_hide(greeter.ui.a11y.a11y_widget);
         return;
@@ -132,39 +131,55 @@ void init_a11y_indicator(void)
 
     gtk_widget_set_visible(greeter.ui.a11y.osk_widget, OSK != NULL);
     gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, allow_contrast);
-    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font_scale > 0);
+    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font_increment > 0);
+}
+
+void a11y_toggle_osk()
+{
+    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.osk_widget));
+    set_widget_toggled(greeter.ui.a11y.osk_widget, !get_widget_toggled(greeter.ui.a11y.osk_widget));
+}
+
+void a11y_toggle_font(void)
+{
+    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.font_widget));
+    set_widget_toggled(greeter.ui.a11y.font_widget, !get_widget_toggled(greeter.ui.a11y.font_widget));
+}
+
+void a11y_toggle_contrast()
+{
+    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.contrast_widget));
+    set_widget_toggled(greeter.ui.a11y.contrast_widget, !get_widget_toggled(greeter.ui.a11y.contrast_widget));
 }
 
 void a11y_osk_open(void)
 {
-    if(OSK) OSK->open();
+    g_return_if_fail(OSK != NULL);
+    OSK->open();
 }
 
 void a11y_osk_close(void)
 {
-    if(OSK) OSK->close();
+    g_return_if_fail(OSK != NULL);
+    OSK->close();
 }
 
 void a11y_osk_kill(void)
 {
-    if(OSK) OSK->kill();
+    g_return_if_fail(OSK != NULL);
+    OSK->kill();
 }
 
 /* ------------------------------------------------------------------------- *
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
-gboolean center_window_callback(GtkWidget* widget)
-{
-    set_window_position(widget, &config.greeter.position);
-    return FALSE;
-}
-
 G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
                                           gpointer data)
 {
+    gboolean big_font = get_widget_toggled(greeter.ui.a11y.font_widget);
     GtkSettings* settings = gtk_settings_get_default();
-    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
+    if(big_font)
     {
         gchar* font_name;
         gchar** tokens;
@@ -178,8 +193,12 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
             gint size = atoi(tokens[length - 1]);
             if(size > 0)
             {
+                if(config.a11y.font_increment_is_percent)
+                    size += (int)size*config.a11y.font_increment/100;
+                else
+                    size += config.a11y.font_increment;
                 g_free(tokens[length - 1]);
-                tokens[length - 1] = g_strdup_printf("%d", (int)(size*config.a11y.font_scale/100.0));
+                tokens[length - 1] = g_strdup_printf("%d", size);
                 g_free(font_name);
                 font_name = g_strjoinv(" ", tokens);
                 g_object_set(settings, "gtk-font-name", font_name, NULL);
@@ -192,29 +211,29 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
     {
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
-    g_idle_add((GSourceFunc)center_window_callback, greeter.ui.login_window);
+    update_windows_idle();
 }
 
 G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
                                               gpointer data)
 {
+    gboolean contrast = get_widget_toggled(widget);
     GtkSettings* settings = gtk_settings_get_default();
-    gboolean contrast = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
     g_object_set(settings, "gtk-theme-name",
                  contrast ? config.a11y.theme_contrast : config.appearance.theme, NULL);
     g_object_set(settings, "gtk-icon-theme-name",
                  contrast ? config.a11y.icon_theme_contrast : config.appearance.icon_theme, NULL);
-    center_window_callback(greeter.ui.login_window);
-    g_idle_add((GSourceFunc)center_window_callback, greeter.ui.login_window);
+    update_windows_idle();
 }
 
 G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
                                          gpointer data)
 {
-    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
+    if(get_widget_toggled(greeter.ui.a11y.osk_widget))
         a11y_osk_open();
     else
         a11y_osk_close();
+    update_windows_idle();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -251,6 +270,17 @@ static gboolean check_theme_installed(const gchar* theme)
            check_theme_in_dir(theme, g_get_home_dir(), TRUE);
 }
 
+static gboolean update_windows_callback(gpointer data)
+{
+    update_windows_layout();
+    return FALSE;
+}
+
+static void update_windows_idle(void)
+{
+    g_idle_add((GSourceFunc)update_windows_callback, NULL);
+}
+
 static gboolean osk_check_custom(void)
 {
     return config.a11y.osk_command_array && check_program(config.a11y.osk_command_array[0]);
@@ -258,19 +288,16 @@ static gboolean osk_check_custom(void)
 
 static void osk_open_custom(void)
 {
-    if(!config.a11y.osk_command_array)
-    {
-        g_debug("On-screen keyboard command is undefined");
-        return;
-    }
+    g_return_if_fail(config.a11y.osk_command_array != NULL);
     g_debug("Opening on-screen keyboard");
+
     osk_close_custom();
 
     GError* error = NULL;
-    if(!g_spawn_async(NULL, config.a11y.osk_command_array, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &keyboard_pid, &error))
+    if(!g_spawn_async(NULL, config.a11y.osk_command_array, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &osk_pid.custom, &error))
     {
-        g_debug("On-screen keyboard command error: \"%s\"", error ? error->message : "unknown");
-        keyboard_pid = 0;
+        g_critical("On-screen keyboard command error: \"%s\"", error ? error->message : "unknown");
+        osk_pid.custom = 0;
         g_clear_error(&error);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
     }
@@ -278,13 +305,12 @@ static void osk_open_custom(void)
 
 static void osk_close_custom(void)
 {
-    if(keyboard_pid != 0)
-    {
-        g_debug("Killing on-screen keyboard");
-        kill(keyboard_pid, SIGTERM);
-        g_spawn_close_pid(keyboard_pid);
-        keyboard_pid = 0;
-    }
+    g_return_if_fail(osk_pid.custom != 0);
+
+    g_debug("Killing on-screen keyboard");
+    kill(osk_pid.custom, SIGTERM);
+    g_spawn_close_pid(osk_pid.custom);
+    osk_pid.custom = 0;
 }
 
 static void osk_kill_custom(void)
@@ -364,13 +390,6 @@ static gboolean spawn_onboard(void)
             gtk_widget_show(GTK_WIDGET(socket));
             gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(socket));
             gtk_socket_add_id(socket, atol(text));
-
-            GdkScreen* screen = gdk_screen_get_default();
-            gint monitor = gdk_screen_get_monitor_at_window(screen, gtk_widget_get_window(greeter.ui.login_window));
-            GdkRectangle geometry;
-            gdk_screen_get_monitor_geometry(screen, monitor, &geometry);
-            gtk_window_move(window, geometry.x, geometry.y + geometry.height - 200);
-            gtk_window_resize(window, geometry.width - geometry.x, 200);
         }
     }
     else
@@ -388,40 +407,39 @@ static gboolean spawn_onboard(void)
     }
     else if(window != 0)
     {
-        onboard.pid = pid;
-        onboard.window = window;
+        osk_pid.onboard = pid;
+        greeter.ui.onboard = window;
     }
-
     return window != NULL;
 }
 
 static void osk_open_onboard(void)
 {
-    if(!onboard.window && !spawn_onboard())
+    if(!greeter.ui.onboard && !spawn_onboard())
     {
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
         return;
     }
 
-    gtk_widget_show(GTK_WIDGET(onboard.window));
+    gtk_widget_show(GTK_WIDGET(greeter.ui.onboard));
 }
 
 static void osk_close_onboard(void)
 {
-    if(onboard.window)
-        gtk_widget_hide(GTK_WIDGET(onboard.window));
+    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.onboard));
+
+    gtk_widget_hide(GTK_WIDGET(greeter.ui.onboard));
 }
 
 static void osk_kill_onboard(void)
 {
-    if(onboard.pid != 0)
-    {
-        g_debug("Killing on-screen keyboard");
-        kill(onboard.pid, SIGTERM);
-        g_spawn_close_pid(onboard.pid);
-        gtk_widget_destroy(GTK_WIDGET(onboard.window));
-        onboard.pid = 0;
-        onboard.window = NULL;
-    }
+    g_return_if_fail(osk_pid.onboard != 0);
+
+    g_debug("Killing on-screen keyboard");
+    kill(osk_pid.onboard, SIGTERM);
+    g_spawn_close_pid(osk_pid.onboard);
+    gtk_widget_destroy(GTK_WIDGET(greeter.ui.onboard));
+    osk_pid.onboard = 0;
+    greeter.ui.onboard = NULL;
 }
 

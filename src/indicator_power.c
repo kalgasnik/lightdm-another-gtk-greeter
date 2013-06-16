@@ -178,6 +178,8 @@ G_MODULE_EXPORT void on_power_shutdown_activate(GtkWidget* widget,
 
 static gboolean prompt(const PowerActionData* action)
 {
+    g_return_val_if_fail(action != NULL, FALSE);
+
     gtk_widget_hide(greeter.ui.login_window);
     gtk_widget_set_sensitive(greeter.ui.power.power_widget, FALSE);
 
@@ -191,12 +193,12 @@ static gboolean prompt(const PowerActionData* action)
                            _(action->name), GTK_RESPONSE_OK, NULL);
     gtk_window_set_title(GTK_WINDOW(dialog), action->name);
     gtk_widget_show_all(dialog);
-    center_window(dialog);
+    set_window_position(dialog, &WINDOW_POSITION_CENTER);
 
     gboolean result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
 
     gtk_widget_destroy(dialog);
-    center_window(greeter.ui.login_window);
+    update_windows_layout();
     gtk_widget_show(greeter.ui.login_window);
     gtk_widget_set_sensitive(greeter.ui.power.power_widget, TRUE);
 

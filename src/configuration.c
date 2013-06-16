@@ -37,7 +37,7 @@ static gint read_value_int                         (GKeyFile* config_file,
                                                     const gchar* key,
                                                     gint default_value);
 
-static gint read_value_ex_int                      (GKeyFile* config_file,
+static gint read_value_int_missing                 (GKeyFile* config_file,
                                                     const gchar* section,
                                                     const gchar* key,
                                                     gint missing_value,
@@ -48,45 +48,55 @@ static gchar* read_value_string                    (GKeyFile* config_file,
                                                     const gchar* key,
                                                     const gchar* default_value);
 
-static gchar* read_value_ex_string                  (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     const gchar* missing_value,
-                                                     const gchar* empty_value);
+static gchar* read_value_string_missing            (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    const gchar* missing_value,
+                                                    const gchar* empty_value);
 
-static int read_value_enum                          (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     const gchar** names,
-                                                     int default_value);
+static int read_value_enum                         (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    const gchar** names,
+                                                    int default_value);
 
-static void set_gtk_property                        (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     GtkSettings* settings,
-                                                     const gchar* property);
+static void set_gtk_property                       (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    GtkSettings* settings,
+                                                    const gchar* property);
 
-static void set_gtk_property_bool                   (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     GtkSettings* settings,
-                                                     const gchar* property);
+static void set_gtk_property_bool                  (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    GtkSettings* settings,
+                                                    const gchar* property);
 
-static gchar* set_and_save_gtk_property             (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     GtkSettings* settings,
-                                                     const gchar* property);
+static gchar* set_and_save_gtk_property            (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    GtkSettings* settings,
+                                                    const gchar* property);
 
-static WindowPosition read_value_window_position    (GKeyFile* config_file,
-                                                     const gchar* section,
-                                                     const gchar* key,
-                                                     const WindowPosition* default_value);
+static WindowPosition read_value_window_position   (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    const WindowPosition* default_value);
+static int read_value_int_percent                  (GKeyFile* config_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    const gint default_value,
+                                                    const gint default_is_percent,
+                                                    gint* is_percent);
 
 /* Static variables */
 
 static GKeyFile* state_file = NULL;
 static gchar* state_filename = NULL;
+
+static const gchar* USER_NAME_FORMAT_STRINGS[] = {"name", "display-name", "both", NULL};
+static const gchar* PANEL_POSITION_STRINGS[] = {"top", "bottom", NULL};
+static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -136,14 +146,14 @@ gboolean load_settings(void)
         g_object_set(settings, "gtk-xft-dpi", 1024*xft_dpi, NULL);
     g_clear_error(&error);
 
-    const gchar* USER_NAME_FORMAT_VALUES[] = {"name", "display-name", "both", NULL};
     config.appearance.user_name_format = read_value_enum(config_file, CONFIG_SECTION, "user-name-format",
-                                                         USER_NAME_FORMAT_VALUES, USER_NAME_FORMAT_DISPLAYNAME);
+                                                         USER_NAME_FORMAT_STRINGS, USER_NAME_FORMAT_DISPLAYNAME);
     config.appearance.date_format = read_value_string(config_file, CONFIG_SECTION, "date-format", "%A, %e %B");
 
     CONFIG_SECTION = "panel";
-    config.panel.show_panel = read_value_bool(config_file, CONFIG_SECTION, "show-panel", TRUE);
-    config.panel.panel_at_top = read_value_bool(config_file, CONFIG_SECTION, "panel-at-top", TRUE);
+    config.panel.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
+    config.panel.position = read_value_enum(config_file, CONFIG_SECTION, "position",
+                                              PANEL_POSITION_STRINGS, PANEL_POS_TOP);
 
     CONFIG_SECTION = "power";
     config.power.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
@@ -160,11 +170,12 @@ gboolean load_settings(void)
 
     CONFIG_SECTION = "a11y";
     config.a11y.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
-    config.a11y.theme_contrast = read_value_ex_string(config_file, CONFIG_SECTION, "theme-name-contrast",
-                                                      "HighContrast", NULL);
+    config.a11y.theme_contrast = read_value_string_missing(config_file, CONFIG_SECTION, "theme-name-contrast",
+                                                           "HighContrast", NULL);
     config.a11y.icon_theme_contrast = read_value_string(config_file, CONFIG_SECTION, "icon-theme-name-contrast", "HighContrast");
     config.a11y.check_theme = read_value_bool(config_file, CONFIG_SECTION, "check-theme", TRUE);
-    config.a11y.font_scale = read_value_ex_int(config_file, CONFIG_SECTION, "font-scale", 140, -1);
+    config.a11y.font_increment = read_value_int_percent(config_file, CONFIG_SECTION, "font-increment",
+                                                        40, TRUE, &config.a11y.font_increment_is_percent);
     config.a11y.osk_use_onboard = read_value_bool(config_file, CONFIG_SECTION, "osk-use-onboard", FALSE);
 
     gint argp;
@@ -175,6 +186,13 @@ gboolean load_settings(void)
 
     CONFIG_SECTION = "layout";
     config.layout.enabled = read_value_bool(config_file, CONFIG_SECTION, "enabled", TRUE);
+
+    CONFIG_SECTION = "onboard";
+    config.onboard.position = read_value_enum(config_file, CONFIG_SECTION, "position",
+                                              ONBOARD_POSITION_STRINGS, ONBOARD_POS_PANEL_OPPOSITE);
+    config.onboard.height = read_value_int_percent(config_file, CONFIG_SECTION, "height",
+                                                   25, TRUE, &config.onboard.height_is_percent);
+
 
     g_key_file_free(config_file);
 
@@ -199,11 +217,14 @@ gboolean load_settings(void)
 
 gchar* get_last_logged_user(void)
 {
+    g_return_val_if_fail(state_file != NULL, NULL);
     return g_key_file_get_value(state_file, "greeter", "last-user", NULL);
 }
 
 void save_last_logged_user(const gchar* user_name)
 {
+    g_return_if_fail(state_file != NULL && user_name != NULL);
+
     g_key_file_set_value(state_file, "greeter", "last-user", user_name);
 
     gsize data_length = 0;
@@ -211,7 +232,7 @@ void save_last_logged_user(const gchar* user_name)
     gchar* data = g_key_file_to_data(state_file, &data_length, &error);
     if(error)
     {
-        g_warning ("Failed to save state file: %s", error->message);
+        g_warning("Failed to save state file: %s", error->message);
         g_clear_error(&error);
     }
 
@@ -223,8 +244,8 @@ void save_last_logged_user(const gchar* user_name)
             g_warning ("Failed to save state file: %s", error->message);
             g_clear_error(&error);
         }
+        g_free(data);
     }
-    g_free (data);
 }
 
 /* ---------------------------------------------------------------------------*
@@ -236,6 +257,8 @@ static gboolean read_value_bool(GKeyFile* config_file,
                                 const gchar* key,
                                 gboolean default_value)
 {
+    g_return_val_if_fail(config_file && section && key, default_value);
+
     GError* error = NULL;
     gboolean value = g_key_file_get_boolean(config_file, section, key, &error);
     if(error)
@@ -251,6 +274,8 @@ static gint read_value_int(GKeyFile* config_file,
                            const gchar* key,
                            gint default_value)
 {
+    g_return_val_if_fail(config_file && section && key, default_value);
+
     GError* error = NULL;
     gint value = g_key_file_get_integer(config_file, section, key, &error);
     if(error)
@@ -261,12 +286,14 @@ static gint read_value_int(GKeyFile* config_file,
     return value;
 }
 
-static gint read_value_ex_int(GKeyFile* config_file,
-                              const gchar* section,
-                              const gchar* key,
-                              gint missing_value,
-                              gboolean empty_value)
+static gint read_value_int_missing(GKeyFile* config_file,
+                                   const gchar* section,
+                                   const gchar* key,
+                                   gint missing_value,
+                                   gint empty_value)
 {
+    g_return_val_if_fail(config_file && section && key, missing_value);
+
     if(!g_key_file_has_key(config_file, section, key, NULL))
         return missing_value;
     else
@@ -278,16 +305,20 @@ static gchar* read_value_string(GKeyFile* config_file,
                                 const gchar* key,
                                 const gchar* default_value)
 {
+    g_return_val_if_fail(config_file && section && key, default_value);
+
     gchar* value = g_key_file_get_string(config_file, section, key, NULL);
     return value ? value : g_strdup(default_value);
 }
 
-static gchar* read_value_ex_string(GKeyFile* config_file,
-                                   const gchar* section,
-                                   const gchar* key,
-                                   const gchar* missing_value,
-                                   const gchar* empty_value)
+static gchar* read_value_string_missing(GKeyFile* config_file,
+                                        const gchar* section,
+                                        const gchar* key,
+                                        const gchar* missing_value,
+                                        const gchar* empty_value)
 {
+    g_return_val_if_fail(config_file && section && key, missing_value);
+
     if(!g_key_file_has_key(config_file, section, key, NULL))
         return missing_value ? g_strdup(missing_value) : NULL;
     else
@@ -300,6 +331,8 @@ static int read_value_enum(GKeyFile* config_file,
                            const gchar** names,
                            int default_value)
 {
+    g_return_val_if_fail(config_file && section && key && names, default_value);
+
     gchar* value = g_key_file_get_string(config_file, section, key, NULL);
     if(value)
     {
@@ -320,6 +353,8 @@ static void set_gtk_property(GKeyFile* config_file,
                              GtkSettings* settings,
                              const gchar* property)
 {
+    g_return_if_fail(config_file && section && key && settings && property);
+
     gchar* value = g_key_file_get_value(config_file, section, key, NULL);
     if(value)
         g_object_set(settings, property, value, NULL);
@@ -332,6 +367,8 @@ static void set_gtk_property_bool(GKeyFile* config_file,
                                   GtkSettings* settings,
                                   const gchar* property)
 {
+    g_return_if_fail(config_file && section && key && settings && property);
+
     GError* error = NULL;
     gboolean value = g_key_file_get_boolean(config_file, section, key, &error);
     if(!error)
@@ -346,6 +383,8 @@ static gchar* set_and_save_gtk_property(GKeyFile* config_file,
                                         GtkSettings* settings,
                                         const gchar* property)
 {
+    g_return_val_if_fail(config_file && section && key && settings && property, NULL);
+
     gchar* value = g_key_file_get_value(config_file, section, key, NULL);
     if(value)
         g_object_set(settings, property, value, NULL);
@@ -359,6 +398,8 @@ static WindowPosition read_value_window_position(GKeyFile* config_file,
                                                  const gchar* key,
                                                  const WindowPosition* default_value)
 {
+    g_return_val_if_fail(config_file && section && key && default_value, WINDOW_POSITION_CENTER);
+
     WindowPosition p = *default_value;
 
     gchar* value = g_key_file_get_value(config_file, section, key, NULL);
@@ -383,6 +424,33 @@ static WindowPosition read_value_window_position(GKeyFile* config_file,
     }
     g_free(value);
     return p;
+}
+
+static int read_value_int_percent(GKeyFile* config_file,
+                                  const gchar* section,
+                                  const gchar* key,
+                                  const gint default_value,
+                                  const gint default_is_percent,
+                                  gint* is_percent)
+{
+    if(is_percent != NULL)
+        *is_percent = default_is_percent;
+
+    g_return_val_if_fail(config_file && section && key, default_value);
+
+    GError* error = NULL;
+    gchar* value_end;
+    gchar* value = g_key_file_get_value(config_file, section, key, &error);
+    if(error)
+    {
+        g_clear_error(&error);
+        return default_value;
+    }
+
+    gint result = (int)g_strtod(value, &value_end);
+    *is_percent = value_end[0] == '%';
+    g_free(value);
+    return result;
 }
 
 

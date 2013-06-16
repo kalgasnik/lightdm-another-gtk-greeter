@@ -1,8 +1,7 @@
 SUBDIRS = data po src
 
 EXTRA_DIST = \
-	autogen.sh \
-	lightdm-another-gtk-greeter.doap
+	autogen.sh
 
 DISTCLEANFILES = \
 	gtk-doc.make \
