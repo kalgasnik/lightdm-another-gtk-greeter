@@ -127,7 +127,7 @@ extern GreeterConfig config;
 
 /* Functions */
 
-gboolean load_settings(void);
+void load_settings(void);
 
 gchar* get_last_logged_user(void);
 void save_last_logged_user(const gchar* user);

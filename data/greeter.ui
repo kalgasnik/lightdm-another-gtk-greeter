@@ -418,6 +418,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="pack_direction">rtl</property>
+        <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
         <child>
           <object class="GtkMenuItem" id="power_widget">
             <property name="visible">True</property>

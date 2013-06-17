@@ -102,7 +102,7 @@ static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opp
  * Definitions: public
  * -------------------------------------------------------------------------- */
 
-gboolean load_settings(void)
+void load_settings(void)
 {
     g_message("Reading configuration: %s", CONFIG_FILE);
 
@@ -210,9 +210,7 @@ gboolean load_settings(void)
     g_key_file_load_from_file(state_file, state_filename, G_KEY_FILE_NONE, &error);
     if(error && !g_error_matches(error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
         g_warning("Failed to load state from %s: %s\n", state_filename, error->message);
-    g_clear_error (&error);
-
-    return TRUE;
+    g_clear_error(&error);
 }
 
 gchar* get_last_logged_user(void)

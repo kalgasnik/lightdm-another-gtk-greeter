@@ -19,12 +19,13 @@
 
 #include <stdlib.h>
 #include <locale.h>
+
+#include <cairo-xlib.h>
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
-#include <cairo-xlib.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkx.h>
-#include <gdk/gdkkeysyms.h>
+
 #include <lightdm.h>
 
 #include "shares.h"
@@ -53,6 +54,8 @@ static void set_message_label               (const gchar* text);
 static void set_login_button_state          (LoginButtonState state);
 static void update_minimal_user_image_size  (void);
 static gboolean update_date_label           (gpointer dummy);
+
+static void take_screenshot                 (void);
 
 static void start_authentication            (const gchar* username);
 static void cancel_authentication           (void);
@@ -125,10 +128,9 @@ int main(int argc, char** argv)
 
     gtk_init(&argc, &argv);
 
-    gboolean inited;
+    load_settings();
 
-    inited = connect_to_lightdm();
-    inited &= load_settings();
+    gboolean inited = connect_to_lightdm();
     if(inited)
         init_css();
     inited &= init_gui();
@@ -141,11 +143,12 @@ int main(int argc, char** argv)
         init_layout_indicator();
 
         init_user_selection();
-
         run_gui();
     }
     else
+    {
         g_critical("Greeter initialization failed");
+    }
 
     return inited ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -165,14 +168,18 @@ static gboolean connect_to_lightdm(void)
     GError* error = NULL;
     if(!lightdm_greeter_connect_sync(greeter.greeter, &error))
     {
+        #ifndef _DEBUG_
         if(error)
         {
             g_critical("Connection to LightDM failed with error: %s", error->message);
+            show_error(_("Error"), _("Connection to LightDM failed with error: %s"), error->message);
             g_clear_error(&error);
         }
         else
+        {
             g_critical("Connection to LightDM failed");
-        #ifndef _DEBUG_
+            show_error(_("Error"), _("Connection to LightDM failed"));
+        }
         return FALSE;
         #endif
     }
@@ -243,11 +250,12 @@ static gboolean init_gui(void)
     g_message("Loading UI file: %s", ui_file);
     if(!gtk_builder_add_from_file(builder, ui_file, &error))
     {
-        g_warning("Error loading UI file: %s", error->message);
+        g_critical("Error loading UI file: %s", error->message);
+        show_error(_("Error"), _("Error loading UI file:\n\n%s"), error->message);
         g_free(ui_file);
+        g_clear_error(&error);
         return FALSE;
     }
-    g_clear_error(&error);
     g_free(ui_file);
 
     gdk_window_set_cursor(gdk_get_default_root_window(), gdk_cursor_new(GDK_LEFT_PTR));
@@ -309,6 +317,7 @@ static gboolean init_gui(void)
         if(w->needed && *w->pwidget == NULL)
         {
             g_critical("Widget is not found: %s\n", w->name);
+            show_error(_("Loading UI: error"), _("Widget is not found: %s\n"), w->name);
             return FALSE;
         }
         else
@@ -448,7 +457,7 @@ static void run_gui(void)
     if(greeter.ui.date_widget)
     {
         update_date_label(NULL);
-        g_timeout_add_seconds(30, (GSourceFunc)update_date_label, NULL);
+        g_timeout_add_seconds(1, (GSourceFunc)update_date_label, NULL);
     }
 
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter) && greeter.ui.user_view_box)
@@ -871,6 +880,42 @@ static gboolean update_date_label(gpointer dummy)
     return FALSE;
 }
 
+static void take_screenshot(void)
+{
+    g_debug("Taking screenshot");
+    gchar* file_dir = g_build_filename(g_get_tmp_dir(), APP_NAME, NULL);
+    if(g_mkdir_with_parents(file_dir, 02755) != 0)
+    {
+        g_warning("Creating temporary directory: failed (%s)", file_dir);
+        g_free(file_dir);
+        return;
+    }
+
+    GdkWindow* root_window = gdk_get_default_root_window();
+    GdkPixbuf* screenshot = gdk_pixbuf_get_from_window(root_window, 0, 0,
+                                                       gdk_window_get_width(root_window),
+                                                       gdk_window_get_height(root_window));
+
+    GDateTime* datetime = g_date_time_new_now_local();
+
+    gchar* file_name = datetime ? g_date_time_format(datetime, "screenshot_%F_%T.png") : g_strdup("screenshot.png");
+    gchar* file_path = g_build_filename(file_dir, file_name, NULL);
+
+    GError* error = NULL;
+    gdk_pixbuf_save(screenshot, file_path, "png", &error, NULL);
+    if(error)
+    {
+        g_warning("Failed: %s", error->message);
+        show_error(_("Screenshot"), "%s", error->message);
+        g_clear_error(&error);
+    };
+    g_date_time_unref(datetime);
+    g_object_unref(screenshot);
+    g_free(file_path);
+    g_free(file_name);
+    g_free(file_dir);
+}
+
 static void start_authentication(const gchar* user_name)
 {
     g_message("Starting authentication for user \"%s\"", user_name);
@@ -1283,8 +1328,8 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
         case GDK_KEY_F3:
             a11y_toggle_contrast();
             break;
-        case GDK_KEY_F12:
-            //TODO: Screenshot
+        case GDK_KEY_Print:
+            take_screenshot();
             break;
         default:
             return FALSE;

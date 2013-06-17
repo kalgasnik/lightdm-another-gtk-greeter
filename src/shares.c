@@ -67,11 +67,13 @@ const gchar* const PACKAGE_VERSION = "<DEBUG>";
 
 /* Static functions */
 
-static gboolean _grab_focus(GtkWidget* widget)
-{
-    gtk_widget_grab_focus(widget);
-    return FALSE;
-}
+static void show_message_dialog        (GtkMessageType type,
+                                        const gchar* title,
+                                        const gchar* message_format,
+                                        va_list args);
+
+static gboolean _grab_focus            (GtkWidget* widget);
+
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -134,19 +136,24 @@ void update_windows_layout(void)
     }
 }
 
-void show_error_and_exit(const gchar* message_format, ...)
+void show_message(const gchar* title,
+                  const gchar* message_format,
+                  ...)
 {
-    GtkWidget* dialog = gtk_message_dialog_new(NULL,
-                                    GTK_DIALOG_MODAL,
-                                    GTK_MESSAGE_QUESTION,
-                                    GTK_BUTTONS_NONE,
-                                    "%s", message_format);
-    gtk_dialog_add_buttons(GTK_DIALOG(dialog),
-                           "cancel", GTK_RESPONSE_CANCEL,
-                           "ok", GTK_RESPONSE_OK, NULL);
-    gtk_widget_show_all(dialog);
-    set_window_position(dialog, &WINDOW_POSITION_CENTER);
-    gtk_dialog_run(GTK_DIALOG(dialog));
+    va_list argptr;
+    va_start(argptr, message_format);
+    show_message_dialog(GTK_MESSAGE_INFO, title, message_format, argptr);
+    va_end(argptr);
+}
+
+void show_error(const gchar* title,
+                const gchar* message_format,
+                ...)
+{
+    va_list argptr;
+    va_start(argptr, message_format);
+    show_message_dialog(GTK_MESSAGE_ERROR, title, message_format, argptr);
+    va_end(argptr);
 }
 
 void set_window_position(GtkWidget* window,
@@ -344,4 +351,25 @@ void set_widget_toggled(GtkWidget* widget,
  * Definitions: static
  * -------------------------------------------------------------------------- */
 
+static void show_message_dialog(GtkMessageType type,
+                                const gchar* title,
+                                const gchar* message_format,
+                                va_list args)
+{
+    gchar* message = g_strdup_vprintf(message_format, args);
+    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK,
+                                               "%s", message);
+    g_free(message);
 
+    gtk_window_set_title(GTK_WINDOW(dialog), title);
+    gtk_widget_show_all(dialog);
+    set_window_position(dialog, &WINDOW_POSITION_CENTER);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+}
+
+static gboolean _grab_focus(GtkWidget* widget)
+{
+    gtk_widget_grab_focus(widget);
+    return FALSE;
+}
