@@ -203,6 +203,8 @@ void a11y_toggle_contrast()
 G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
                                           gpointer data)
 {
+    g_return_if_fail(gtk_widget_get_visible(widget));
+
     gboolean big_font = get_widget_toggled(greeter.ui.a11y.font_widget);
     GtkSettings* settings = gtk_settings_get_default();
     if(big_font)
@@ -244,6 +246,8 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
 G_MODULE_EXPORT void on_a11y_dpi_toggled(GtkWidget* widget,
                                          gpointer data)
 {
+    g_return_if_fail(gtk_widget_get_visible(widget));
+
     gboolean dpi = get_widget_toggled(greeter.ui.a11y.dpi_widget);
     gint value = config.appearance.dpi;
     GtkSettings* settings = gtk_settings_get_default();
@@ -261,6 +265,8 @@ G_MODULE_EXPORT void on_a11y_dpi_toggled(GtkWidget* widget,
 G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
                                               gpointer data)
 {
+    g_return_if_fail(gtk_widget_get_visible(widget));
+
     gboolean contrast = get_widget_toggled(widget);
     GtkSettings* settings = gtk_settings_get_default();
     g_object_set(settings, "gtk-theme-name",
@@ -277,6 +283,7 @@ G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
     g_return_if_fail(onscreen_keyboard != NULL);
     g_return_if_fail(onscreen_keyboard->open != NULL);
     g_return_if_fail(onscreen_keyboard->close != NULL);
+    g_return_if_fail(gtk_widget_get_visible(widget));
 
     if(get_widget_toggled(greeter.ui.a11y.osk_widget))
         onscreen_keyboard->open();

@@ -1365,6 +1365,9 @@ G_MODULE_EXPORT gboolean on_special_key_press(GtkWidget* widget,
         case GDK_KEY_F3:
             a11y_toggle_contrast();
             break;
+        case GDK_KEY_F4:
+            a11y_toggle_dpi();
+            break;
         case GDK_KEY_Print:
             take_screenshot();
             break;
