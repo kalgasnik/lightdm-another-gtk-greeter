@@ -323,11 +323,20 @@ gboolean get_model_iter_str(GtkTreeModel* model,
     return FALSE;
 }
 
-void replace_container_content(GtkWidget* widget,
-                               GtkWidget* new_content)
+void fix_image_menu_item_if_empty(GtkImageMenuItem* widget)
 {
-    gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_destroy, NULL);
-    gtk_widget_reparent(new_content, widget);
+    if(GTK_IS_IMAGE_MENU_ITEM(widget) &&
+       (!gtk_menu_item_get_label(GTK_MENU_ITEM(widget)) ||
+        strlen(gtk_menu_item_get_label(GTK_MENU_ITEM(widget))) == 0))
+    {
+        GtkWidget* image = gtk_image_menu_item_get_image(widget);
+        if(!image)
+            return;
+        //gtk_widget_reparent(image, NULL);
+        gtk_image_menu_item_set_image(widget, NULL);
+        gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_destroy, NULL);
+        gtk_container_add(GTK_CONTAINER(widget), image);
+    }
 }
 
 gboolean get_widget_toggled(GtkWidget* widget)

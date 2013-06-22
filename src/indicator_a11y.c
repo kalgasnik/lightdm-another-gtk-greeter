@@ -27,21 +27,23 @@
 #include "configuration.h"
 #include "indicator_a11y.h"
 
-/* #define A11Y_CHECK_THEMES */
-
 /* Types */
 
-struct OSKInfo
+struct _OnscreenKeyboardInfo
 {
     gboolean (*check) (void);
     void (*open) (void);
     void (*close) (void);
     void (*kill) (void);
-}* OSK = NULL;
+};
+
+typedef struct _OnscreenKeyboardInfo OnscreenKeyboardInfo;
 
 /* Exported functions */
 
 G_MODULE_EXPORT void on_a11y_font_toggled       (GtkWidget* widget,
+                                                 gpointer data);
+G_MODULE_EXPORT void on_a11y_dpi_toggled        (GtkWidget* widget,
                                                  gpointer data);
 G_MODULE_EXPORT void on_a11y_contrast_toggled   (GtkWidget* widget,
                                                  gpointer data);
@@ -50,8 +52,14 @@ G_MODULE_EXPORT void on_a11y_osk_toggled        (GtkWidget* widget,
 
 /* Static functions */
 
-static gboolean check_program                   (const gchar* name);
-static gboolean check_theme_installed           (const gchar* theme);
+static gint get_increment                       (gint value,
+                                                 gint increment,
+                                                 gboolean is_percent);
+static gboolean program_is_available            (const gchar* name);
+static gboolean dir_contains_theme              (const gchar* theme,
+                                                 const gchar* path,
+                                                 gboolean dot);
+static gboolean theme_is_installed              (const gchar* theme);
 
 static gboolean update_windows_callback         (gpointer data);
 static void update_windows_idle                 (void);
@@ -68,26 +76,39 @@ static void osk_kill_onboard                    (void);
 
 /* Static variables */
 
+static OnscreenKeyboardInfo* onscreen_keyboard = NULL;
+
 static struct
 {
-    GPid custom;
-    GPid onboard;
-} osk_pid;
-
-static struct OSKInfo OSKInfoCustom =
+    OnscreenKeyboardInfo info;
+    GPid pid;
+}
+keyboard_command =
 {
-    .check = osk_check_custom,
-    .open = osk_open_custom,
-    .close = osk_close_custom,
-    .kill = osk_kill_custom
+    .info =
+    {
+        .check = osk_check_custom,
+        .open = osk_open_custom,
+        .close = osk_close_custom,
+        .kill = osk_kill_custom
+    }
 };
 
-static struct OSKInfo OSKInfoOnboard =
+static struct
 {
-    .check = osk_check_onboard,
-    .open = osk_open_onboard,
-    .close = osk_close_onboard,
-    .kill = osk_kill_onboard
+    OnscreenKeyboardInfo info;
+    GPid pid;
+    GtkSocket* socket;
+}
+keyboard_onboard =
+{
+    .info =
+    {
+        .check = osk_check_onboard,
+        .open = osk_open_onboard,
+        .close = osk_close_onboard,
+        .kill = osk_kill_onboard
+    }
 };
 
 /* ------------------------------------------------------------------------- *
@@ -102,36 +123,53 @@ void init_a11y_indicator(void)
         return;
     }
 
-    if(greeter.ui.a11y.a11y_menu_icon && GTK_IS_MENU_ITEM(greeter.ui.a11y.a11y_widget))
-        replace_container_content(greeter.ui.a11y.a11y_widget, greeter.ui.a11y.a11y_menu_icon);
+    if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget))
+        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget));
 
-    if(config.a11y.osk_use_onboard && osk_check_onboard())
-        OSK = &OSKInfoOnboard;
-    else if(osk_check_custom())
-        OSK = &OSKInfoCustom;
+    if(config.a11y.osk.use_onboard && keyboard_onboard.info.check())
+        onscreen_keyboard = &keyboard_onboard.info;
+    else if(keyboard_command.info.check())
+        onscreen_keyboard = &keyboard_command.info;
     else
-    {
-        OSK = NULL;
-        g_warning("a11y indicator: no virtual keyboard found");
-    }
+        g_warning("a11y: no virtual keyboard found or allowed");
 
     gboolean allow_contrast = FALSE;
     if(!config.a11y.theme_contrast || strlen(config.a11y.theme_contrast) == 0)
         ;
-    else if(config.a11y.check_theme && !check_theme_installed(config.a11y.theme_contrast))
-        g_warning("a11y indicator: contrast theme is not found (%s)", config.a11y.theme_contrast);
+    else if(config.a11y.check_theme && !theme_is_installed(config.a11y.theme_contrast))
+        g_warning("a11y: contrast theme is not found (%s)", config.a11y.theme_contrast);
     else
         allow_contrast = TRUE;
 
-    if(!OSK && !allow_contrast && config.a11y.font_increment <= 0)
+    if(!onscreen_keyboard &&
+       !allow_contrast &&
+       config.a11y.font.increment <= 0 &&
+       config.a11y.dpi.increment <= 0)
     {
+        g_message("a11y: no options enabled, hiding menu item");
         gtk_widget_hide(greeter.ui.a11y.a11y_widget);
         return;
     }
 
-    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, OSK != NULL);
+    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, onscreen_keyboard != NULL);
+    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font.increment > 0);
+    gtk_widget_set_visible(greeter.ui.a11y.dpi_widget, config.a11y.dpi.increment > 0);
     gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, allow_contrast);
-    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font_increment > 0);
+
+    if(gtk_widget_get_visible(greeter.ui.a11y.contrast_widget) && a11y_get_contrast_state())
+        a11y_toggle_contrast();
+    if(gtk_widget_get_visible(greeter.ui.a11y.font_widget) && a11y_get_font_state())
+        a11y_toggle_font();
+    if(gtk_widget_get_visible(greeter.ui.a11y.dpi_widget) && a11y_get_dpi_state())
+        a11y_toggle_dpi();
+}
+
+void a11y_close(void)
+{
+    g_return_if_fail(onscreen_keyboard != NULL);
+    g_return_if_fail(onscreen_keyboard->kill != NULL);
+
+    onscreen_keyboard->kill();
 }
 
 void a11y_toggle_osk()
@@ -146,28 +184,16 @@ void a11y_toggle_font(void)
     set_widget_toggled(greeter.ui.a11y.font_widget, !get_widget_toggled(greeter.ui.a11y.font_widget));
 }
 
+void a11y_toggle_dpi(void)
+{
+    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.dpi_widget));
+    set_widget_toggled(greeter.ui.a11y.dpi_widget, !get_widget_toggled(greeter.ui.a11y.dpi_widget));
+}
+
 void a11y_toggle_contrast()
 {
     g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.contrast_widget));
     set_widget_toggled(greeter.ui.a11y.contrast_widget, !get_widget_toggled(greeter.ui.a11y.contrast_widget));
-}
-
-void a11y_osk_open(void)
-{
-    g_return_if_fail(OSK != NULL);
-    OSK->open();
-}
-
-void a11y_osk_close(void)
-{
-    g_return_if_fail(OSK != NULL);
-    OSK->close();
-}
-
-void a11y_osk_kill(void)
-{
-    g_return_if_fail(OSK != NULL);
-    OSK->kill();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -193,10 +219,10 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
             gint size = atoi(tokens[length - 1]);
             if(size > 0)
             {
-                if(config.a11y.font_increment_is_percent)
-                    size += (int)size*config.a11y.font_increment/100;
+                if(config.a11y.font.is_percent)
+                    size += (int)size*config.a11y.font.increment/100;
                 else
-                    size += config.a11y.font_increment;
+                    size += config.a11y.font.increment;
                 g_free(tokens[length - 1]);
                 tokens[length - 1] = g_strdup_printf("%d", size);
                 g_free(font_name);
@@ -211,6 +237,24 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
     {
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
+    a11y_save_font_state(big_font);
+    update_windows_idle();
+}
+
+G_MODULE_EXPORT void on_a11y_dpi_toggled(GtkWidget* widget,
+                                         gpointer data)
+{
+    gboolean dpi = get_widget_toggled(greeter.ui.a11y.dpi_widget);
+    gint value = config.appearance.dpi;
+    GtkSettings* settings = gtk_settings_get_default();
+    if(dpi)
+    {
+        gint current;
+        g_object_get(settings, "gtk-xft-dpi", &current, NULL);
+        value = get_increment(value, config.a11y.dpi.increment, config.a11y.dpi.is_percent);
+    }
+    g_object_set(settings, "gtk-xft-dpi", value*1024, NULL);
+    a11y_save_dpi_state(dpi);
     update_windows_idle();
 }
 
@@ -223,16 +267,21 @@ G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
                  contrast ? config.a11y.theme_contrast : config.appearance.theme, NULL);
     g_object_set(settings, "gtk-icon-theme-name",
                  contrast ? config.a11y.icon_theme_contrast : config.appearance.icon_theme, NULL);
+    a11y_save_contrast_state(contrast);
     update_windows_idle();
 }
 
 G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
                                          gpointer data)
 {
+    g_return_if_fail(onscreen_keyboard != NULL);
+    g_return_if_fail(onscreen_keyboard->open != NULL);
+    g_return_if_fail(onscreen_keyboard->close != NULL);
+
     if(get_widget_toggled(greeter.ui.a11y.osk_widget))
-        a11y_osk_open();
+        onscreen_keyboard->open();
     else
-        a11y_osk_close();
+        onscreen_keyboard->close();
     update_windows_idle();
 }
 
@@ -240,7 +289,14 @@ G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
  * Definitions: static
  * ------------------------------------------------------------------------- */
 
-static gboolean check_program(const gchar* name)
+static gint get_increment(gint value,
+                          gint increment,
+                          gboolean is_percent)
+{
+    return value + (is_percent ? value*increment/100 : increment);
+}
+
+static gboolean program_is_available(const gchar* name)
 {
     gchar* cmd = g_strdup_printf("which %s", name);
     int result = system(cmd);
@@ -248,7 +304,7 @@ static gboolean check_program(const gchar* name)
     return result == 0;
 }
 
-static gboolean check_theme_in_dir(const gchar* theme,
+static gboolean dir_contains_theme(const gchar* theme,
                                    const gchar* path,
                                    gboolean dot)
 {
@@ -261,13 +317,13 @@ static gboolean check_theme_in_dir(const gchar* theme,
     return found;
 }
 
-static gboolean check_theme_installed(const gchar* theme)
+static gboolean theme_is_installed(const gchar* theme)
 {
     for(const gchar* const* path = g_get_system_data_dirs(); *path; ++path)
-        if(check_theme_in_dir(theme, *path, FALSE))
+        if(dir_contains_theme(theme, *path, FALSE))
             return TRUE;
-    return check_theme_in_dir(theme, g_get_user_data_dir(), FALSE) ||
-           check_theme_in_dir(theme, g_get_home_dir(), TRUE);
+    return dir_contains_theme(theme, g_get_user_data_dir(), FALSE) ||
+           dir_contains_theme(theme, g_get_home_dir(), TRUE);
 }
 
 static gboolean update_windows_callback(gpointer data)
@@ -283,34 +339,35 @@ static void update_windows_idle(void)
 
 static gboolean osk_check_custom(void)
 {
-    return config.a11y.osk_command_array && check_program(config.a11y.osk_command_array[0]);
+    return config.a11y.osk.command && program_is_available(config.a11y.osk.command[0]);
 }
 
 static void osk_open_custom(void)
 {
-    g_return_if_fail(config.a11y.osk_command_array != NULL);
     g_debug("Opening on-screen keyboard");
+    g_return_if_fail(config.a11y.osk.command != NULL);
 
     osk_close_custom();
 
     GError* error = NULL;
-    if(!g_spawn_async(NULL, config.a11y.osk_command_array, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &osk_pid.custom, &error))
+    if(!g_spawn_async(NULL, config.a11y.osk.command, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &keyboard_command.pid, &error))
     {
-        g_critical("On-screen keyboard command error: \"%s\"", error ? error->message : "unknown");
-        osk_pid.custom = 0;
-        g_clear_error(&error);
+        onscreen_keyboard = NULL;
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
+        g_warning("On-screen keyboard command error: %s", error->message);
+        show_error(_("On-screen keyboard"), _("Failed to start keyboard command:\n%s"), error->message);
+        g_clear_error(&error);
     }
 }
 
 static void osk_close_custom(void)
 {
-    g_return_if_fail(osk_pid.custom != 0);
-
     g_debug("Killing on-screen keyboard");
-    kill(osk_pid.custom, SIGTERM);
-    g_spawn_close_pid(osk_pid.custom);
-    osk_pid.custom = 0;
+    g_return_if_fail(keyboard_command.pid != 0);
+
+    kill(keyboard_command.pid, SIGTERM);
+    g_spawn_close_pid(keyboard_command.pid);
+    keyboard_command.pid = 0;
 }
 
 static void osk_kill_custom(void)
@@ -320,24 +377,31 @@ static void osk_kill_custom(void)
 
 static gboolean osk_check_onboard(void)
 {
-    return check_program("onboard");
+    return program_is_available("onboard");
 }
 
 static void hide_onboard_window(GtkWidget* widget, gpointer data)
 {
+    g_debug("Hiding 'onboard' window");
     gtk_widget_hide(widget);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
 }
 
 static gboolean spawn_onboard(void)
 {
-    gint argp;
+    const gchar* CMD_LINE = "onboard --xid";
+
+    g_debug("Spawning 'onboard' process");
+
     gchar** argv = NULL;
-    if(!g_shell_parse_argv("onboard --xid", &argp, &argv, NULL))
-        return FALSE;
+    if(!g_shell_parse_argv(CMD_LINE, NULL, &argv, NULL))
+        g_warning("Something strange happened: g_shell_parse_argv(%s) return FALSE", CMD_LINE);
+
+    g_return_val_if_fail(argv != NULL, FALSE);
 
     GPid pid = 0;
     GtkWindow* window = NULL;
+    GtkSocket* socket = NULL;
     GError* error = NULL;
 
     gint out_fd = 0;
@@ -361,9 +425,11 @@ static gboolean spawn_onboard(void)
 
     gchar* text = NULL;
     GIOChannel* out_channel = g_io_channel_unix_new(out_fd);
-    if(out_channel && g_io_channel_read_line(out_channel, &text, NULL, NULL, &error) == G_IO_STATUS_NORMAL)
+
+    g_return_val_if_fail(out_channel != NULL, FALSE);
+
+    if(g_io_channel_read_line(out_channel, &text, NULL, NULL, &error) == G_IO_STATUS_NORMAL)
     {
-        GtkSocket* socket = NULL;
         gchar* end_ptr = NULL;
 
         text = g_strstrip(text);
@@ -371,11 +437,11 @@ static gboolean spawn_onboard(void)
 
         if(id == 0 || (end_ptr && *end_ptr != '\0'))
         {
-            g_critical("Unrecognized output from 'onboard': '%s'", text);
+            g_warning("Unrecognized output from 'onboard': '%s'", text);
         }
         else if(!(socket = (GtkSocket*)gtk_socket_new()))
         {
-            g_critical("Can not connect to 'onboard': %s", error->message);
+            g_warning("Can not connect to 'onboard': %s", error->message);
             g_clear_error(&error);
         }
         else
@@ -392,11 +458,10 @@ static gboolean spawn_onboard(void)
             gtk_socket_add_id(socket, atol(text));
         }
     }
-    else
-    {
-        g_critical("Can not read 'onboard' output: %s", error->message);
-        g_clear_error(&error);
-    }
+    else if(error)
+        g_warning("Can not read 'onboard' output: %s", error->message);
+
+    g_clear_error(&error);
     g_free(text);
     g_io_channel_unref(out_channel);
 
@@ -407,7 +472,8 @@ static gboolean spawn_onboard(void)
     }
     else if(window != 0)
     {
-        osk_pid.onboard = pid;
+        keyboard_onboard.pid = pid;
+        keyboard_onboard.socket = socket;
         greeter.ui.onboard = window;
     }
     return window != NULL;
@@ -415,31 +481,33 @@ static gboolean spawn_onboard(void)
 
 static void osk_open_onboard(void)
 {
+    g_debug("Opening 'onboard'");
     if(!greeter.ui.onboard && !spawn_onboard())
     {
+        show_error(_("Onboard"), _("Failed to start 'onboard', see logs for details."));
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
+        onscreen_keyboard = NULL;
         return;
     }
-
-    gtk_widget_show(GTK_WIDGET(greeter.ui.onboard));
+    gtk_widget_show_all(GTK_WIDGET(greeter.ui.onboard));
 }
 
 static void osk_close_onboard(void)
 {
-    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.onboard));
-
+    g_debug("Closing 'onboard' window");
+    gtk_widget_hide(GTK_WIDGET(keyboard_onboard.socket));
     gtk_widget_hide(GTK_WIDGET(greeter.ui.onboard));
 }
 
 static void osk_kill_onboard(void)
 {
-    g_return_if_fail(osk_pid.onboard != 0);
+    g_debug("Killing 'onboard'");
+    g_return_if_fail(keyboard_onboard.pid != 0);
 
-    g_debug("Killing on-screen keyboard");
-    kill(osk_pid.onboard, SIGTERM);
-    g_spawn_close_pid(osk_pid.onboard);
+    kill(keyboard_onboard.pid, SIGTERM);
+    g_spawn_close_pid(keyboard_onboard.pid);
     gtk_widget_destroy(GTK_WIDGET(greeter.ui.onboard));
-    osk_pid.onboard = 0;
+    keyboard_onboard.pid = 0;
     greeter.ui.onboard = NULL;
 }
 

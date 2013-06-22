@@ -43,18 +43,28 @@ struct _WindowPosition
 
 typedef struct _WindowPosition WindowPosition;
 
+typedef enum
+{
+    POWER_SUSPEND,
+    POWER_HIBERNATE,
+    POWER_RESTART,
+    POWER_SHUTDOWN,
+    POWER_ACTIONS_COUNT
+} PowerAction;
+
 struct _GreeterData
 {
     LightDMGreeter* greeter;
 
     struct
     {
-        GHashTable* users_display_names;
-        gboolean prompted;
-        gboolean cancelling;
-        GdkPixbuf* default_user_image;
-        GdkPixbuf* default_user_image_scaled;
-        const gchar* last_background;
+        GHashTable*     users_display_names;
+        gboolean        prompted;
+        gboolean        cancelling;
+        GdkPixbuf*      default_user_image;
+        GdkPixbuf*      default_user_image_scaled;
+        const gchar*    last_background;
+
         struct
         {
             WindowPosition position;
@@ -63,69 +73,65 @@ struct _GreeterData
 
     struct
     {
-        GtkWidget* login_window;
-        GtkWidget* panel_window;
-        GtkWidget* login_widget;
-        GtkWidget* login_widget_label;
-        GtkWidget* cancel_widget;
-        GtkWidget* message_widget;
-        GtkWidget* prompt_widget;
-        GtkWidget* user_image;
-        GtkWidget* date_widget;
+        GtkWidget*      login_window;
+        GtkWidget*      panel_window;
+        GtkWidget*      login_widget;
+        GtkWidget*      login_widget_label;
+        GtkWidget*      cancel_widget;
+        GtkWidget*      message_widget;
+        GtkWidget*      prompt_widget;
+        GtkWidget*      user_image;
+        GtkWidget*      date_widget;
 
-        GtkWidget* user_view;
-        GtkWidget* session_view;
-        GtkWidget* language_view;
-        GtkWidget* user_view_box;
+        GtkWidget*      user_view;
+        GtkWidget*      session_view;
+        GtkWidget*      language_view;
+        GtkWidget*      user_view_box;
 
-        GtkWidget* calendar;
+        GtkWidget*      calendar;
 
         struct
         {
-            GtkWidget* power_widget;
-            GtkWidget* power_menu;
-            GtkWidget* power_menu_icon;
-            GtkWidget* suspend_widget;
-            GtkWidget* hibernate_widget;
-            GtkWidget* restart_widget;
-            GtkWidget* shutdown_widget;
+            GtkWidget*  power_widget;
+            GtkWidget*  power_menu;
+            GtkWidget*  actions[POWER_ACTIONS_COUNT];
         } power;
 
         struct
         {
-            GtkWidget* a11y_widget;
-            GtkWidget* a11y_menu;
-            GtkWidget* a11y_menu_icon;
-            GtkWidget* osk_widget;
-            GtkWidget* contrast_widget;
-            GtkWidget* font_widget;
+            GtkWidget*  a11y_widget;
+            GtkWidget*  a11y_menu;
+            GtkWidget*  osk_widget;
+            GtkWidget*  contrast_widget;
+            GtkWidget*  font_widget;
+            GtkWidget*  dpi_widget;
         } a11y;
 
         struct
         {
-            GtkWidget* time_widget;
-            GtkWidget* time_menu;
-            GtkWidget* date_widget;
-            GtkWidget* calendar_widget;
+            GtkWidget*  time_widget;
+            GtkWidget*  time_menu;
+            GtkWidget*  date_widget;
+            GtkWidget*  calendar_widget;
         } clock;
 
         struct
         {
-            GtkWidget* layout_widget;
-            GtkWidget* layout_menu;
+            GtkWidget*  layout_widget;
+            GtkWidget*  layout_menu;
         } layout;
 
         struct
         {
-            GtkWidget* menubar;
+            GtkWidget*  menubar;
         } panel;
 
-        GtkWidget* login_box;
-        GtkWidget* prompt_box;
-        GtkWidget* prompt_entry;
-        GtkWidget* host_widget;
-        GtkWidget* logo_image;
-        GtkWindow* onboard;
+        GtkWidget*      login_box;
+        GtkWidget*      prompt_box;
+        GtkWidget*      prompt_entry;
+        GtkWidget*      host_widget;
+        GtkWidget*      logo_image;
+        GtkWindow*      onboard;
     } ui;
 };
 
@@ -234,8 +240,7 @@ gboolean get_model_iter_str            (GtkTreeModel* model,
                                         int column,
                                         const gchar* value,
                                         GtkTreeIter* iter);
-void replace_container_content         (GtkWidget* widget,
-                                        GtkWidget* new_content);
+void fix_image_menu_item_if_empty      (GtkImageMenuItem* widget);
 gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
                                         gboolean state);

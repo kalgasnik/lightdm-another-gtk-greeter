@@ -40,7 +40,7 @@
 static gboolean connect_to_lightdm          (void);
 static gboolean init_css                    (void);
 static gboolean init_gui                    (void);
-static void set_background                  (const char* value);
+static void set_background                  (const gchar* value);
 static void run_gui                         (void);
 
 static gboolean load_users_list             (void);
@@ -105,9 +105,17 @@ void on_user_selection_changed              (GtkWidget* widget,
 gboolean on_arrows_press                    (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
+
 gboolean on_login_window_key_press          (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
+gboolean on_panel_window_key_press          (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data);
+gboolean on_special_key_press               (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data);
+
 void on_show_menu                           (GtkWidget* widget,
                                              GtkWidget* menu);
 
@@ -129,6 +137,7 @@ int main(int argc, char** argv)
     gtk_init(&argc, &argv);
 
     load_settings();
+    read_state();
 
     gboolean inited = connect_to_lightdm();
     if(inited)
@@ -269,44 +278,43 @@ static gboolean init_gui(void)
 
     const struct BuilderWidget WIDGETS[] =
     {
-        {&greeter.ui.login_window,           "login_window",            TRUE},
-        {&greeter.ui.panel_window,           "panel_window",            FALSE},
-        {&greeter.ui.login_box,              "login_box",               FALSE},
-        {&greeter.ui.login_widget,           "login_widget",            FALSE},
-        {&greeter.ui.cancel_widget,          "cancel_widget",           FALSE},
-        {&greeter.ui.prompt_box,             "prompt_box",              FALSE},
-        {&greeter.ui.prompt_widget,          "prompt_widget",           FALSE},
-        {&greeter.ui.prompt_entry,           "prompt_entry",            TRUE},
-        {&greeter.ui.message_widget,         "message_widget",          FALSE},
-        {&greeter.ui.user_image,             "user_image",              FALSE},
-        {&greeter.ui.date_widget,            "date_widget",             FALSE},
+        {&greeter.ui.login_window,               "login_window",            TRUE},
+        {&greeter.ui.panel_window,               "panel_window",            FALSE},
+        {&greeter.ui.login_box,                  "login_box",               FALSE},
+        {&greeter.ui.login_widget,               "login_widget",            FALSE},
+        {&greeter.ui.cancel_widget,              "cancel_widget",           FALSE},
+        {&greeter.ui.prompt_box,                 "prompt_box",              FALSE},
+        {&greeter.ui.prompt_widget,              "prompt_widget",           FALSE},
+        {&greeter.ui.prompt_entry,               "prompt_entry",            TRUE},
+        {&greeter.ui.message_widget,             "message_widget",          FALSE},
+        {&greeter.ui.user_image,                 "user_image",              FALSE},
+        {&greeter.ui.date_widget,                "date_widget",             FALSE},
 
-        {&greeter.ui.panel.menubar,          "menubar",                 FALSE},
-        {&greeter.ui.power.power_widget,     "power_widget",            FALSE},
-        {&greeter.ui.power.power_menu,       "power_menu",              FALSE},
-        {&greeter.ui.power.power_menu_icon,  "power_menu_icon",         FALSE},
-        {&greeter.ui.power.suspend_widget,   "power_suspend_widget",    FALSE},
-        {&greeter.ui.power.hibernate_widget, "power_hibernate_widget",  FALSE},
-        {&greeter.ui.power.restart_widget,   "power_restart_widget",    FALSE},
-        {&greeter.ui.power.shutdown_widget,  "power_shutdown_widget",   FALSE},
-        {&greeter.ui.a11y.a11y_widget,       "a11y_widget",             FALSE},
-        {&greeter.ui.a11y.a11y_menu,         "a11y_menu",               FALSE},
-        {&greeter.ui.a11y.a11y_menu_icon,    "a11y_menu_icon",          FALSE},
-        {&greeter.ui.a11y.osk_widget,        "a11y_osk_widget",         FALSE},
-        {&greeter.ui.a11y.contrast_widget,   "a11y_contrast_widget",    FALSE},
-        {&greeter.ui.a11y.font_widget,       "a11y_font_widget",        FALSE},
-        {&greeter.ui.clock.time_widget,      "time_widget",             FALSE},
-        {&greeter.ui.clock.time_menu,        "time_menu",               FALSE},
-        {&greeter.ui.layout.layout_widget,   "layout_widget",           FALSE},
-        {&greeter.ui.layout.layout_menu,     "layout_menu",             FALSE},
+        {&greeter.ui.panel.menubar,              "menubar",                 FALSE},
+        {&greeter.ui.power.power_widget,         "power_widget",            FALSE},
+        {&greeter.ui.power.power_menu,           "power_menu",              FALSE},
+        {&greeter.ui.power.actions[POWER_SUSPEND],  "power_suspend_widget", FALSE},
+        {&greeter.ui.power.actions[POWER_HIBERNATE],"power_hibernate_widget",FALSE},
+        {&greeter.ui.power.actions[POWER_RESTART],  "power_restart_widget", FALSE},
+        {&greeter.ui.power.actions[POWER_SHUTDOWN], "power_shutdown_widget",FALSE},
+        {&greeter.ui.a11y.a11y_widget,           "a11y_widget",             FALSE},
+        {&greeter.ui.a11y.a11y_menu,             "a11y_menu",               FALSE},
+        {&greeter.ui.a11y.osk_widget,            "a11y_osk_widget",         FALSE},
+        {&greeter.ui.a11y.contrast_widget,       "a11y_contrast_widget",    FALSE},
+        {&greeter.ui.a11y.font_widget,           "a11y_font_widget",        FALSE},
+        {&greeter.ui.a11y.dpi_widget,            "a11y_dpi_widget",         FALSE},
+        {&greeter.ui.clock.time_widget,          "time_widget",             FALSE},
+        {&greeter.ui.clock.time_menu,            "time_menu",               FALSE},
+        {&greeter.ui.layout.layout_widget,       "layout_widget",           FALSE},
+        {&greeter.ui.layout.layout_menu,         "layout_menu",             FALSE},
 
-        {&greeter.ui.user_view,              "user_view",               TRUE},
-        {&greeter.ui.session_view,           "session_view",            FALSE},
-        {&greeter.ui.language_view,          "language_view",           FALSE},
-        {&greeter.ui.user_view_box,          "user_view_box",           FALSE},
+        {&greeter.ui.user_view,                  "user_view",               TRUE},
+        {&greeter.ui.session_view,               "session_view",            FALSE},
+        {&greeter.ui.language_view,              "language_view",           FALSE},
+        {&greeter.ui.user_view_box,              "user_view_box",           FALSE},
 
-        {&greeter.ui.host_widget,            "host_widget",             FALSE},
-        {&greeter.ui.logo_image,             "logo_image",              FALSE},
+        {&greeter.ui.host_widget,                "host_widget",             FALSE},
+        {&greeter.ui.logo_image,                 "logo_image",              FALSE},
 
         {NULL, NULL, FALSE}
     };
@@ -317,7 +325,7 @@ static gboolean init_gui(void)
         if(w->needed && *w->pwidget == NULL)
         {
             g_critical("Widget is not found: %s\n", w->name);
-            show_error(_("Loading UI: error"), _("Widget is not found: %s\n"), w->name);
+            show_error(_("Loading UI: error"), _("Widget '%s' is not found"), w->name);
             return FALSE;
         }
         else
@@ -377,7 +385,7 @@ static gboolean init_gui(void)
     return TRUE;
 }
 
-static void set_background(const char* value)
+static void set_background(const gchar* value)
 {
     g_debug("Background: %s", value);
     if(g_strcmp0(value, greeter.state.last_background) == 0)
@@ -388,7 +396,6 @@ static void set_background(const char* value)
 
     if(!gdk_rgba_parse(&background_color, value))
     {
-        GError* error = NULL;
         gchar* path;
         if(g_path_is_absolute(value))
             path = g_strdup(value);
@@ -397,20 +404,21 @@ static void set_background(const char* value)
 
         g_debug("Loading background: %s", path);
 
+        GError* error = NULL;
         background_pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        g_clear_error(&error);
         g_free(path);
 
-        if(!background_pixbuf)
+        if(error)
         {
             g_warning("Failed to load background: %s", error->message);
+            g_clear_error(&error);
             return;
         }
     }
     else
         g_debug("Using background color: %s", value);
 
-    GdkRectangle monitor_geometry;
+    GdkRectangle geometry;
     for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
     {
         GdkScreen* screen = gdk_display_get_screen(gdk_display_get_default(), i);
@@ -419,18 +427,18 @@ static void set_background(const char* value)
 
         for(int monitor = 0; monitor < gdk_screen_get_n_monitors(screen); monitor++)
         {
-            gdk_screen_get_monitor_geometry(screen, monitor, &monitor_geometry);
+            gdk_screen_get_monitor_geometry(screen, monitor, &geometry);
 
             if(background_pixbuf)
             {
-                GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(background_pixbuf, monitor_geometry.width, monitor_geometry.height, GDK_INTERP_BILINEAR);
+                GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(background_pixbuf, geometry.width, geometry.height, GDK_INTERP_BILINEAR);
                 if(!gdk_pixbuf_get_has_alpha(pixbuf))
                 {
-                    GdkPixbuf* p = gdk_pixbuf_add_alpha (pixbuf, FALSE, 255, 255, 255);
+                    GdkPixbuf* p = gdk_pixbuf_add_alpha(pixbuf, FALSE, 255, 255, 255);
                     g_object_unref(pixbuf);
                     pixbuf = p;
                 }
-                gdk_cairo_set_source_pixbuf(c, pixbuf, monitor_geometry.x, monitor_geometry.y);
+                gdk_cairo_set_source_pixbuf(c, pixbuf, geometry.x, geometry.y);
             }
             else
                 gdk_cairo_set_source_rgba(c, &background_color);
@@ -871,13 +879,13 @@ static gboolean update_date_label(gpointer dummy)
     if(!datetime)
     {
         set_widget_text(greeter.ui.date_widget, "[date]");
-        return TRUE;
+        return FALSE;
     }
     gchar* str = g_date_time_format(datetime, config.appearance.date_format);
     set_widget_text(greeter.ui.date_widget, str);
     g_free(str);
     g_date_time_unref(datetime);
-    return FALSE;
+    return TRUE;
 }
 
 static void take_screenshot(void)
@@ -978,7 +986,7 @@ static void start_session(void)
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
-        a11y_osk_kill();
+        a11y_close();
     }
     else
     {
@@ -1319,6 +1327,35 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
         case GDK_KEY_Escape:
             cancel_authentication();
             break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+
+G_MODULE_EXPORT gboolean on_panel_window_key_press(GtkWidget* widget,
+                                                   GdkEventKey* event,
+                                                   gpointer data)
+{
+    switch(event->keyval)
+    {
+        case GDK_KEY_F10: case GDK_KEY_Escape:
+            if(greeter.ui.panel.menubar)
+                gtk_menu_shell_cancel(GTK_MENU_SHELL(greeter.ui.panel.menubar));
+            gtk_widget_grab_focus(greeter.ui.login_window);
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+
+G_MODULE_EXPORT gboolean on_special_key_press(GtkWidget* widget,
+                                              GdkEventKey* event,
+                                              gpointer data)
+{
+    switch(event->keyval)
+    {
         case GDK_KEY_F1:
             a11y_toggle_osk();
             break;

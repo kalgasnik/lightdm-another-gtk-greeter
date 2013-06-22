@@ -25,13 +25,11 @@
 /* Functions */
 
 void init_a11y_indicator               (void);
+void a11y_close                        (void);
 
 void a11y_toggle_osk                   (void);
 void a11y_toggle_font                  (void);
+void a11y_toggle_dpi                   (void);
 void a11y_toggle_contrast              (void);
-
-void a11y_osk_open                     (void);
-void a11y_osk_close                    (void);
-void a11y_osk_kill                     (void);
 
 #endif // _INDICATOR_A11Y_H_INCLUDED_

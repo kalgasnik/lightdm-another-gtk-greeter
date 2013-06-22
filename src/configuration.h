@@ -51,71 +51,89 @@ struct _GreeterConfig
 {
     struct
     {
-        gboolean allow_other_users;
-        gboolean show_language_selector;
-        gboolean show_session_icon;
-        WindowPosition position;
+        gboolean        allow_other_users;
+        gboolean        show_language_selector;
+        gboolean        show_session_icon;
+        WindowPosition  position;
     } greeter;
+
     struct
     {
-        gchar* ui_file;
-        gchar* css_file;
-        gchar* font;
-        gchar* theme;
-        gchar* icon_theme;
-        gchar* background;
-        gboolean user_background;
-        gchar* logo;
-        gboolean fixed_user_image_size;
-        gint list_view_image_size;
-        gint default_user_image_size;
-        UserNameFormat user_name_format;
-        gchar* date_format;
-        gboolean fixed_login_button_width;
+        gchar*          ui_file;
+        gchar*          css_file;
+        gchar*          theme;
+        gchar*          icon_theme;
+        gchar*          background;
+        gboolean        user_background;
+        gchar*          logo;
+        gboolean        fixed_user_image_size;
+        gint            list_view_image_size;
+        gint            default_user_image_size;
+        UserNameFormat  user_name_format;
+        gchar*          date_format;
+        gboolean        fixed_login_button_width;
+        gchar*          font;
+        gchar*          hintstyle;
+        gchar*          rgba;
+        gboolean        antialias;
+        gint            dpi;
     } appearance;
 
     struct
     {
-        gboolean enabled;
-        PanelPosition position;
+        gboolean        enabled;
+        PanelPosition   position;
     } panel;
 
     struct
     {
-        gboolean enabled;
-        gboolean suspend_prompt;
-        gboolean hibernate_prompt;
-        gboolean restart_prompt;
-        gboolean shutdown_prompt;
+        gboolean        enabled;
+        gboolean        prompts[POWER_ACTIONS_COUNT];
     } power;
-    struct
-    {
-        gboolean enabled;
-        gboolean calendar;
-        gchar* time_format;
-        gchar* date_format;
-    } clock;
-    struct
-    {
-        gboolean enabled;
-        gchar* theme_contrast;
-        gchar* icon_theme_contrast;
-        gboolean check_theme;
-        gchar** osk_command_array;
-        gboolean osk_use_onboard;
 
-        gint font_increment;
-        gboolean font_increment_is_percent;
-    } a11y;
     struct
     {
-        gboolean enabled;
+        gboolean        enabled;
+        gboolean        calendar;
+        gchar*          time_format;
+        gchar*          date_format;
+    } clock;
+
+    struct
+    {
+        gboolean        enabled;
+        gchar*          theme_contrast;
+        gchar*          icon_theme_contrast;
+        gboolean        check_theme;
+
+        struct
+        {
+            gchar**     command;
+            gboolean    use_onboard;
+        } osk;
+
+        struct
+        {
+            gint        increment;
+            gboolean    is_percent;
+        } font;
+        struct
+        {
+            gint        increment;
+            gboolean    is_percent;
+        } dpi;
+    } a11y;
+
+    struct
+    {
+        gboolean        enabled;
     } layout;
+
     struct
     {
         OnboardPosition position;
-        gint height;
-        gboolean height_is_percent;
+        gint            height;
+        gboolean        height_is_percent;
     } onboard;
 };
 
@@ -127,9 +145,19 @@ extern GreeterConfig config;
 
 /* Functions */
 
-void load_settings(void);
+void load_settings               (void);
+void read_state                  (void);
 
-gchar* get_last_logged_user(void);
-void save_last_logged_user(const gchar* user);
+gchar* get_last_logged_user      (void);
+void save_last_logged_user       (const gchar* user);
+
+gboolean a11y_get_font_state     (void);
+void a11y_save_font_state        (gboolean state);
+
+gboolean a11y_get_dpi_state     (void);
+void a11y_save_dpi_state        (gboolean state);
+
+gboolean a11y_get_contrast_state (void);
+void a11y_save_contrast_state    (gboolean state);
 
 #endif // _CONFIGURAION_H_INCLUDED_

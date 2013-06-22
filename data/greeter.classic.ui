@@ -16,6 +16,7 @@
     <property name="decorated">False</property>
     <property name="has_resize_grip">False</property>
     <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
+    <signal name="key-press-event" handler="on_special_key_press" swapped="no"/>
     <signal name="size-allocate" handler="_on_center_window" swapped="no"/>
     <child>
       <object class="GtkBox" id="box22">
@@ -211,42 +212,15 @@
       </object>
     </child>
   </object>
-  <object class="GtkOffscreenWindow" id="offscreenwindow1">
+  <object class="GtkImage" id="panel_a11y_icon">
+    <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox" id="box1">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkImage" id="power_menu_icon">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="icon_name">system-shutdown</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkImage" id="a11y_menu_icon">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="icon_name">preferences-desktop-accessibility</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
+    <property name="icon_name">preferences-desktop-accessibility</property>
+  </object>
+  <object class="GtkImage" id="panel_power_icon">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">system-shutdown</property>
   </object>
   <object class="GtkWindow" id="panel_window">
     <property name="can_focus">True</property>
@@ -261,12 +235,14 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="pack_direction">rtl</property>
-        <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
+        <signal name="key-press-event" handler="on_panel_window_key_press" swapped="no"/>
+        <signal name="key-press-event" handler="on_special_key_press" swapped="no"/>
         <child>
-          <object class="GtkMenuItem" id="power_widget">
+          <object class="GtkImageMenuItem" id="power_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label">[power]</property>
+            <property name="image">panel_power_icon</property>
+            <property name="use_stock">False</property>
             <child type="submenu">
               <object class="GtkMenu" id="power_menu">
                 <property name="visible">True</property>
@@ -308,10 +284,11 @@
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem" id="a11y_widget">
+          <object class="GtkImageMenuItem" id="a11y_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label">[a11y]</property>
+            <property name="image">panel_a11y_icon</property>
+            <property name="use_stock">False</property>
             <child type="submenu">
               <object class="GtkMenu" id="a11y_menu">
                 <property name="visible">True</property>
@@ -322,6 +299,14 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes">Large font</property>
                     <signal name="toggled" handler="on_a11y_font_toggled" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckMenuItem" id="a11y_dpi_widget">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Large dpi</property>
+                    <signal name="toggled" handler="on_a11y_dpi_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
