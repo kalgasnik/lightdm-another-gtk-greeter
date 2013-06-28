@@ -55,6 +55,7 @@ struct _GreeterConfig
         gboolean        show_language_selector;
         gboolean        show_session_icon;
         WindowPosition  position;
+        guint32         double_escape_time;
     } greeter;
 
     struct
@@ -102,25 +103,38 @@ struct _GreeterConfig
     struct
     {
         gboolean        enabled;
-        gchar*          theme_contrast;
-        gchar*          icon_theme_contrast;
-        gboolean        check_theme;
+
+        struct
+        {
+            gchar*      theme;
+            gchar*      icon_theme;
+            gboolean    check_theme;
+            gboolean    initial_state;
+        } contrast;
 
         struct
         {
             gchar**     command;
             gboolean    use_onboard;
+            gboolean    initial_state;
+
+            OnboardPosition onboard_position;
+            gint        onboard_height;
+            gboolean    onboard_height_is_percent;
         } osk;
 
         struct
         {
             gint        increment;
             gboolean    is_percent;
+            gboolean    initial_state;
         } font;
+
         struct
         {
             gint        increment;
             gboolean    is_percent;
+            gboolean    initial_state;
         } dpi;
     } a11y;
 
@@ -128,13 +142,6 @@ struct _GreeterConfig
     {
         gboolean        enabled;
     } layout;
-
-    struct
-    {
-        OnboardPosition position;
-        gint            height;
-        gboolean        height_is_percent;
-    } onboard;
 };
 
 typedef struct _GreeterConfig GreeterConfig;
@@ -154,8 +161,8 @@ void save_last_logged_user       (const gchar* user);
 gboolean a11y_get_font_state     (void);
 void a11y_save_font_state        (gboolean state);
 
-gboolean a11y_get_dpi_state     (void);
-void a11y_save_dpi_state        (gboolean state);
+gboolean a11y_get_dpi_state      (void);
+void a11y_save_dpi_state         (gboolean state);
 
 gboolean a11y_get_contrast_state (void);
 void a11y_save_contrast_state    (gboolean state);

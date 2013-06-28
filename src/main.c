@@ -17,15 +17,15 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdlib.h>
+#include <math.h>
 #include <locale.h>
+#include <stdlib.h>
 
 #include <cairo-xlib.h>
 #include <gtk/gtk.h>
-#include <glib/gi18n.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
-
+#include <glib/gi18n.h>
 #include <lightdm.h>
 
 #include "shares.h"
@@ -61,7 +61,7 @@ static void start_authentication            (const gchar* username);
 static void cancel_authentication           (void);
 static void start_session                   (void);
 
-static gchar* get_user                      (void);
+static gchar* get_user_name                 (void);
 static UserType get_user_type               (void);
 
 static gchar* get_session                   (void);
@@ -92,20 +92,20 @@ static void on_user_removed                 (LightDMUserList* user_list,
                                              LightDMUser* user);
 
 /* GUI callbacks */
-void on_center_window                       (GtkWidget* widget,
-                                             gpointer data);
 void on_login_clicked                       (GtkWidget* widget,
                                              gpointer data);
 void on_cancel_clicked                      (GtkWidget* widget,
                                              gpointer data);
-void on_promt_activate                      (GtkWidget* widget,
+void on_prompt_activate                     (GtkWidget* widget,
                                              gpointer data);
 void on_user_selection_changed              (GtkWidget* widget,
                                              gpointer data);
-gboolean on_arrows_press                    (GtkWidget* widget,
+gboolean on_user_selection_key_press        (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
-
+gboolean on_prompt_key_press                (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data);
 gboolean on_login_window_key_press          (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
@@ -115,9 +115,9 @@ gboolean on_panel_window_key_press          (GtkWidget* widget,
 gboolean on_special_key_press               (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
-
 void on_show_menu                           (GtkWidget* widget,
                                              GtkWidget* menu);
+
 
 /* ------------------------------------------------------------------------- *
  * Definition: main
@@ -332,6 +332,8 @@ static gboolean init_gui(void)
             g_debug("Widget is not found: %s\n", w->name);
     }
 
+    //enable_window_transparency(greeter.ui.login_window);
+
     void update_widget_name(GObject* object,
                             gpointer nothing)
     {
@@ -353,35 +355,32 @@ static gboolean init_gui(void)
         g_clear_error(&error);
     }
     else
-        greeter.state.default_user_image_scaled = scale_image(greeter.state.default_user_image,
-                                                              config.appearance.list_view_image_size);
+        greeter.state.default_user_image_scaled = scale_image_by_width(greeter.state.default_user_image,
+                                                                       config.appearance.list_view_image_size);
 
     /* Login window */
-
     if(!load_sessions_list())
         gtk_widget_hide(greeter.ui.session_view);
 
     if(!load_languages_list() || !config.greeter.show_language_selector)
         gtk_widget_hide(greeter.ui.language_view);
 
-    if(!load_users_list())
-        return FALSE;
+    load_users_list();
 
     if(greeter.ui.login_widget && config.appearance.fixed_login_button_width &&
        GTK_IS_BIN(greeter.ui.login_widget) &&
        GTK_IS_LABEL(gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget))))
     {
-        int a = strlen(_("Login")), b = strlen(_("Unlock"));
+        int a = strlen(_("Login"));
+        int b = strlen(_("Unlock"));
         greeter.ui.login_widget_label = gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget));
-        gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_widget_label),
-                                  a > b ? a : b);
+        gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_widget_label), a > b ? a : b);
     }
 
     set_logo_image();
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
     gtk_builder_connect_signals(builder, greeter.greeter);
-
     return TRUE;
 }
 
@@ -496,7 +495,7 @@ static gint update_users_names_table(const gchar* display_name)
 
 static gint get_same_name_count(const gchar* display_name)
 {
-    gint* value = g_hash_table_lookup(greeter.state.users_display_names, display_name);
+    const gint* value = g_hash_table_lookup(greeter.state.users_display_names, display_name);
     return value ? *value : 0;
 }
 
@@ -545,8 +544,9 @@ static void append_user(GtkTreeModel* model,
                        USER_COLUMN_DISPLAY_NAME, display_name,
                        USER_COLUMN_WEIGHT, lightdm_user_get_logged_in(user) ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL,
                        USER_COLUMN_IMAGE, image,
-                       USER_COLUMN_IMAGE_SCALED, scale_image(image, config.appearance.list_view_image_size),
+                       USER_COLUMN_IMAGE_SCALED, scale_image_by_width(image, config.appearance.list_view_image_size),
                        -1);
+    g_free(display_name);
 }
 
 static void append_custom_user(GtkTreeModel* model,
@@ -571,22 +571,15 @@ static gboolean load_users_list(void)
 {
     g_message("Reading users list");
 
-    GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    greeter.state.users_display_names = g_hash_table_new_full(g_str_hash, g_str_equal, (GDestroyNotify)g_free, (GDestroyNotify)g_free);
+
     const GList* items = lightdm_user_list_get_users(lightdm_user_list_get_instance());
     const GList* item;
 
-    if(!items)
-        g_warning("lightdm_user_list_get_users() return NULL");
+    g_return_val_if_fail(items != NULL, FALSE);
 
-    if(!greeter.state.users_display_names)
-        greeter.state.users_display_names = g_hash_table_new_full(g_str_hash, g_str_equal, (GDestroyNotify)g_free, (GDestroyNotify)g_free);
-    else
-    {
-       g_debug("Creating names table");
-       g_hash_table_remove_all(greeter.state.users_display_names);
-       gtk_list_store_clear(GTK_LIST_STORE(model));
-    }
+    GtkTreeIter iter;
+    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
 
     for(item = items; item != NULL; item = item->next)
         update_users_names_table(lightdm_user_get_display_name(item->data));
@@ -669,6 +662,7 @@ static gboolean load_sessions_list(void)
         gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                            SESSION_COLUMN_NAME, key,
                            SESSION_COLUMN_DISPLAY_NAME, lightdm_session_get_name(session),
+                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session)
                            -1);
         if(config.greeter.show_session_icon)
         {
@@ -771,6 +765,11 @@ static void init_user_selection(void)
 
 static void load_user_options(LightDMUser* user)
 {
+    const gboolean logged_in = user && lightdm_user_get_logged_in(user);
+
+    gtk_widget_set_sensitive(greeter.ui.session_view, !logged_in);
+    gtk_widget_set_sensitive(greeter.ui.language_view, !logged_in);
+
     set_session(user ? lightdm_user_get_session(user) : NULL);
     set_language(user ? lightdm_user_get_language(user) : NULL);
 
@@ -788,13 +787,13 @@ static void set_prompt_label(const gchar* text)
 
 static void set_message_label(const gchar* text)
 {
-    gtk_widget_set_visible(greeter.ui.message_widget, text != NULL && g_strcmp0(text, "") != 0);
+    gtk_widget_set_visible(greeter.ui.message_widget, text != NULL && strlen(text) > 0);
     set_widget_text(greeter.ui.message_widget, text);
 }
 
 static void set_login_button_state(LoginButtonState state)
 {
-    const gchar* text = state == LOGIN_BUTTON_UNLOCK ? _("Unlock") : _("Login");
+    const gchar* text = (state == LOGIN_BUTTON_UNLOCK) ? _("Unlock") : _("Login");
     GtkWidget* widget = greeter.ui.login_widget_label ? greeter.ui.login_widget_label : greeter.ui.login_widget;
     set_widget_text(widget, text);
 }
@@ -928,8 +927,6 @@ static void start_authentication(const gchar* user_name)
 {
     g_message("Starting authentication for user \"%s\"", user_name);
 
-    save_last_logged_user(user_name);
-
     greeter.state.cancelling = FALSE;
     greeter.state.prompted = FALSE;
 
@@ -966,7 +963,7 @@ static void cancel_authentication(void)
         start_authentication(USER_OTHER);
     else
     {
-        gchar* user_name = get_user();
+        gchar* user_name = get_user_name();
         start_authentication(user_name);
         g_free(user_name);
     }
@@ -983,6 +980,10 @@ static void start_session(void)
         g_free(language);
     }
 
+    gchar* user_name = get_user_name();
+    save_last_logged_user(user_name);
+    g_free(user_name);
+
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
@@ -996,7 +997,7 @@ static void start_session(void)
     g_free(session);
 }
 
-static gchar* get_user(void)
+static gchar* get_user_name(void)
 {
     return get_widget_selection_str(greeter.ui.user_view, USER_COLUMN_NAME, NULL);
 }
@@ -1146,6 +1147,10 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
     gtk_widget_hide(greeter.ui.prompt_box);
     gtk_widget_show(greeter.ui.login_box);
 
+    #ifdef _DEBUG_
+    return;
+    #endif
+
     if(lightdm_greeter_get_is_authenticated(greeter.greeter))
     {
         if(greeter.state.prompted)
@@ -1161,7 +1166,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
         else
         {
             set_message_label(_("Failed to authenticate"));
-            gchar* user_name = get_user();
+            gchar* user_name = get_user_name();
             start_authentication(user_name);
             g_free(user_name);
         }
@@ -1172,11 +1177,6 @@ static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
 {
     g_debug("LightDM signal: autologin-timer-expired");
     lightdm_greeter_authenticate_autologin(greeter_ptr);
-    return;
-    if(lightdm_greeter_get_autologin_guest_hint(greeter.greeter))
-        start_authentication(USER_GUEST);
-    else if(lightdm_greeter_get_autologin_user_hint(greeter.greeter))
-        start_authentication(lightdm_greeter_get_autologin_user_hint(greeter.greeter));
 }
 
 static void on_user_added(LightDMUserList* user_list,
@@ -1219,12 +1219,6 @@ void on_user_removed(LightDMUserList* user_list,
  * Definitions: GUI callbacks
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_center_window(GtkWidget* widget,
-                                      gpointer data)
-{
-    set_window_position(widget, &config.greeter.position);
-}
-
 G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget,
                                       gpointer data)
 {
@@ -1235,7 +1229,7 @@ G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget,
         const gchar* text = gtk_entry_get_text(GTK_ENTRY(greeter.ui.prompt_entry));
         lightdm_greeter_respond(greeter.greeter, text);
         gtk_widget_show(greeter.ui.cancel_widget);
-        if(get_user_type() == USER_TYPE_OTHER && gtk_entry_get_visibility(GTK_ENTRY(greeter.ui.prompt_entry)))
+        if(get_user_type() == USER_TYPE_OTHER  && gtk_entry_get_visibility(GTK_ENTRY(greeter.ui.prompt_entry)))
         {
             LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), text);
             set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
@@ -1258,8 +1252,8 @@ G_MODULE_EXPORT void on_cancel_clicked(GtkWidget* widget,
     cancel_authentication();
 }
 
-G_MODULE_EXPORT void on_promt_activate(GtkWidget* widget,
-                                       gpointer data)
+G_MODULE_EXPORT void on_prompt_activate(GtkWidget* widget,
+                                        gpointer data)
 {
     on_login_clicked(widget, NULL);
 }
@@ -1267,14 +1261,10 @@ G_MODULE_EXPORT void on_promt_activate(GtkWidget* widget,
 G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget,
                                                gpointer data)
 {
-    gchar* user_name = get_user();
+    gchar* user_name = get_user_name();
     g_debug("User selection changed: %s", user_name);
 
     LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
-    gboolean logged_in = user && lightdm_user_get_logged_in(user);
-
-    gtk_widget_set_sensitive(greeter.ui.session_view, !logged_in);
-    gtk_widget_set_sensitive(greeter.ui.language_view, !logged_in);
 
     if(greeter.ui.user_image)
     {
@@ -1286,14 +1276,35 @@ G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget,
     set_message_label(NULL);
 
     start_authentication(user_name);
-    grab_widget_focus(gtk_widget_get_visible(greeter.ui.prompt_entry) ? greeter.ui.prompt_entry : greeter.ui.login_widget);
-
     g_free(user_name);
+
+    gtk_widget_grab_focus(greeter.ui.user_view);
+
+    #ifdef _DEBUG_
+    on_authentication_complete(greeter.greeter);
+    if(!lightdm_user_get_logged_in(user))
+        on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
+    #endif
 }
 
-G_MODULE_EXPORT gboolean on_arrows_press(GtkWidget* widget,
-                                         GdkEventKey* event,
-                                         gpointer data)
+G_MODULE_EXPORT gboolean on_user_selection_key_press(GtkWidget* widget,
+                                                     GdkEventKey* event,
+                                                     gpointer data)
+{
+    switch(event->keyval)
+    {
+        case GDK_KEY_Return:
+            on_login_clicked(NULL, NULL);
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+
+G_MODULE_EXPORT gboolean on_prompt_key_press(GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             gpointer data)
 {
     if(event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down)
     {
@@ -1316,6 +1327,8 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
                                                    GdkEventKey* event,
                                                    gpointer data)
 {
+    static guint32 escape_time = 0;
+
     switch(event->keyval)
     {
         case GDK_KEY_F10:
@@ -1325,11 +1338,23 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
                 gtk_widget_grab_focus(greeter.ui.panel_window);
             break;
         case GDK_KEY_Escape:
-            cancel_authentication();
+            if(escape_time && event->time - escape_time <= config.greeter.double_escape_time)
+            {
+                escape_time = 0;
+                init_user_selection();
+            }
+            else
+            {
+                escape_time = event->time;
+                cancel_authentication();
+            }
             break;
         default:
+            escape_time = 0;
             return FALSE;
     }
+    if(event->keyval != GDK_KEY_Escape)
+        escape_time = 0;
     return TRUE;
 }
 

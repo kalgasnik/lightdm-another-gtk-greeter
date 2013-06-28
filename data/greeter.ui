@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">preferences-desktop-accessibility</property>
-  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="icon_name">system-shutdown</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">preferences-desktop-accessibility</property>
   </object>
   <object class="GtkListStore" id="language_liststore">
     <columns>
@@ -215,8 +215,8 @@
                         <property name="can_focus">True</property>
                         <property name="invisible_char">•</property>
                         <property name="invisible_char_set">True</property>
-                        <signal name="activate" handler="on_promt_activate" swapped="no"/>
-                        <signal name="key-press-event" handler="on_arrows_press" swapped="no"/>
+                        <signal name="activate" handler="on_prompt_activate" swapped="no"/>
+                        <signal name="key-press-event" handler="on_prompt_key_press" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">True</property>

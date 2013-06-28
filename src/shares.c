@@ -67,12 +67,14 @@ const gchar* const PACKAGE_VERSION = "<DEBUG>";
 
 /* Static functions */
 
-static void show_message_dialog        (GtkMessageType type,
-                                        const gchar* title,
-                                        const gchar* message_format,
-                                        va_list args);
+static void show_message_dialog           (GtkMessageType type,
+                                           const gchar* title,
+                                           const gchar* message_format,
+                                           va_list args);
 
-static gboolean _grab_focus            (GtkWidget* widget);
+static void on_transparent_screen_changed (GtkWidget *widget,
+                                           GdkScreen *old_screen,
+                                           gpointer userdata);
 
 
 /* ---------------------------------------------------------------------------*
@@ -85,7 +87,6 @@ void update_windows_layout(void)
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.login_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
 
-    //gtk_widget_set_size_request(greeter.ui.login_window,-1, -1);
     set_window_position(greeter.ui.login_window, &config.greeter.position);
 
     if(config.panel.enabled)
@@ -98,7 +99,7 @@ void update_windows_layout(void)
     {
         gboolean panel_at_top = config.panel.position == PANEL_POS_TOP;
         gboolean at_top;
-        switch(config.onboard.position)
+        switch(config.a11y.osk.onboard_position)
         {
             case ONBOARD_POS_PANEL: at_top = panel_at_top; break;
             case ONBOARD_POS_PANEL_OPPOSITE: at_top =  !panel_at_top; break;
@@ -107,7 +108,7 @@ void update_windows_layout(void)
             default: at_top = TRUE;
         };
 
-        gint onboard_height = config.onboard.height_is_percent ? geometry.height*config.onboard.height/100 : config.onboard.height;
+        gint onboard_height = config.a11y.osk.onboard_height_is_percent ? geometry.height*config.a11y.osk.onboard_height/100 : config.a11y.osk.onboard_height;
         gint onboard_y = at_top ? 0 : geometry.height - onboard_height;
 
         if(at_top ==  panel_at_top
@@ -193,12 +194,14 @@ void set_widget_text(GtkWidget* widget,
         gtk_button_set_label(GTK_BUTTON(widget), text);
     else if(GTK_IS_LABEL(widget))
         gtk_label_set_label(GTK_LABEL(widget), text);
-    else g_return_val_if_reached(NULL);
+    else g_return_if_reached();
 }
 
-GdkPixbuf* scale_image(GdkPixbuf* source,
-                       int new_width)
+GdkPixbuf* scale_image_by_width(GdkPixbuf* source,
+                                int new_width)
 {
+    g_return_val_if_fail(GDK_IS_PIXBUF(source), NULL);
+
     GdkPixbuf* image = source;
     if(new_width > 0)
     {
@@ -210,11 +213,6 @@ GdkPixbuf* scale_image(GdkPixbuf* source,
         }
     }
     return image;
-}
-
-void grab_widget_focus(GtkWidget* widget)
-{
-    g_idle_add((GSourceFunc)_grab_focus, widget);
 }
 
 GtkTreeModel* get_widget_model(GtkWidget* widget)
@@ -332,7 +330,6 @@ void fix_image_menu_item_if_empty(GtkImageMenuItem* widget)
         GtkWidget* image = gtk_image_menu_item_get_image(widget);
         if(!image)
             return;
-        //gtk_widget_reparent(image, NULL);
         gtk_image_menu_item_set_image(widget, NULL);
         gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_destroy, NULL);
         gtk_container_add(GTK_CONTAINER(widget), image);
@@ -341,19 +338,30 @@ void fix_image_menu_item_if_empty(GtkImageMenuItem* widget)
 
 gboolean get_widget_toggled(GtkWidget* widget)
 {
-    g_return_val_if_fail(GTK_IS_TOGGLE_BUTTON(widget) || GTK_IS_CHECK_MENU_ITEM(widget), FALSE);
     if(GTK_IS_TOGGLE_BUTTON(widget))
         return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
-    return gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
+    else if(GTK_IS_CHECK_MENU_ITEM(widget))
+        return gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
+    else
+        g_return_val_if_reached(FALSE);
 }
 
 void set_widget_toggled(GtkWidget* widget,
                         gboolean state)
 {
-    g_return_if_fail(GTK_IS_TOGGLE_BUTTON(widget) || GTK_IS_CHECK_MENU_ITEM(widget));
     if(GTK_IS_TOGGLE_BUTTON(widget))
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), state);
-    return gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
+    else if(GTK_IS_CHECK_MENU_ITEM(widget))
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
+    else
+        g_return_if_reached();
+}
+
+void enable_window_transparency(GtkWidget* window)
+{
+    //gtk_widget_set_app_paintable(window, TRUE);
+    g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
+    on_transparent_screen_changed(window, NULL, NULL);
 }
 
 /* ---------------------------------------------------------------------------*
@@ -377,8 +385,12 @@ static void show_message_dialog(GtkMessageType type,
     gtk_widget_destroy(dialog);
 }
 
-static gboolean _grab_focus(GtkWidget* widget)
+static void on_transparent_screen_changed(GtkWidget *widget,
+                                          GdkScreen *old_screen,
+                                          gpointer userdata)
 {
-    gtk_widget_grab_focus(widget);
-    return FALSE;
+    GdkScreen* screen = gtk_widget_get_screen(widget);
+    GdkVisual* visual = gdk_screen_get_rgba_visual(screen);
+    if(visual)
+        gtk_widget_set_visual(widget, visual);
 }

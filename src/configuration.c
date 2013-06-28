@@ -23,7 +23,13 @@
 
 /* Variables */
 
-GreeterConfig config;
+GreeterConfig config =
+{
+    .greeter =
+    {
+        .double_escape_time = 300
+    }
+};
 
 /* Static functions */
 
@@ -136,8 +142,8 @@ void load_settings(void)
     config.appearance.fixed_user_image_size   = read_value_bool    (cfg, SECTION, "fixed-user-image-size", TRUE);
     config.appearance.list_view_image_size    = read_value_int     (cfg, SECTION, "list-view-image-size", 48);
     config.appearance.default_user_image_size = read_value_int     (cfg, SECTION, "default-user-image-size", 96);
-    config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme-name", settings, "gtk-theme-name", NULL, FALSE);
-    config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme-name", settings, "gtk-icon-theme-name", NULL, FALSE);
+    config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme", settings, "gtk-theme-name", NULL, FALSE);
+    config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", NULL, FALSE);
     config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", NULL, FALSE);
     config.appearance.fixed_login_button_width= read_value_bool    (cfg, SECTION, "fixed-login-button-width", FALSE);
 
@@ -170,24 +176,33 @@ void load_settings(void)
 
     SECTION = "a11y";
     config.a11y.enabled                       = read_value_bool    (cfg, SECTION, "enabled", TRUE);
-    config.a11y.theme_contrast                = read_value_str     (cfg, SECTION, "theme-name-contrast", "HighContrast");
-    config.a11y.icon_theme_contrast           = read_value_str     (cfg, SECTION, "icon-theme-name-contrast", "HighContrast");
-    config.a11y.check_theme                   = read_value_bool    (cfg, SECTION, "check-theme", TRUE);
-    config.a11y.font.increment                = read_value_percents(cfg, SECTION, "font-increment",
+
+    SECTION = "a11y.contrast";
+    config.a11y.contrast.theme                = read_value_str     (cfg, SECTION, "theme", "HighContrast");
+    config.a11y.contrast.icon_theme           = read_value_str     (cfg, SECTION, "icon-theme", "HighContrast");
+    config.a11y.contrast.check_theme          = read_value_bool    (cfg, SECTION, "check-theme", TRUE);
+    config.a11y.contrast.initial_state        = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+
+    SECTION = "a11y.font";
+    config.a11y.font.increment                = read_value_percents(cfg, SECTION, "increment",
                                                                     40, TRUE, &config.a11y.font.is_percent);
-    config.a11y.dpi.increment                 = read_value_percents(cfg, SECTION, "dpi-increment",
+    config.a11y.font.initial_state            = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+
+    SECTION = "a11y.dpi";
+    config.a11y.dpi.increment                 = read_value_percents(cfg, SECTION, "increment",
                                                                     -1, TRUE, &config.a11y.dpi.is_percent);
-    config.a11y.osk.use_onboard               = read_value_bool    (cfg, SECTION, "osk-use-onboard", FALSE);
-    config.a11y.osk.command                   = !config.a11y.osk.use_onboard ? read_value_command (cfg, SECTION, "osk-command") : NULL;
+    config.a11y.dpi.initial_state             = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+
+    SECTION = "a11y.osk";
+    config.a11y.osk.command                   = !config.a11y.osk.use_onboard ? read_value_command (cfg, SECTION, "command") : NULL;
+    config.a11y.osk.use_onboard               = read_value_bool    (cfg, SECTION, "use-onboard", FALSE);
+    config.a11y.osk.onboard_position          = read_value_enum    (cfg, SECTION, "onboard-position",
+                                                                    ONBOARD_POSITION_STRINGS, ONBOARD_POS_PANEL_OPPOSITE);
+    config.a11y.osk.onboard_height            = read_value_percents(cfg, SECTION, "onboard-height",
+                                                                    25, TRUE, &config.a11y.osk.onboard_height_is_percent);
 
     SECTION = "layout";
     config.layout.enabled                     = read_value_bool    (cfg, SECTION, "enabled", TRUE);
-
-    SECTION = "onboard";
-    config.onboard.position                   = read_value_enum    (cfg, SECTION, "position",
-                                                                    ONBOARD_POSITION_STRINGS, ONBOARD_POS_PANEL_OPPOSITE);
-    config.onboard.height                     = read_value_percents(cfg, SECTION, "height",
-                                                                    25, TRUE, &config.onboard.height_is_percent);
 
     g_key_file_free(cfg);
 
@@ -205,7 +220,6 @@ void read_state(void)
 
     g_mkdir_with_parents(state_dir, 0775);
     state_data.path = g_build_filename(state_dir, "state", NULL);
-
     state_data.config = g_key_file_new();
     g_key_file_load_from_file(state_data.config, state_data.path, G_KEY_FILE_NONE, &error);
     if(error && !g_error_matches(error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
@@ -243,7 +257,7 @@ void a11y_save_font_state(gboolean state)
 
 gboolean a11y_get_dpi_state(void)
 {
-    return read_value_bool(state_data.config, "a11y", "dpi", FALSE);
+    return read_value_bool(state_data.config, "a11y", "dpi", config.a11y.dpi.initial_state);
 }
 
 void a11y_save_dpi_state(gboolean state)
@@ -255,7 +269,7 @@ void a11y_save_dpi_state(gboolean state)
 
 gboolean a11y_get_contrast_state(void)
 {
-    return read_value_bool(state_data.config, "a11y", "contrast", FALSE);
+    return read_value_bool(state_data.config, "a11y", "contrast", config.a11y.contrast.initial_state);
 }
 
 void a11y_save_contrast_state(gboolean state)

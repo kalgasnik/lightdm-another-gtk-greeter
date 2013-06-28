@@ -165,7 +165,8 @@ typedef enum
 {
     SESSION_COLUMN_NAME = 0,
     SESSION_COLUMN_DISPLAY_NAME,
-    SESSION_COLUMN_IMAGE
+    SESSION_COLUMN_IMAGE,
+    SESSION_COLUMN_COMMENT
 } SessionsModelColumn;
 
 typedef enum
@@ -186,7 +187,6 @@ extern const gchar* const DEFAULT_USER_ICON;
 extern const WindowPosition WINDOW_POSITION_CENTER;
 extern const WindowPosition WINDOW_POSITION_TOP;
 extern const WindowPosition WINDOW_POSITION_BOTTOM;
-
 
 #ifdef _DEBUG_
 extern const gchar* const GETTEXT_PACKAGE;
@@ -212,9 +212,8 @@ void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
                                         const gchar* text);
-GdkPixbuf* scale_image                 (GdkPixbuf* source,
+GdkPixbuf* scale_image_by_width        (GdkPixbuf* source,
                                         int new_width);
-void grab_widget_focus                 (GtkWidget* widget);
 
 GtkTreeModel* get_widget_model         (GtkWidget* widget);
 gchar* get_widget_selection_str        (GtkWidget* widget,
@@ -244,5 +243,7 @@ void fix_image_menu_item_if_empty      (GtkImageMenuItem* widget);
 gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
                                         gboolean state);
+
+void enable_window_transparency        (GtkWidget* window);
 
 #endif // _SHARES_H_INCLUDED_

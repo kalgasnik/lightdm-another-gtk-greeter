@@ -144,16 +144,15 @@ static void power_action(const PowerActionData* action)
         gtk_widget_set_sensitive(greeter.ui.power.power_widget, FALSE);
 
         GtkWidget* dialog = gtk_message_dialog_new(NULL,
-                                        GTK_DIALOG_MODAL,
-                                        GTK_MESSAGE_QUESTION,
-                                        GTK_BUTTONS_NONE,
-                                        "%s", _(action->prompt));
+                                                   GTK_DIALOG_MODAL,
+                                                   GTK_MESSAGE_QUESTION,
+                                                   GTK_BUTTONS_NONE,
+                                                   "%s", _(action->prompt));
         gtk_dialog_add_buttons(GTK_DIALOG(dialog),
                                _("Return to Login"), GTK_RESPONSE_CANCEL,
                                _(action->name), GTK_RESPONSE_OK, NULL);
         gtk_window_set_title(GTK_WINDOW(dialog), action->name);
-        if(action->icon &&
-           gtk_icon_theme_has_icon(gtk_icon_theme_get_default(), action->icon))
+        if(action->icon && gtk_icon_theme_has_icon(gtk_icon_theme_get_default(), action->icon))
         {
             GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
             gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog), image);

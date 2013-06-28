@@ -134,10 +134,10 @@ void init_a11y_indicator(void)
         g_warning("a11y: no virtual keyboard found or allowed");
 
     gboolean allow_contrast = FALSE;
-    if(!config.a11y.theme_contrast || strlen(config.a11y.theme_contrast) == 0)
+    if(!config.a11y.contrast.theme || strlen(config.a11y.contrast.theme) == 0)
         ;
-    else if(config.a11y.check_theme && !theme_is_installed(config.a11y.theme_contrast))
-        g_warning("a11y: contrast theme is not found (%s)", config.a11y.theme_contrast);
+    else if(config.a11y.contrast.check_theme && !theme_is_installed(config.a11y.contrast.theme))
+        g_warning("a11y: contrast theme is not found (%s)", config.a11y.contrast.theme);
     else
         allow_contrast = TRUE;
 
@@ -270,9 +270,9 @@ G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
     gboolean contrast = get_widget_toggled(widget);
     GtkSettings* settings = gtk_settings_get_default();
     g_object_set(settings, "gtk-theme-name",
-                 contrast ? config.a11y.theme_contrast : config.appearance.theme, NULL);
+                 contrast ? config.a11y.contrast.theme : config.appearance.theme, NULL);
     g_object_set(settings, "gtk-icon-theme-name",
-                 contrast ? config.a11y.icon_theme_contrast : config.appearance.icon_theme, NULL);
+                 contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
     a11y_save_contrast_state(contrast);
     update_windows_idle();
 }

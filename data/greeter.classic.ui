@@ -17,7 +17,6 @@
     <property name="has_resize_grip">False</property>
     <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
     <signal name="key-press-event" handler="on_special_key_press" swapped="no"/>
-    <signal name="size-allocate" handler="_on_center_window" swapped="no"/>
     <child>
       <object class="GtkBox" id="box22">
         <property name="visible">True</property>
@@ -59,6 +58,7 @@
             <property name="can_focus">False</property>
             <property name="model">user_liststore</property>
             <signal name="changed" handler="on_user_selection_changed" swapped="no"/>
+            <signal name="key-press-event" handler="on_user_selection_key_press" swapped="no"/>
             <child>
               <object class="GtkCellRendererText" id="cellrenderertext1"/>
               <attributes>
@@ -97,8 +97,8 @@
                 <property name="can_focus">True</property>
                 <property name="invisible_char">•</property>
                 <property name="invisible_char_set">True</property>
-                <signal name="activate" handler="on_promt_activate" swapped="no"/>
-                <signal name="key-press-event" handler="on_arrows_press" swapped="no"/>
+                <signal name="activate" handler="on_prompt_activate" swapped="no"/>
+                <signal name="key-press-event" handler="on_prompt_key_press" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -360,6 +360,8 @@
       <column type="gchararray"/>
       <!-- column-name image -->
       <column type="GdkPixbuf"/>
+      <!-- column-name comment -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkMenu" id="time_menu">
