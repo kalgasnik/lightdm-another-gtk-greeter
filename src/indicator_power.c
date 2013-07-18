@@ -27,20 +27,11 @@
 #include "indicator_power.h"
 
 #ifdef _DEBUG_
-gboolean lightdm_suspend(GError** error) { g_message("lightdm_suspend()"); return TRUE; }
+gboolean lightdm_suspend(GError** error)   { g_message("lightdm_suspend()"); return TRUE; }
 gboolean lightdm_hibernate(GError** error) { g_message("lightdm_hibernate()"); return TRUE; }
-gboolean lightdm_restart(GError** error) { g_message("lightdm_restart()"); return TRUE; }
-gboolean lightdm_shutdown(GError** error) { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
+gboolean lightdm_restart(GError** error)   { g_message("lightdm_restart()"); return TRUE; }
+gboolean lightdm_shutdown(GError** error)  { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
 #endif
-
-G_MODULE_EXPORT void on_power_suspend_activate   (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_hibernate_activate (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_restart_activate   (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_shutdown_activate  (GtkWidget* widget,
-                                                  gpointer* data);
 
 /* Types */
 
@@ -92,16 +83,17 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     }
 };
 
-/* Exported functions */
+/* GUI callbacks */
 
-G_MODULE_EXPORT void on_suspend_activate         (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_hibernate_activate       (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_restart_activate         (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_shutdown_activate        (GtkWidget* widget,
-                                                  gpointer data);
+void on_power_suspend_activate             (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_hibernate_activate           (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_restart_activate             (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_shutdown_activate            (GtkWidget* widget,
+                                            gpointer* data);
+
 
 /* Static functions */
 
@@ -190,26 +182,26 @@ static void power_action(const PowerActionData* action)
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_power_suspend_activate(GtkWidget* widget,
-                                               gpointer* data)
+void on_power_suspend_activate(GtkWidget* widget,
+                               gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_SUSPEND]);
 }
 
-G_MODULE_EXPORT void on_power_hibernate_activate(GtkWidget* widget,
-                                                 gpointer* data)
+void on_power_hibernate_activate(GtkWidget* widget,
+                                 gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_HIBERNATE]);
 }
 
-G_MODULE_EXPORT void on_power_restart_activate(GtkWidget* widget,
-                                               gpointer* data)
+void on_power_restart_activate(GtkWidget* widget,
+                               gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_RESTART]);
 }
 
-G_MODULE_EXPORT void on_power_shutdown_activate(GtkWidget* widget,
-                                                gpointer* data)
+void on_power_shutdown_activate(GtkWidget* widget,
+                                gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_SHUTDOWN]);
 }

@@ -18,6 +18,7 @@
  */
 
 #include <string.h>
+
 #include "shares.h"
 #include "configuration.h"
 

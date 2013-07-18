@@ -120,7 +120,7 @@ void load_settings(void)
     GKeyFile* cfg = g_key_file_new();
     if(!g_key_file_load_from_file(cfg, CONFIG_FILE, G_KEY_FILE_NONE, &error))
     {
-        g_warning("Failed to load configuration: %s\nUsing default values.", error->message);
+        g_warning("Failed to load configuration: %s. Using default values.", error->message);
         g_clear_error(&error);
     }
 
@@ -182,24 +182,28 @@ void load_settings(void)
     config.a11y.contrast.icon_theme           = read_value_str     (cfg, SECTION, "icon-theme", "HighContrast");
     config.a11y.contrast.check_theme          = read_value_bool    (cfg, SECTION, "check-theme", TRUE);
     config.a11y.contrast.initial_state        = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+    config.a11y.contrast.enabled              = config.a11y.contrast.theme && (strlen(config.a11y.contrast.theme) > 0);
 
     SECTION = "a11y.font";
     config.a11y.font.increment                = read_value_percents(cfg, SECTION, "increment",
                                                                     40, TRUE, &config.a11y.font.is_percent);
     config.a11y.font.initial_state            = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+    config.a11y.font.enabled                  = config.a11y.font.increment > 0;
 
     SECTION = "a11y.dpi";
     config.a11y.dpi.increment                 = read_value_percents(cfg, SECTION, "increment",
                                                                     -1, TRUE, &config.a11y.dpi.is_percent);
     config.a11y.dpi.initial_state             = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
+    config.a11y.dpi.enabled                   = config.a11y.dpi.increment > 0;
 
     SECTION = "a11y.osk";
-    config.a11y.osk.command                   = !config.a11y.osk.use_onboard ? read_value_command (cfg, SECTION, "command") : NULL;
+    config.a11y.osk.command                   = !config.a11y.osk.use_onboard ? read_value_command(cfg, SECTION, "command") : NULL;
     config.a11y.osk.use_onboard               = read_value_bool    (cfg, SECTION, "use-onboard", FALSE);
     config.a11y.osk.onboard_position          = read_value_enum    (cfg, SECTION, "onboard-position",
                                                                     ONBOARD_POSITION_STRINGS, ONBOARD_POS_PANEL_OPPOSITE);
     config.a11y.osk.onboard_height            = read_value_percents(cfg, SECTION, "onboard-height",
                                                                     25, TRUE, &config.a11y.osk.onboard_height_is_percent);
+    config.a11y.osk.enabled                   = config.a11y.osk.use_onboard || config.a11y.osk.command;
 
     SECTION = "layout";
     config.layout.enabled                     = read_value_bool    (cfg, SECTION, "enabled", TRUE);

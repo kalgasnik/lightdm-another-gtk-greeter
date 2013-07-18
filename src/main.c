@@ -171,13 +171,12 @@ static gboolean connect_to_lightdm(void)
     g_debug("Connecting to LightDM");
 
     greeter.greeter = lightdm_greeter_new();
-
     g_assert(greeter.greeter != NULL);
 
+    #ifndef _DEBUG_
     GError* error = NULL;
     if(!lightdm_greeter_connect_sync(greeter.greeter, &error))
     {
-        #ifndef _DEBUG_
         if(error)
         {
             g_critical("Connection to LightDM failed with error: %s", error->message);
@@ -190,8 +189,8 @@ static gboolean connect_to_lightdm(void)
             show_error(_("Error"), _("Connection to LightDM failed"));
         }
         return FALSE;
-        #endif
     }
+    #endif
 
     g_signal_connect(greeter.greeter, "show-prompt", G_CALLBACK(on_show_prompt), NULL);
     g_signal_connect(greeter.greeter, "show-message", G_CALLBACK(on_show_message), NULL);
@@ -401,7 +400,7 @@ static void set_background(const gchar* value)
         else
             path = g_build_filename(GREETER_DATA_DIR, value, NULL);
 
-        g_debug("Loading background: %s", path);
+        g_debug("Loading background from file: %s", path);
 
         GError* error = NULL;
         background_pixbuf = gdk_pixbuf_new_from_file(path, &error);
@@ -1219,8 +1218,8 @@ void on_user_removed(LightDMUserList* user_list,
  * Definitions: GUI callbacks
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget,
-                                      gpointer data)
+void on_login_clicked(GtkWidget* widget,
+                      gpointer data)
 {
     if(lightdm_greeter_get_is_authenticated(greeter.greeter))
         start_session();
@@ -1246,20 +1245,20 @@ G_MODULE_EXPORT void on_login_clicked(GtkWidget* widget,
     set_message_label(NULL);
 }
 
-G_MODULE_EXPORT void on_cancel_clicked(GtkWidget* widget,
-                                       gpointer data)
+void on_cancel_clicked(GtkWidget* widget,
+                       gpointer data)
 {
     cancel_authentication();
 }
 
-G_MODULE_EXPORT void on_prompt_activate(GtkWidget* widget,
-                                        gpointer data)
+void on_prompt_activate(GtkWidget* widget,
+                        gpointer data)
 {
     on_login_clicked(widget, NULL);
 }
 
-G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget,
-                                               gpointer data)
+void on_user_selection_changed(GtkWidget* widget,
+                               gpointer data)
 {
     gchar* user_name = get_user_name();
     g_debug("User selection changed: %s", user_name);
@@ -1287,9 +1286,9 @@ G_MODULE_EXPORT void on_user_selection_changed(GtkWidget* widget,
     #endif
 }
 
-G_MODULE_EXPORT gboolean on_user_selection_key_press(GtkWidget* widget,
-                                                     GdkEventKey* event,
-                                                     gpointer data)
+gboolean on_user_selection_key_press(GtkWidget* widget,
+                                     GdkEventKey* event,
+                                     gpointer data)
 {
     switch(event->keyval)
     {
@@ -1302,9 +1301,9 @@ G_MODULE_EXPORT gboolean on_user_selection_key_press(GtkWidget* widget,
     return TRUE;
 }
 
-G_MODULE_EXPORT gboolean on_prompt_key_press(GtkWidget* widget,
-                                             GdkEventKey* event,
-                                             gpointer data)
+gboolean on_prompt_key_press(GtkWidget* widget,
+                             GdkEventKey* event,
+                             gpointer data)
 {
     if(event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down)
     {
@@ -1323,9 +1322,9 @@ G_MODULE_EXPORT gboolean on_prompt_key_press(GtkWidget* widget,
     return FALSE;
 }
 
-G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
-                                                   GdkEventKey* event,
-                                                   gpointer data)
+gboolean on_login_window_key_press(GtkWidget* widget,
+                                   GdkEventKey* event,
+                                   gpointer data)
 {
     static guint32 escape_time = 0;
 
@@ -1358,9 +1357,9 @@ G_MODULE_EXPORT gboolean on_login_window_key_press(GtkWidget* widget,
     return TRUE;
 }
 
-G_MODULE_EXPORT gboolean on_panel_window_key_press(GtkWidget* widget,
-                                                   GdkEventKey* event,
-                                                   gpointer data)
+gboolean on_panel_window_key_press(GtkWidget* widget,
+                                   GdkEventKey* event,
+                                   gpointer data)
 {
     switch(event->keyval)
     {
@@ -1375,9 +1374,9 @@ G_MODULE_EXPORT gboolean on_panel_window_key_press(GtkWidget* widget,
     return TRUE;
 }
 
-G_MODULE_EXPORT gboolean on_special_key_press(GtkWidget* widget,
-                                              GdkEventKey* event,
-                                              gpointer data)
+gboolean on_special_key_press(GtkWidget* widget,
+                              GdkEventKey* event,
+                              gpointer data)
 {
     switch(event->keyval)
     {
@@ -1402,8 +1401,8 @@ G_MODULE_EXPORT gboolean on_special_key_press(GtkWidget* widget,
     return TRUE;
 }
 
-G_MODULE_EXPORT void on_show_menu(GtkWidget* widget,
-                                  GtkWidget* menu)
+void on_show_menu(GtkWidget* widget,
+                  GtkWidget* menu)
 {
     if(gtk_widget_get_visible(menu))
         gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, GDK_CURRENT_TIME);

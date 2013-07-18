@@ -41,13 +41,13 @@ typedef struct _OnscreenKeyboardInfo OnscreenKeyboardInfo;
 
 /* Exported functions */
 
-G_MODULE_EXPORT void on_a11y_font_toggled       (GtkWidget* widget,
+void on_a11y_font_toggled                       (GtkWidget* widget,
                                                  gpointer data);
-G_MODULE_EXPORT void on_a11y_dpi_toggled        (GtkWidget* widget,
+void on_a11y_dpi_toggled                        (GtkWidget* widget,
                                                  gpointer data);
-G_MODULE_EXPORT void on_a11y_contrast_toggled   (GtkWidget* widget,
+void on_a11y_contrast_toggled                   (GtkWidget* widget,
                                                  gpointer data);
-G_MODULE_EXPORT void on_a11y_osk_toggled        (GtkWidget* widget,
+void on_a11y_osk_toggled                        (GtkWidget* widget,
                                                  gpointer data);
 
 /* Static functions */
@@ -117,51 +117,56 @@ keyboard_onboard =
 
 void init_a11y_indicator(void)
 {
-    if(!config.a11y.enabled)
+    if(config.a11y.enabled)
     {
-        gtk_widget_hide(greeter.ui.a11y.a11y_widget);
-        return;
+        if(config.a11y.osk.enabled)
+        {
+            if(config.a11y.osk.use_onboard && keyboard_onboard.info.check())
+                onscreen_keyboard = &keyboard_onboard.info;
+            else if(keyboard_command.info.check())
+                onscreen_keyboard = &keyboard_command.info;
+            else
+            {
+                g_warning("a11y: no virtual keyboard found");
+                config.a11y.osk.enabled = FALSE;
+            }
+        }
+
+        if(config.a11y.contrast.enabled &&
+           config.a11y.contrast.check_theme && !theme_is_installed(config.a11y.contrast.theme))
+        {
+            g_warning("a11y: contrast theme is not found (%s)", config.a11y.contrast.theme);
+            config.a11y.contrast.enabled = FALSE;
+        }
+
+        if(!config.a11y.osk.enabled &&
+           !config.a11y.contrast.enabled &&
+           !config.a11y.font.enabled &&
+           !config.a11y.dpi.enabled)
+        {
+            g_message("a11y: no options enabled, hiding menu item");
+            config.a11y.enabled = FALSE;
+        }
     }
 
-    if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget))
-        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget));
+    gtk_widget_set_visible(greeter.ui.a11y.a11y_widget, config.a11y.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, config.a11y.enabled && config.a11y.osk.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.enabled && config.a11y.font.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.dpi_widget, config.a11y.enabled && config.a11y.dpi.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, config.a11y.enabled && config.a11y.contrast.enabled);
 
-    if(config.a11y.osk.use_onboard && keyboard_onboard.info.check())
-        onscreen_keyboard = &keyboard_onboard.info;
-    else if(keyboard_command.info.check())
-        onscreen_keyboard = &keyboard_command.info;
-    else
-        g_warning("a11y: no virtual keyboard found or allowed");
-
-    gboolean allow_contrast = FALSE;
-    if(!config.a11y.contrast.theme || strlen(config.a11y.contrast.theme) == 0)
-        ;
-    else if(config.a11y.contrast.check_theme && !theme_is_installed(config.a11y.contrast.theme))
-        g_warning("a11y: contrast theme is not found (%s)", config.a11y.contrast.theme);
-    else
-        allow_contrast = TRUE;
-
-    if(!onscreen_keyboard &&
-       !allow_contrast &&
-       config.a11y.font.increment <= 0 &&
-       config.a11y.dpi.increment <= 0)
+    if(config.a11y.enabled)
     {
-        g_message("a11y: no options enabled, hiding menu item");
-        gtk_widget_hide(greeter.ui.a11y.a11y_widget);
-        return;
+        if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget))
+            fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget));
+
+        if(config.a11y.contrast.enabled && a11y_get_contrast_state())
+            a11y_toggle_contrast();
+        if(config.a11y.font.enabled && a11y_get_font_state())
+            a11y_toggle_font();
+        if(config.a11y.dpi.enabled && a11y_get_dpi_state())
+            a11y_toggle_dpi();
     }
-
-    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, onscreen_keyboard != NULL);
-    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.font.increment > 0);
-    gtk_widget_set_visible(greeter.ui.a11y.dpi_widget, config.a11y.dpi.increment > 0);
-    gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, allow_contrast);
-
-    if(gtk_widget_get_visible(greeter.ui.a11y.contrast_widget) && a11y_get_contrast_state())
-        a11y_toggle_contrast();
-    if(gtk_widget_get_visible(greeter.ui.a11y.font_widget) && a11y_get_font_state())
-        a11y_toggle_font();
-    if(gtk_widget_get_visible(greeter.ui.a11y.dpi_widget) && a11y_get_dpi_state())
-        a11y_toggle_dpi();
 }
 
 void a11y_close(void)
@@ -200,8 +205,8 @@ void a11y_toggle_contrast()
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
-                                          gpointer data)
+void on_a11y_font_toggled(GtkWidget* widget,
+                          gpointer data)
 {
     g_return_if_fail(gtk_widget_get_visible(widget));
 
@@ -243,8 +248,8 @@ G_MODULE_EXPORT void on_a11y_font_toggled(GtkWidget* widget,
     update_windows_idle();
 }
 
-G_MODULE_EXPORT void on_a11y_dpi_toggled(GtkWidget* widget,
-                                         gpointer data)
+void on_a11y_dpi_toggled(GtkWidget* widget,
+                         gpointer data)
 {
     g_return_if_fail(gtk_widget_get_visible(widget));
 
@@ -262,8 +267,8 @@ G_MODULE_EXPORT void on_a11y_dpi_toggled(GtkWidget* widget,
     update_windows_idle();
 }
 
-G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
-                                              gpointer data)
+void on_a11y_contrast_toggled(GtkWidget* widget,
+                              gpointer data)
 {
     g_return_if_fail(gtk_widget_get_visible(widget));
 
@@ -277,8 +282,8 @@ G_MODULE_EXPORT void on_a11y_contrast_toggled(GtkWidget* widget,
     update_windows_idle();
 }
 
-G_MODULE_EXPORT void on_a11y_osk_toggled(GtkWidget* widget,
-                                         gpointer data)
+void on_a11y_osk_toggled(GtkWidget* widget,
+                         gpointer data)
 {
     g_return_if_fail(onscreen_keyboard != NULL);
     g_return_if_fail(onscreen_keyboard->open != NULL);

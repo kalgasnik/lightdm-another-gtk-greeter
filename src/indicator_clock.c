@@ -27,9 +27,9 @@
     #include <libido/libido.h>
 #endif
 
-#include "shares.h"
 #include "configuration.h"
 #include "indicator_clock.h"
+#include "shares.h"
 
 /* Static variables */
 
@@ -68,6 +68,7 @@ void init_clock_indicator(void)
         #else
         calendar_menuitem = create_simple_calendar_item(&greeter.ui.clock.calendar_widget);
         #endif
+
         greeter.ui.clock.date_widget = gtk_menu_item_new_with_label("");
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), greeter.ui.clock.date_widget);
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), calendar_menuitem);

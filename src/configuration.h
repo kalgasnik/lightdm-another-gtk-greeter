@@ -106,6 +106,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gchar*      theme;
             gchar*      icon_theme;
             gboolean    check_theme;
@@ -114,6 +115,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gchar**     command;
             gboolean    use_onboard;
             gboolean    initial_state;
@@ -125,6 +127,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gint        increment;
             gboolean    is_percent;
             gboolean    initial_state;
@@ -132,6 +135,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gint        increment;
             gboolean    is_percent;
             gboolean    initial_state;
