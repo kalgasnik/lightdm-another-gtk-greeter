@@ -358,11 +358,14 @@ void set_widget_toggled(GtkWidget* widget,
         g_return_if_reached();
 }
 
-void enable_window_transparency(GtkWidget* window)
+void setup_window(GtkWindow* window)
 {
-    //gtk_widget_set_app_paintable(window, TRUE);
-    g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
-    on_transparent_screen_changed(window, NULL, NULL);
+    GTK_IS_WINDOW(window);
+    if(config.appearance.transparency)
+    {
+        g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
+        on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
+    }
 }
 
 /* ---------------------------------------------------------------------------*
@@ -379,6 +382,7 @@ static void show_message_dialog(GtkMessageType type,
                                                "%s", message);
     g_free(message);
 
+    setup_window(GTK_WINDOW(dialog));
     gtk_window_set_title(GTK_WINDOW(dialog), title);
     gtk_widget_show_all(dialog);
     set_window_position(dialog, &WINDOW_POSITION_CENTER);

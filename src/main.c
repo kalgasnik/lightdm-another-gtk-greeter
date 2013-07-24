@@ -331,8 +331,6 @@ static gboolean init_gui(void)
             g_debug("Widget is not found: %s\n", w->name);
     }
 
-    //enable_window_transparency(greeter.ui.login_window);
-
     void update_widget_name(GObject* object,
                             gpointer nothing)
     {
@@ -380,6 +378,10 @@ static gboolean init_gui(void)
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
     gtk_builder_connect_signals(builder, greeter.greeter);
+
+    setup_window(GTK_WINDOW(greeter.ui.login_window));
+    setup_window(GTK_WINDOW(greeter.ui.panel_window));
+
     return TRUE;
 }
 

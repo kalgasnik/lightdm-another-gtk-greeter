@@ -78,6 +78,7 @@ struct _GreeterConfig
         gchar*          rgba;
         gboolean        antialias;
         gint            dpi;
+        gboolean        transparency;
     } appearance;
 
     struct

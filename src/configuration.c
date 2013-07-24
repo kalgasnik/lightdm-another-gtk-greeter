@@ -25,6 +25,10 @@
 
 GreeterConfig config =
 {
+    .appearance =
+    {
+        .transparency = TRUE
+    },
     .greeter =
     {
         .double_escape_time = 300

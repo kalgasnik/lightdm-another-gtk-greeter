@@ -244,6 +244,6 @@ gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
                                         gboolean state);
 
-void enable_window_transparency        (GtkWidget* window);
+void setup_window                      (GtkWindow* window);
 
 #endif // _SHARES_H_INCLUDED_
