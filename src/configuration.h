@@ -56,6 +56,7 @@ struct _GreeterConfig
         gboolean        show_session_icon;
         WindowPosition  position;
         guint32         double_escape_time;
+        gchar**         autostart_command;
     } greeter;
 
     struct

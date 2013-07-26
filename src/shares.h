@@ -64,7 +64,7 @@ struct _GreeterData
         GdkPixbuf*      default_user_image;
         GdkPixbuf*      default_user_image_scaled;
         const gchar*    last_background;
-
+        GPid            autostart_pid;
         struct
         {
             WindowPosition position;

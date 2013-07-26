@@ -136,6 +136,7 @@ void load_settings(void)
     config.greeter.show_language_selector     = read_value_bool    (cfg, SECTION, "show-language-selector", TRUE);
     config.greeter.show_session_icon          = read_value_bool    (cfg, SECTION, "show-session-icon",      FALSE);
     config.greeter.position                   = read_value_wp      (cfg, SECTION, "position",              &WINDOW_POSITION_CENTER);
+    config.greeter.autostart_command          = read_value_command (cfg, SECTION, "autostart-command");
 
     SECTION = "appearance";
     config.appearance.ui_file                 = read_value_str     (cfg, SECTION, "ui-file", "greeter.classic.ui");

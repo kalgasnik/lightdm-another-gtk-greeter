@@ -29,15 +29,13 @@
 
 /* Types */
 
-struct _OnscreenKeyboardInfo
+typedef struct _OnscreenKeyboardInfo
 {
     gboolean (*check) (void);
     void (*open) (void);
     void (*close) (void);
     void (*kill) (void);
-};
-
-typedef struct _OnscreenKeyboardInfo OnscreenKeyboardInfo;
+} OnscreenKeyboardInfo;
 
 /* Exported functions */
 

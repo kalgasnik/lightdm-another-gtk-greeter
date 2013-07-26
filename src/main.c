@@ -42,6 +42,7 @@ static gboolean init_css                    (void);
 static gboolean init_gui                    (void);
 static void set_background                  (const gchar* value);
 static void run_gui                         (void);
+static void close_gui                       (void);
 
 static gboolean load_users_list             (void);
 static gboolean load_sessions_list          (void);
@@ -73,7 +74,7 @@ static void set_language                    (const gchar* language);
 static cairo_surface_t* create_root_surface (GdkScreen* screen);
 
 /* Callbacks and events */
-static void sigterm_callback                (int signum);
+static void on_sigterm_signal               (int signum);
 
 /* LightDM callbacks */
 static void on_show_prompt                  (LightDMGreeter* greeter_ptr,
@@ -125,7 +126,7 @@ void on_show_menu                           (GtkWidget* widget,
 
 int main(int argc, char** argv)
 {
-    signal(SIGTERM, sigterm_callback);
+    signal(SIGTERM, on_sigterm_signal);
 
     g_message("Another GTK+ Greeter version %s", PACKAGE_VERSION);
 
@@ -150,15 +151,14 @@ int main(int argc, char** argv)
         init_a11y_indicator();
         init_clock_indicator();
         init_layout_indicator();
-
         init_user_selection();
         run_gui();
+        close_gui();
     }
     else
     {
         g_critical("Greeter initialization failed");
     }
-
     return inited ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -456,6 +456,24 @@ static void set_background(const gchar* value)
 
 static void run_gui(void)
 {
+    if(config.greeter.autostart_command)
+    {
+        GError* error;
+        if(!g_spawn_async(NULL, config.greeter.autostart_command, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &greeter.state.autostart_pid, &error))
+        {
+            if(error)
+            {
+                g_warning("Autostart command error: %s", error->message);
+                show_error(_("Autostart"), _("Failed to start command:\n%s"), error->message);
+                g_clear_error(&error);
+            }
+            else
+            {
+                g_warning("Autostart command failed");
+                show_error(_("Autostart"), _("Failed to autostart"));
+            }
+        }
+    }
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
 
@@ -480,6 +498,16 @@ static void run_gui(void)
 
     gdk_window_focus(gtk_widget_get_window(greeter.ui.login_window), GDK_CURRENT_TIME);
     gtk_main();
+}
+
+static void close_gui(void)
+{
+    if(greeter.state.autostart_pid)
+    {
+        kill(greeter.state.autostart_pid, SIGTERM);
+        g_spawn_close_pid(greeter.state.autostart_pid);
+        greeter.state.autostart_pid = 0;
+    }
 }
 
 static gint update_users_names_table(const gchar* display_name)
@@ -1099,9 +1127,9 @@ static cairo_surface_t* create_root_surface(GdkScreen* screen)
  * Definitions: callbacks
  * ------------------------------------------------------------------------- */
 
-static void sigterm_callback(int signum)
+static void on_sigterm_signal(int signum)
 {
-    exit(EXIT_SUCCESS);
+    gtk_main_quit();
 }
 
 /* ------------------------------------------------------------------------- *
