@@ -143,6 +143,7 @@ void load_settings(void)
     config.appearance.css_file                = read_value_str     (cfg, SECTION, "css-file", NULL);
     config.appearance.background              = read_value_str     (cfg, SECTION, "background", NULL);
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", TRUE);
+    config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", FALSE);
     config.appearance.logo                    = read_value_str     (cfg, SECTION, "logo", NULL);
     config.appearance.fixed_user_image_size   = read_value_bool    (cfg, SECTION, "fixed-user-image-size", TRUE);
     config.appearance.list_view_image_size    = read_value_int     (cfg, SECTION, "list-view-image-size", 48);
