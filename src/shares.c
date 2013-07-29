@@ -378,9 +378,20 @@ static void show_message_dialog(GtkMessageType type,
                                 va_list args)
 {
     gchar* message = g_strdup_vprintf(message_format, args);
-    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK,
-                                               "%s", message);
+    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK, "%s", message);
     g_free(message);
+
+    const gchar* window_name = NULL;
+    switch(type)
+    {
+        case GTK_MESSAGE_INFO: window_name = "dialog_window_info"; break;
+        case GTK_MESSAGE_WARNING: window_name = "dialog_window_warning"; break;
+        case GTK_MESSAGE_QUESTION: window_name = "dialog_window_question"; break;
+        case GTK_MESSAGE_ERROR: window_name = "dialog_window_error"; break;
+        default:
+            window_name = "dialog_window";
+    }
+    gtk_widget_set_name(dialog, window_name);
 
     setup_window(GTK_WINDOW(dialog));
     gtk_window_set_title(GTK_WINDOW(dialog), title);
