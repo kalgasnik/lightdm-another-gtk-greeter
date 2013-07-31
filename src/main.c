@@ -1484,6 +1484,9 @@ gboolean on_special_key_press(GtkWidget* widget,
         case GDK_KEY_Print:
             take_screenshot();
             break;
+        case GDK_KEY_PowerOff:
+            power_shutdown();
+            break;
         default:
             return FALSE;
     }

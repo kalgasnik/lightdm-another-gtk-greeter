@@ -124,12 +124,19 @@ void init_power_indicator(void)
     }
 }
 
+void power_shutdown(void)
+{
+    on_power_shutdown_activate(NULL, NULL);
+}
+
 /* ------------------------------------------------------------------------- *
  * Definitions: static
  * ------------------------------------------------------------------------- */
 
 static void power_action(const PowerActionData* action)
 {
+    g_return_if_fail(config.power.enabled);
+
     if(*action->show_prompt_ptr)
     {
         gtk_widget_hide(greeter.ui.login_window);
