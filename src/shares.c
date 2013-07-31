@@ -61,8 +61,8 @@ const WindowPosition WINDOW_POSITION_BOTTOM =
 #ifdef _DEBUG_
 const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
 const gchar* const LOCALE_DIR = "/usr/local/share.locale";
-const gchar* const GREETER_DATA_DIR = "../../data";
-const gchar* const CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.conf";
+const gchar* const GREETER_DATA_DIR = "../../data.dev";
+const gchar* const CONFIG_FILE = "../../data.dev/lightdm-another-gtk-greeter.conf";
 const gchar* const PACKAGE_VERSION = "<DEBUG>";
 #endif
 
@@ -348,19 +348,22 @@ gboolean get_widget_toggled(GtkWidget* widget)
 }
 
 void set_widget_toggled(GtkWidget* widget,
-                        gboolean state)
+                        gboolean state,
+                        GCallback suppress_callback)
 {
+    if(suppress_callback)
+        g_signal_handlers_block_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
     if(GTK_IS_TOGGLE_BUTTON(widget))
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), state);
     else if(GTK_IS_CHECK_MENU_ITEM(widget))
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
-    else
-        g_return_if_reached();
+    if(suppress_callback)
+        g_signal_handlers_unblock_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
 }
 
 void setup_window(GtkWindow* window)
 {
-    GTK_IS_WINDOW(window);
+    g_return_if_fail(GTK_IS_WINDOW(window));
     if(config.appearance.transparency)
     {
         g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);

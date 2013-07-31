@@ -283,6 +283,7 @@ static gboolean init_gui(void)
         {&greeter.ui.login_box,                  "login_box",               FALSE},
         {&greeter.ui.login_widget,               "login_widget",            FALSE},
         {&greeter.ui.cancel_widget,              "cancel_widget",           FALSE},
+        {&greeter.ui.authentication_widget,      "authentication_widget",   FALSE},
         {&greeter.ui.prompt_box,                 "prompt_box",              FALSE},
         {&greeter.ui.prompt_widget,              "prompt_widget",           FALSE},
         {&greeter.ui.prompt_entry,               "prompt_entry",            TRUE},
@@ -329,7 +330,7 @@ static gboolean init_gui(void)
             return FALSE;
         }
         else
-            g_debug("Widget is not found: %s\n", w->name);
+            g_warning("Widget is not found: %s\n", w->name);
     }
 
     void update_widget_name(GObject* object,
@@ -992,7 +993,9 @@ static void take_screenshot(void)
         g_warning("Failed: %s", error->message);
         show_error(_("Screenshot"), "%s", error->message);
         g_clear_error(&error);
-    };
+    }
+    else
+        g_message("Screenshot saved as \"%s\"", file_path);
     g_date_time_unref(datetime);
     g_object_unref(screenshot);
     g_free(file_path);
@@ -1020,6 +1023,7 @@ static void start_authentication(const gchar* user_name)
     load_user_options(user);
     set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
     gtk_widget_hide(greeter.ui.cancel_widget);
+    gtk_widget_hide(greeter.ui.authentication_widget);
 }
 
 static void cancel_authentication(void)
@@ -1248,6 +1252,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
             g_free(user_name);
         }
     }
+    gtk_widget_hide(greeter.ui.authentication_widget);
 }
 
 static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
@@ -1312,6 +1317,10 @@ void on_login_clicked(GtkWidget* widget,
             set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
             load_user_options(user);
         }
+        else
+        {
+            gtk_widget_show(greeter.ui.authentication_widget);
+        }
     }
     else
     {
@@ -1341,7 +1350,9 @@ void on_user_selection_changed(GtkWidget* widget,
     gchar* user_name = get_user_name();
     g_debug("User selection changed: %s", user_name);
 
+    #ifdef _DEBUG_
     LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
+    #endif
 
     if(greeter.ui.user_image)
     {
