@@ -243,7 +243,8 @@ gboolean get_model_iter_str            (GtkTreeModel* model,
 void fix_image_menu_item_if_empty      (GtkImageMenuItem* widget);
 gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
-                                        gboolean state);
+                                        gboolean state,
+                                        GCallback suppress_callback);
 
 void setup_window                      (GtkWindow* window);
 

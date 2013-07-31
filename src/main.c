@@ -993,7 +993,9 @@ static void take_screenshot(void)
         g_warning("Failed: %s", error->message);
         show_error(_("Screenshot"), "%s", error->message);
         g_clear_error(&error);
-    };
+    }
+    else
+        g_message("Screenshot saved as \"%s\"", file_path);
     g_date_time_unref(datetime);
     g_object_unref(screenshot);
     g_free(file_path);

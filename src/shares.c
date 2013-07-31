@@ -348,14 +348,17 @@ gboolean get_widget_toggled(GtkWidget* widget)
 }
 
 void set_widget_toggled(GtkWidget* widget,
-                        gboolean state)
+                        gboolean state,
+                        GCallback suppress_callback)
 {
+    if(suppress_callback)
+        g_signal_handlers_block_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
     if(GTK_IS_TOGGLE_BUTTON(widget))
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), state);
     else if(GTK_IS_CHECK_MENU_ITEM(widget))
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
-    else
-        g_return_if_reached();
+    if(suppress_callback)
+        g_signal_handlers_unblock_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
 }
 
 void setup_window(GtkWindow* window)

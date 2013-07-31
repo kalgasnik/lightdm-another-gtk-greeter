@@ -74,7 +74,14 @@ static void osk_kill_onboard                    (void);
 
 /* Static variables */
 
-static OnscreenKeyboardInfo* onscreen_keyboard = NULL;
+static struct
+{
+    OnscreenKeyboardInfo* onscreen_keyboard;
+    struct
+    {
+        gboolean font, dpi, contrast, osk;
+    } state;
+} a11y;
 
 static struct
 {
@@ -120,9 +127,9 @@ void init_a11y_indicator(void)
         if(config.a11y.osk.enabled)
         {
             if(config.a11y.osk.use_onboard && keyboard_onboard.info.check())
-                onscreen_keyboard = &keyboard_onboard.info;
+                a11y.onscreen_keyboard = &keyboard_onboard.info;
             else if(keyboard_command.info.check())
-                onscreen_keyboard = &keyboard_command.info;
+                a11y.onscreen_keyboard = &keyboard_command.info;
             else
             {
                 g_warning("a11y: no virtual keyboard found");
@@ -169,48 +176,40 @@ void init_a11y_indicator(void)
 
 void a11y_close(void)
 {
-    g_return_if_fail(onscreen_keyboard != NULL);
-    g_return_if_fail(onscreen_keyboard->kill != NULL);
+    g_return_if_fail(a11y.onscreen_keyboard != NULL);
+    g_return_if_fail(a11y.onscreen_keyboard->kill != NULL);
 
-    onscreen_keyboard->kill();
+    a11y.onscreen_keyboard->kill();
 }
 
 void a11y_toggle_osk()
 {
-    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.osk_widget));
-    set_widget_toggled(greeter.ui.a11y.osk_widget, !get_widget_toggled(greeter.ui.a11y.osk_widget));
+    g_return_if_fail(config.a11y.osk.enabled);
+    g_return_if_fail(a11y.onscreen_keyboard != NULL);
+    g_return_if_fail(a11y.onscreen_keyboard->open != NULL);
+    g_return_if_fail(a11y.onscreen_keyboard->close != NULL);
+
+    a11y.state.osk = !a11y.state.osk;
+    if(GTK_IS_WIDGET(greeter.ui.a11y.osk_widget));
+        set_widget_toggled(greeter.ui.a11y.osk_widget, a11y.state.osk, (GCallback)on_a11y_osk_toggled);
+
+    if(a11y.state.osk)
+        a11y.onscreen_keyboard->open();
+    else
+        a11y.onscreen_keyboard->close();
+    update_windows_idle();
 }
 
 void a11y_toggle_font(void)
 {
-    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.font_widget));
-    set_widget_toggled(greeter.ui.a11y.font_widget, !get_widget_toggled(greeter.ui.a11y.font_widget));
-}
+    g_return_if_fail(config.a11y.font.enabled);
 
-void a11y_toggle_dpi(void)
-{
-    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.dpi_widget));
-    set_widget_toggled(greeter.ui.a11y.dpi_widget, !get_widget_toggled(greeter.ui.a11y.dpi_widget));
-}
+    a11y.state.font = !a11y.state.font;
+    if(GTK_IS_WIDGET(greeter.ui.a11y.font_widget))
+        set_widget_toggled(greeter.ui.a11y.font_widget, a11y.state.font, (GCallback)on_a11y_font_toggled);
 
-void a11y_toggle_contrast()
-{
-    g_return_if_fail(GTK_IS_WIDGET(greeter.ui.a11y.contrast_widget));
-    set_widget_toggled(greeter.ui.a11y.contrast_widget, !get_widget_toggled(greeter.ui.a11y.contrast_widget));
-}
-
-/* ------------------------------------------------------------------------- *
- * Definitions: exported
- * ------------------------------------------------------------------------- */
-
-void on_a11y_font_toggled(GtkWidget* widget,
-                          gpointer data)
-{
-    g_return_if_fail(gtk_widget_get_visible(widget));
-
-    gboolean big_font = get_widget_toggled(greeter.ui.a11y.font_widget);
     GtkSettings* settings = gtk_settings_get_default();
-    if(big_font)
+    if(a11y.state.font)
     {
         gchar* font_name;
         gchar** tokens;
@@ -242,57 +241,74 @@ void on_a11y_font_toggled(GtkWidget* widget,
     {
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
-    a11y_save_font_state(big_font);
+    a11y_save_font_state(a11y.state.font);
     update_windows_idle();
 }
 
-void on_a11y_dpi_toggled(GtkWidget* widget,
-                         gpointer data)
+void a11y_toggle_dpi(void)
 {
-    g_return_if_fail(gtk_widget_get_visible(widget));
+    g_return_if_fail(config.a11y.dpi.enabled);
 
-    gboolean dpi = get_widget_toggled(greeter.ui.a11y.dpi_widget);
+    a11y.state.dpi = !a11y.state.dpi;
+    if(GTK_IS_WIDGET(greeter.ui.a11y.dpi_widget))
+        set_widget_toggled(greeter.ui.a11y.dpi_widget, a11y.state.dpi, (GCallback)on_a11y_dpi_toggled);
+
     gint value = config.appearance.dpi;
     GtkSettings* settings = gtk_settings_get_default();
-    if(dpi)
+    if(a11y.state.dpi)
     {
         gint current;
         g_object_get(settings, "gtk-xft-dpi", &current, NULL);
         value = get_increment(value, config.a11y.dpi.increment, config.a11y.dpi.is_percent);
     }
     g_object_set(settings, "gtk-xft-dpi", value*1024, NULL);
-    a11y_save_dpi_state(dpi);
+    a11y_save_dpi_state(a11y.state.dpi);
     update_windows_idle();
+}
+
+void a11y_toggle_contrast()
+{
+    g_return_if_fail(config.a11y.contrast.enabled);
+
+    a11y.state.contrast = !a11y.state.contrast;
+    if(GTK_IS_WIDGET(greeter.ui.a11y.contrast_widget))
+        set_widget_toggled(greeter.ui.a11y.contrast_widget, a11y.state.contrast, (GCallback)on_a11y_contrast_toggled);
+
+    GtkSettings* settings = gtk_settings_get_default();
+    g_object_set(settings, "gtk-theme-name",
+                 a11y.state.contrast ? config.a11y.contrast.theme : config.appearance.theme, NULL);
+    g_object_set(settings, "gtk-icon-theme-name",
+                 a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
+    a11y_save_contrast_state(a11y.state.contrast);
+    update_windows_idle();
+}
+
+/* ------------------------------------------------------------------------- *
+ * Definitions: exported
+ * ------------------------------------------------------------------------- */
+
+void on_a11y_font_toggled(GtkWidget* widget,
+                          gpointer data)
+{
+    a11y_toggle_contrast();
+}
+
+void on_a11y_dpi_toggled(GtkWidget* widget,
+                         gpointer data)
+{
+    a11y_toggle_dpi();
 }
 
 void on_a11y_contrast_toggled(GtkWidget* widget,
                               gpointer data)
 {
-    g_return_if_fail(gtk_widget_get_visible(widget));
-
-    gboolean contrast = get_widget_toggled(widget);
-    GtkSettings* settings = gtk_settings_get_default();
-    g_object_set(settings, "gtk-theme-name",
-                 contrast ? config.a11y.contrast.theme : config.appearance.theme, NULL);
-    g_object_set(settings, "gtk-icon-theme-name",
-                 contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
-    a11y_save_contrast_state(contrast);
-    update_windows_idle();
+    a11y_toggle_contrast();
 }
 
 void on_a11y_osk_toggled(GtkWidget* widget,
                          gpointer data)
 {
-    g_return_if_fail(onscreen_keyboard != NULL);
-    g_return_if_fail(onscreen_keyboard->open != NULL);
-    g_return_if_fail(onscreen_keyboard->close != NULL);
-    g_return_if_fail(gtk_widget_get_visible(widget));
-
-    if(get_widget_toggled(greeter.ui.a11y.osk_widget))
-        onscreen_keyboard->open();
-    else
-        onscreen_keyboard->close();
-    update_windows_idle();
+    a11y_toggle_osk();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -362,7 +378,7 @@ static void osk_open_custom(void)
     GError* error = NULL;
     if(!g_spawn_async(NULL, config.a11y.osk.command, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &keyboard_command.pid, &error))
     {
-        onscreen_keyboard = NULL;
+        a11y.onscreen_keyboard = NULL;
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
         g_warning("On-screen keyboard command error: %s", error->message);
         show_error(_("On-screen keyboard"), _("Failed to start keyboard command:\n%s"), error->message);
@@ -496,7 +512,7 @@ static void osk_open_onboard(void)
     {
         show_error(_("Onboard"), _("Failed to start 'onboard', see logs for details."));
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
-        onscreen_keyboard = NULL;
+        a11y.onscreen_keyboard = NULL;
         return;
     }
     gtk_widget_show_all(GTK_WIDGET(greeter.ui.onboard));
