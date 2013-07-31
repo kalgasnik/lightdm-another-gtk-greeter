@@ -61,8 +61,8 @@ const WindowPosition WINDOW_POSITION_BOTTOM =
 #ifdef _DEBUG_
 const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
 const gchar* const LOCALE_DIR = "/usr/local/share.locale";
-const gchar* const GREETER_DATA_DIR = "../../data";
-const gchar* const CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.conf";
+const gchar* const GREETER_DATA_DIR = "../../data.dev";
+const gchar* const CONFIG_FILE = "../../data.dev/lightdm-another-gtk-greeter.conf";
 const gchar* const PACKAGE_VERSION = "<DEBUG>";
 #endif
 
@@ -360,7 +360,7 @@ void set_widget_toggled(GtkWidget* widget,
 
 void setup_window(GtkWindow* window)
 {
-    GTK_IS_WINDOW(window);
+    g_return_if_fail(GTK_IS_WINDOW(window));
     if(config.appearance.transparency)
     {
         g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);

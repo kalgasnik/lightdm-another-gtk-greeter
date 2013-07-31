@@ -78,6 +78,7 @@ struct _GreeterData
         GtkWidget*      login_widget;
         GtkWidget*      login_widget_label;
         GtkWidget*      cancel_widget;
+        GtkWidget*      authentication_widget;
         GtkWidget*      message_widget;
         GtkWidget*      prompt_widget;
         GtkWidget*      user_image;
