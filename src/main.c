@@ -323,14 +323,17 @@ static gboolean init_gui(void)
     for(const struct BuilderWidget* w = WIDGETS; w->pwidget != NULL; ++w)
     {
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
-        if(w->needed && *w->pwidget == NULL)
+        if(*w->pwidget == NULL)
         {
-            g_critical("Widget is not found: %s\n", w->name);
-            show_error(_("Loading UI: error"), _("Widget '%s' is not found"), w->name);
-            return FALSE;
+            if(w->needed)
+            {
+                g_critical("Widget is not found: %s\n", w->name);
+                show_error(_("Loading UI: error"), _("Widget '%s' is not found"), w->name);
+                return FALSE;
+            }
+            else
+                g_warning("Widget is not found: %s\n", w->name);
         }
-        else
-            g_warning("Widget is not found: %s\n", w->name);
     }
 
     void update_widget_name(GObject* object,
