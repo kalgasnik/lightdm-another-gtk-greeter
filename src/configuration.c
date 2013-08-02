@@ -40,6 +40,11 @@ GreeterConfig config =
 static void save_key_file                          (GKeyFile* key_file,
                                                     const gchar* path);
 
+static void read_appearance_section                (GKeyFile* key_file,
+                                                    const gchar* section,
+                                                    const gchar* path,
+                                                    GtkSettings* settings);
+
 static gboolean read_value_bool                    (GKeyFile* key_file,
                                                     const gchar* section,
                                                     const gchar* key,
@@ -99,6 +104,11 @@ static gint read_value_dpi_gtk                     (GKeyFile* key_file,
                                                     GtkSettings* settings,
                                                     const gchar* property);
 
+static gchar* read_value_path                      (GKeyFile* key_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    const gchar* default_value,
+                                                    const gchar* dir);
 
 /* Static variables */
 
@@ -139,34 +149,32 @@ void load_settings(void)
     config.greeter.autostart_command          = read_value_command (cfg, SECTION, "autostart-command");
 
     SECTION = "appearance";
-    config.appearance.ui_file                 = read_value_str     (cfg, SECTION, "ui-file", "greeter.classic.ui");
-    config.appearance.css_file                = read_value_str     (cfg, SECTION, "css-file", NULL);
-    config.appearance.background              = read_value_str     (cfg, SECTION, "background", NULL);
-    config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", TRUE);
-    config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", FALSE);
-    config.appearance.logo                    = read_value_str     (cfg, SECTION, "logo", NULL);
-    config.appearance.fixed_user_image_size   = read_value_bool    (cfg, SECTION, "fixed-user-image-size", TRUE);
-    config.appearance.list_view_image_size    = read_value_int     (cfg, SECTION, "list-view-image-size", 48);
-    config.appearance.default_user_image_size = read_value_int     (cfg, SECTION, "default-user-image-size", 96);
-    config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme", settings, "gtk-theme-name", NULL, FALSE);
-    config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", NULL, FALSE);
-    config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", NULL, FALSE);
-    config.appearance.fixed_login_button_width= read_value_bool    (cfg, SECTION, "fixed-login-button-width", FALSE);
+    config.appearance.ui_file                 = "themes/classic/greeter.ui";
+    config.appearance.css_file                = NULL;
+    config.appearance.background              = NULL;
+    config.appearance.user_background         = TRUE;
+    config.appearance.x_background            = FALSE;
+    config.appearance.logo                    = NULL;
+    config.appearance.fixed_user_image_size   = TRUE;
+    config.appearance.list_view_image_size    = 48;
+    config.appearance.default_user_image_size = 96;
+    config.appearance.theme                   = NULL;
+    config.appearance.icon_theme              = NULL;
+    config.appearance.font                    = NULL;
+    config.appearance.fixed_login_button_width= FALSE;
+    config.appearance.hintstyle               = NULL;
+    config.appearance.rgba                    = NULL;
+    config.appearance.antialias               = FALSE;
+    config.appearance.dpi                     = -1;
+    config.appearance.user_name_format        = USER_NAME_FORMAT_DISPLAYNAME;
+    config.appearance.date_format             = "%A, %e %B";
 
-    config.appearance.hintstyle               = read_value_str_gtk (cfg, SECTION, "xft-hintstyle", settings, "gtk-xft-hintstyle", NULL, FALSE);
-    config.appearance.rgba                    = read_value_str_gtk (cfg, SECTION, "xft-rgba", settings, "gtk-xft-rgba", NULL, FALSE);
-    config.appearance.antialias               = read_value_bool_gtk(cfg, SECTION, "xft-antialias", settings, "gtk-xft-antialias", FALSE, FALSE);
-    config.appearance.dpi                     = read_value_dpi_gtk (cfg, SECTION, "xft-dpi", settings, "gtk-xft-dpi");
-
-    config.appearance.user_name_format        = read_value_enum    (cfg, SECTION, "user-name-format",
-                                                                    USER_NAME_FORMAT_STRINGS, USER_NAME_FORMAT_DISPLAYNAME);
-    config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", "%A, %e %B");
+    read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings);
 
     SECTION = "panel";
     config.panel.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
     config.panel.position                     = read_value_enum    (cfg, SECTION, "position",
                                                                     PANEL_POSITION_STRINGS, PANEL_POS_TOP);
-
     SECTION = "power";
     config.power.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
     config.power.prompts[POWER_SUSPEND]       = read_value_bool    (cfg, SECTION, "suspend-prompt",   FALSE);
@@ -215,10 +223,6 @@ void load_settings(void)
     config.layout.enabled                     = read_value_bool    (cfg, SECTION, "enabled", TRUE);
 
     g_key_file_free(cfg);
-
-    #ifdef _DEBUG_
-    config.greeter.show_session_icon = TRUE;
-    #endif
 }
 
 void read_state(void)
@@ -312,6 +316,58 @@ static void save_key_file(GKeyFile* key_file,
     }
     g_free(data);
 }
+
+static void read_appearance_section(GKeyFile* cfg,
+                                    const gchar* SECTION,
+                                    const gchar* path,
+                                    GtkSettings* settings)
+{
+    gchar* theme = read_value_str(cfg, SECTION, "greeter-theme", NULL);
+    if(theme)
+    {
+        GError* error = NULL;
+        GKeyFile* theme_cfg = g_key_file_new();
+        gchar* theme_filename = g_build_filename(GREETER_DATA_DIR, "themes", theme, "theme.conf", NULL);
+        if(g_key_file_load_from_file(theme_cfg, theme_filename, G_KEY_FILE_NONE, &error))
+        {
+            gchar* theme_path = g_build_filename(GREETER_DATA_DIR, "themes", theme, NULL);
+            read_appearance_section(theme_cfg, SECTION, theme_path, settings);
+            g_free(theme_path);
+        }
+        else
+        {
+            g_warning("Failed to load theme: %s.", error->message);
+            g_clear_error(&error);
+        }
+        g_free(theme_filename);
+        g_key_file_free(theme_cfg);
+        g_free(theme);
+    }
+    /* memory leak */
+
+    config.appearance.ui_file                 = read_value_path    (cfg, SECTION, "ui-file", config.appearance.ui_file, path);
+    config.appearance.css_file                = read_value_path    (cfg, SECTION, "css-file", config.appearance.css_file, path);
+    config.appearance.background              = read_value_path    (cfg, SECTION, "background", config.appearance.background, path);
+    config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
+    config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
+    config.appearance.logo                    = read_value_path    (cfg, SECTION, "logo", config.appearance.logo, path);
+    config.appearance.fixed_user_image_size   = read_value_bool    (cfg, SECTION, "fixed-user-image-size", config.appearance.fixed_user_image_size);
+    config.appearance.list_view_image_size    = read_value_int     (cfg, SECTION, "list-view-image-size", config.appearance.list_view_image_size);
+    config.appearance.default_user_image_size = read_value_int     (cfg, SECTION, "default-user-image-size", config.appearance.default_user_image_size);
+    config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme", settings, "gtk-theme-name", config.appearance.theme, FALSE);
+    config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", config.appearance.icon_theme, FALSE);
+    config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", config.appearance.font, FALSE);
+    config.appearance.fixed_login_button_width= read_value_bool    (cfg, SECTION, "fixed-login-button-width", config.appearance.fixed_login_button_width);
+    config.appearance.hintstyle               = read_value_str_gtk (cfg, SECTION, "xft-hintstyle", settings, "gtk-xft-hintstyle", config.appearance.hintstyle, FALSE);
+    config.appearance.rgba                    = read_value_str_gtk (cfg, SECTION, "xft-rgba", settings, "gtk-xft-rgba", config.appearance.rgba, FALSE);
+    config.appearance.antialias               = read_value_bool_gtk(cfg, SECTION, "xft-antialias", settings, "gtk-xft-antialias", config.appearance.antialias, FALSE);
+    if(g_key_file_has_key(cfg, SECTION, "xft-dpi", NULL))
+        config.appearance.dpi                 = read_value_dpi_gtk (cfg, SECTION, "xft-dpi", settings, "gtk-xft-dpi");
+    config.appearance.user_name_format        = read_value_enum    (cfg, SECTION, "user-name-format",
+                                                                    USER_NAME_FORMAT_STRINGS, config.appearance.user_name_format);
+    config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
+}
+
 
 static gboolean read_value_bool(GKeyFile* key_file,
                                 const gchar* section,
@@ -539,3 +595,18 @@ static gint read_value_dpi_gtk(GKeyFile* key_file,
     return value/1024;
 }
 
+static gchar* read_value_path(GKeyFile* key_file,
+                              const gchar* section,
+                              const gchar* key,
+                              const gchar* default_value,
+                              const gchar* dir)
+{
+    gchar* value = read_value_str(key_file, section, key, default_value);
+    if(dir && value && value[0] && value[0] != '#' && !g_path_is_absolute(value))
+    {
+        gchar* abs_path = g_build_filename(dir, value, NULL);
+        g_free(value);
+        value = abs_path;
+    }
+    return value;
+}

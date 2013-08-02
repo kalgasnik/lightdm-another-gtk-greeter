@@ -59,11 +59,11 @@ const WindowPosition WINDOW_POSITION_BOTTOM =
 };
 
 #ifdef _DEBUG_
-const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
-const gchar* const LOCALE_DIR = "/usr/local/share.locale";
-const gchar* const GREETER_DATA_DIR = "../../data.dev";
-const gchar* const CONFIG_FILE = "../../data.dev/lightdm-another-gtk-greeter.conf";
-const gchar* const PACKAGE_VERSION = "<DEBUG>";
+gchar* GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
+gchar* LOCALE_DIR = "/usr/local/share.locale";
+gchar* GREETER_DATA_DIR = "../../data";
+gchar* CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.dev.conf";
+gchar* PACKAGE_VERSION = "<DEBUG>";
 #endif
 
 /* Static functions */
