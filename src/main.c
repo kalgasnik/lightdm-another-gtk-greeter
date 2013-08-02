@@ -129,6 +129,10 @@ int main(int argc, char** argv)
 {
     signal(SIGTERM, on_sigterm_signal);
 
+    #ifdef _DEBUG_
+    GREETER_DATA_DIR = g_build_filename(g_get_current_dir(), GREETER_DATA_DIR, NULL);
+    #endif
+
     g_message("Another GTK+ Greeter version %s", PACKAGE_VERSION);
 
     setlocale(LC_ALL, "");
@@ -212,18 +216,11 @@ static gboolean init_css(void)
         return TRUE;
     }
 
-    gchar* css_file = NULL;
-    if(g_path_is_absolute(config.appearance.css_file))
-        css_file = g_strdup(config.appearance.css_file);
-    else
-        css_file = g_build_filename(GREETER_DATA_DIR, config.appearance.css_file, NULL);
+    g_message("Loading CSS file: %s", config.appearance.css_file);
 
-    g_message("Loading CSS file: %s", css_file);
-
-    if(!g_file_test(css_file, G_FILE_TEST_EXISTS))
+    if(!g_file_test(config.appearance.css_file, G_FILE_TEST_EXISTS))
     {
         g_warning("Error loading CSS: file not exists");
-        g_free(css_file);
         return FALSE;
     }
 
@@ -232,7 +229,7 @@ static gboolean init_css(void)
     GdkScreen* screen = gdk_display_get_default_screen(gdk_display_get_default());
 
     gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    gboolean loaded = gtk_css_provider_load_from_path(provider, css_file, &error);
+    gboolean loaded = gtk_css_provider_load_from_path(provider, config.appearance.css_file, &error);
 
     if(!loaded)
     {
@@ -240,7 +237,6 @@ static gboolean init_css(void)
         g_clear_error(&error);
     }
     g_object_unref(provider);
-    g_free(css_file);
     return loaded;
 }
 
@@ -250,22 +246,14 @@ static gboolean init_gui(void)
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
 
-    gchar* ui_file = NULL;
-    if(g_path_is_absolute(config.appearance.ui_file))
-        ui_file = g_strdup(config.appearance.ui_file);
-    else
-        ui_file = g_build_filename(GREETER_DATA_DIR, config.appearance.ui_file, NULL);
-
-    g_message("Loading UI file: %s", ui_file);
-    if(!gtk_builder_add_from_file(builder, ui_file, &error))
+    g_message("Loading UI file: %s", config.appearance.ui_file);
+    if(!gtk_builder_add_from_file(builder, config.appearance.ui_file, &error))
     {
         g_critical("Error loading UI file: %s", error->message);
         show_error(_("Error"), _("Error loading UI file:\n\n%s"), error->message);
-        g_free(ui_file);
         g_clear_error(&error);
         return FALSE;
     }
-    g_free(ui_file);
 
     gdk_window_set_cursor(gdk_get_default_root_window(), gdk_cursor_new(GDK_LEFT_PTR));
 
@@ -474,17 +462,10 @@ static void set_background(const gchar* value)
     }
     else
     {
-        gchar* path;
-        if(g_path_is_absolute(value))
-            path = g_strdup(value);
-        else
-            path = g_build_filename(GREETER_DATA_DIR, value, NULL);
-
-        g_debug("Loading background from file: %s", path);
+        g_debug("Loading background from file: %s", value);
 
         GError* error = NULL;
-        background_pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        g_free(path);
+        background_pixbuf = gdk_pixbuf_new_from_file(value, &error);
 
         if(error)
         {
@@ -907,15 +888,10 @@ static void set_logo_image(void)
     }
     else
     {
-        GError* error = NULL;
-        gchar* path = NULL;
-        if(g_path_is_absolute(config.appearance.logo))
-            path = g_strdup(config.appearance.logo);
-        else
-            path = g_build_filename(GREETER_DATA_DIR, config.appearance.logo, NULL);
+        g_debug("Loading logo from file: %s", config.appearance.logo);
 
-        g_debug("Loading logo from file: %s", path);
-        GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(path, &error);
+        GError* error = NULL;
+        GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(config.appearance.logo, &error);
         if(pixbuf)
             gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.logo_image), pixbuf);
         else

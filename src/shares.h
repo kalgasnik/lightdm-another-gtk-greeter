@@ -190,11 +190,11 @@ extern const WindowPosition WINDOW_POSITION_TOP;
 extern const WindowPosition WINDOW_POSITION_BOTTOM;
 
 #ifdef _DEBUG_
-extern const gchar* const GETTEXT_PACKAGE;
-extern const gchar* const LOCALE_DIR;
-extern const gchar* const GREETER_DATA_DIR;
-extern const gchar* const CONFIG_FILE;
-extern const gchar* const PACKAGE_VERSION;
+extern gchar* GETTEXT_PACKAGE;
+extern gchar* LOCALE_DIR;
+extern gchar* GREETER_DATA_DIR;
+extern gchar* CONFIG_FILE;
+extern gchar* PACKAGE_VERSION;
 #endif
 
 /* Functions */
