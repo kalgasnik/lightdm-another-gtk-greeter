@@ -145,7 +145,6 @@ void load_settings(void)
     config.greeter.allow_other_users          = read_value_bool    (cfg, SECTION, "allow-other-users",      FALSE);
     config.greeter.show_language_selector     = read_value_bool    (cfg, SECTION, "show-language-selector", TRUE);
     config.greeter.show_session_icon          = read_value_bool    (cfg, SECTION, "show-session-icon",      FALSE);
-    config.greeter.position                   = read_value_wp      (cfg, SECTION, "position",              &WINDOW_POSITION_CENTER);
     config.greeter.autostart_command          = read_value_command (cfg, SECTION, "autostart-command");
 
     SECTION = "appearance";
@@ -168,6 +167,7 @@ void load_settings(void)
     config.appearance.dpi                     = -1;
     config.appearance.user_name_format        = USER_NAME_FORMAT_DISPLAYNAME;
     config.appearance.date_format             = "%A, %e %B";
+    config.appearance.position                = WINDOW_POSITION_CENTER;
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings);
 
@@ -366,6 +366,7 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.user_name_format        = read_value_enum    (cfg, SECTION, "user-name-format",
                                                                     USER_NAME_FORMAT_STRINGS, config.appearance.user_name_format);
     config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
+    config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
 }
 
 

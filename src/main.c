@@ -570,7 +570,6 @@ static void append_user(GtkTreeModel* model,
     const gchar* image_file = lightdm_user_get_image(user);
 
     g_debug("Adding user: %s (%s)", base_display_name, user_name);
-
     gint same_name_count = 0;
     if(update_hash_table)
         same_name_count = update_users_names_table(base_display_name);

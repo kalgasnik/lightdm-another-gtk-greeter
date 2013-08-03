@@ -88,7 +88,7 @@ void update_windows_layout(void)
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.login_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
 
-    set_window_position(greeter.ui.login_window, &config.greeter.position);
+    set_window_position(greeter.ui.login_window, &config.appearance.position);
 
     if(config.panel.enabled)
     {

@@ -54,7 +54,6 @@ struct _GreeterConfig
         gboolean        allow_other_users;
         gboolean        show_language_selector;
         gboolean        show_session_icon;
-        WindowPosition  position;
         guint32         double_escape_time;
         gchar**         autostart_command;
     } greeter;
@@ -81,6 +80,7 @@ struct _GreeterConfig
         gboolean        antialias;
         gint            dpi;
         gboolean        transparency;
+        WindowPosition  position;
     } appearance;
 
     struct
