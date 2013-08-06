@@ -36,6 +36,7 @@
 #include "indicator_clock.h"
 #include "indicator_layout.h"
 
+
 /* Static functions */
 
 static gboolean connect_to_lightdm          (void);
@@ -519,7 +520,7 @@ static void run_gui(void)
         g_timeout_add_seconds(1, (GSourceFunc)update_date_label, NULL);
     }
 
-    if(lightdm_greeter_get_hide_users_hint(greeter.greeter) && greeter.ui.user_view_box)
+    if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
         gtk_widget_hide(greeter.ui.user_view_box);
 
     greeter.state.panel.position = config.panel.position == PANEL_POS_TOP ? WINDOW_POSITION_TOP : WINDOW_POSITION_BOTTOM;
@@ -1173,7 +1174,6 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
     g_debug("LightDM signal: show-prompt (%s)", text);
 
     greeter.state.prompted = TRUE;
-
     set_prompt_label(dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
     gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry), type != LIGHTDM_PROMPT_TYPE_SECRET);
@@ -1338,7 +1338,6 @@ void on_user_selection_changed(GtkWidget* widget,
         gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image), pixbuf);
         gtk_widget_set_visible(greeter.ui.user_image, pixbuf != NULL);
     }
-
     set_message_label(NULL);
 
     start_authentication(user_name);

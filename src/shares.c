@@ -222,6 +222,8 @@ GtkTreeModel* get_widget_model(GtkWidget* widget)
         return gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
+    if(GTK_IS_ICON_VIEW(widget))
+        return gtk_icon_view_get_model(GTK_ICON_VIEW(widget));
     g_return_val_if_reached(NULL);
 }
 
@@ -266,6 +268,18 @@ gboolean get_widget_active_iter(GtkWidget* widget,
         return gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), iter);
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), NULL, iter);
+    if(GTK_IS_ICON_VIEW(widget))
+    {
+        gboolean ok = FALSE;
+        GList* selection = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget));
+        if(g_list_first(selection) != NULL)
+        {
+            GtkTreePath* path = (GtkTreePath*)g_list_first(selection)->data;
+            ok = gtk_tree_model_get_iter(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter, path);
+        }
+        g_list_free_full(selection, (GDestroyNotify)gtk_tree_path_free);
+        return ok;
+    }
     g_return_val_if_reached(NULL);
 }
 
@@ -276,15 +290,20 @@ void set_widget_active_iter(GtkWidget* widget,
         gtk_combo_box_set_active_iter(GTK_COMBO_BOX(widget), iter);
     else if(GTK_IS_TREE_VIEW(widget))
     {
-        gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), iter);
         GtkTreePath* path = gtk_tree_model_get_path(get_widget_model(widget), iter);
-        if(path)
-        {
-            gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), path, NULL, FALSE, 0.0, 0.0);
-            gtk_tree_path_free(path);
-        }
+        gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), iter);
+        gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), path, NULL, FALSE, 0.0, 0.0);
+        gtk_tree_path_free(path);
     }
-    else g_return_val_if_reached(NULL);
+    else if(GTK_IS_ICON_VIEW(widget))
+    {
+        GtkTreePath* path = gtk_tree_model_get_path(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter);
+        gtk_icon_view_select_path(GTK_ICON_VIEW(widget), path);
+        gtk_icon_view_scroll_to_path(GTK_ICON_VIEW(widget), path, FALSE, 0, 0);
+        gtk_tree_path_free(path);
+    }
+    else
+        g_return_val_if_reached(NULL);
 }
 
 void set_widget_active_first(GtkWidget* widget)
@@ -298,7 +317,15 @@ void set_widget_active_first(GtkWidget* widget)
             gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), &iter);
         gtk_tree_view_scroll_to_point(GTK_TREE_VIEW(widget), 0, 0);
     }
-    else g_return_val_if_reached(NULL);
+    else if(GTK_IS_ICON_VIEW(widget))
+    {
+        GtkTreePath* path = gtk_tree_path_new_first();
+        gtk_icon_view_select_path(GTK_ICON_VIEW(widget), path);
+        gtk_icon_view_scroll_to_path(GTK_ICON_VIEW(widget), path, FALSE, 0, 0);
+        gtk_tree_path_free(path);
+    }
+    else
+        g_return_val_if_reached(NULL);
 }
 
 gboolean get_model_iter_str(GtkTreeModel* model,
