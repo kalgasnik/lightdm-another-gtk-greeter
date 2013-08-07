@@ -108,7 +108,7 @@ void init_power_indicator(void)
     gboolean allow_any = FALSE;
     for(int i = 0; i < POWER_ACTIONS_COUNT; ++i)
     {
-        gtk_widget_set_visible(greeter.ui.power.actions[i], POWER_ACTIONS[i].get_allow());
+        gtk_widget_set_visible(greeter.ui.power.actions_box[i], POWER_ACTIONS[i].get_allow());
         allow_any |= POWER_ACTIONS[i].get_allow();
     }
 
@@ -116,11 +116,11 @@ void init_power_indicator(void)
     {
         if(!allow_any)
             g_warning("Power menu: no actions allowed, hiding widget");
-        gtk_widget_hide(greeter.ui.power.power_widget);
+        gtk_widget_hide(greeter.ui.power.box);
     }
-    else if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.power.power_widget))
+    else if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.power.widget))
     {
-        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.power.power_widget));
+        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.power.widget));
     }
 }
 
@@ -140,7 +140,7 @@ static void power_action(const PowerActionData* action)
     if(*action->show_prompt_ptr)
     {
         gtk_widget_hide(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.power_widget, FALSE);
+        gtk_widget_set_sensitive(greeter.ui.power.widget, FALSE);
 
         GtkWidget* dialog = gtk_message_dialog_new(NULL,
                                                    GTK_DIALOG_MODAL,
@@ -166,7 +166,7 @@ static void power_action(const PowerActionData* action)
         gtk_widget_destroy(dialog);
         update_windows_layout();
         gtk_widget_show(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.power_widget, TRUE);
+        gtk_widget_set_sensitive(greeter.ui.power.widget, TRUE);
 
         if(!result)
             return;

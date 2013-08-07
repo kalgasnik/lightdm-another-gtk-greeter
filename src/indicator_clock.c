@@ -54,11 +54,11 @@ void init_clock_indicator(void)
 {
     if(!config.clock.enabled)
     {
-        gtk_widget_hide(greeter.ui.clock.time_widget);
+        gtk_widget_hide(greeter.ui.clock.time_box);
         return;
     }
 
-    if(config.clock.calendar)
+    if(config.clock.calendar && GTK_IS_MENU_SHELL(greeter.ui.clock.time_menu))
     {
         GtkWidget* calendar_menuitem = NULL;
 
@@ -69,7 +69,8 @@ void init_clock_indicator(void)
         calendar_menuitem = create_simple_calendar_item(&greeter.ui.clock.calendar_widget);
         #endif
 
-        greeter.ui.clock.date_widget = gtk_menu_item_new_with_label("");
+        if(!greeter.ui.clock.date_widget)
+            greeter.ui.clock.date_widget = gtk_menu_item_new_with_label("");
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), greeter.ui.clock.date_widget);
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), calendar_menuitem);
 

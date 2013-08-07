@@ -54,9 +54,10 @@ static void init_user_selection             (void);
 static void load_user_options               (LightDMUser* user);
 static void set_logo_image                  (void);
 static void set_message_label               (const gchar* text);
-static void set_login_button_state          (LoginButtonState state);
-static void update_minimal_user_image_size  (void);
+static void set_login_button_state          (gboolean logged);
 static gboolean update_date_label           (gpointer dummy);
+static void set_minimal_user_image_size     (void);
+static void set_fixed_login_button_width    (void);
 
 static void take_screenshot                 (void);
 
@@ -260,59 +261,98 @@ static gboolean init_gui(void)
 
     struct BuilderWidget
     {
-        GtkWidget** pwidget;
+        GtkWidget**  pwidget;
         const gchar* name;
-        gboolean needed;
+        gboolean     needed;
+        GtkWidget**  child;
     };
 
     const struct BuilderWidget WIDGETS[] =
     {
-        {&greeter.ui.login_window,               "login_window",            TRUE},
-        {&greeter.ui.panel_window,               "panel_window",            FALSE},
-        {&greeter.ui.login_box,                  "login_box",               FALSE},
-        {&greeter.ui.login_widget,               "login_widget",            FALSE},
-        {&greeter.ui.cancel_widget,              "cancel_widget",           FALSE},
-        {&greeter.ui.authentication_widget,      "authentication_widget",   FALSE},
-        {&greeter.ui.prompt_box,                 "prompt_box",              FALSE},
-        {&greeter.ui.prompt_widget,              "prompt_widget",           FALSE},
-        {&greeter.ui.prompt_entry,               "prompt_entry",            TRUE},
-        {&greeter.ui.message_widget,             "message_widget",          FALSE},
-        {&greeter.ui.user_image,                 "user_image",              FALSE},
-        {&greeter.ui.date_widget,                "date_widget",             FALSE},
+        {&greeter.ui.login_window,              "login_window",                 FALSE, NULL},
+        {&greeter.ui.panel_window,              "panel_window",                 FALSE, NULL},
+        {&greeter.ui.panel_menubar,             "panel_menubar",                FALSE, NULL},
 
-        {&greeter.ui.panel.menubar,              "menubar",                 FALSE},
-        {&greeter.ui.power.power_widget,         "power_widget",            FALSE},
-        {&greeter.ui.power.power_menu,           "power_menu",              FALSE},
-        {&greeter.ui.power.actions[POWER_SUSPEND],  "power_suspend_widget", FALSE},
-        {&greeter.ui.power.actions[POWER_HIBERNATE],"power_hibernate_widget",FALSE},
-        {&greeter.ui.power.actions[POWER_RESTART],  "power_restart_widget", FALSE},
-        {&greeter.ui.power.actions[POWER_SHUTDOWN], "power_shutdown_widget",FALSE},
-        {&greeter.ui.a11y.a11y_widget,           "a11y_widget",             FALSE},
-        {&greeter.ui.a11y.a11y_menu,             "a11y_menu",               FALSE},
-        {&greeter.ui.a11y.osk_widget,            "a11y_osk_widget",         FALSE},
-        {&greeter.ui.a11y.contrast_widget,       "a11y_contrast_widget",    FALSE},
-        {&greeter.ui.a11y.font_widget,           "a11y_font_widget",        FALSE},
-        {&greeter.ui.a11y.dpi_widget,            "a11y_dpi_widget",         FALSE},
-        {&greeter.ui.clock.time_widget,          "time_widget",             FALSE},
-        {&greeter.ui.clock.time_menu,            "time_menu",               FALSE},
-        {&greeter.ui.layout.layout_widget,       "layout_widget",           FALSE},
-        {&greeter.ui.layout.layout_menu,         "layout_menu",             FALSE},
+        {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
+        {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
+        {&greeter.ui.login_box,                 "login_box",                    FALSE, &greeter.ui.login_widget},
 
-        {&greeter.ui.user_view,                  "user_view",               TRUE},
-        {&greeter.ui.session_view,               "session_view",            FALSE},
-        {&greeter.ui.language_view,              "language_view",           FALSE},
-        {&greeter.ui.user_view_box,              "user_view_box",           FALSE},
+        {&greeter.ui.cancel_widget,             "cancel_widget",                FALSE, NULL},
+        {&greeter.ui.cancel_box,                "cancel_box",                   FALSE, &greeter.ui.cancel_widget},
 
-        {&greeter.ui.host_widget,                "host_widget",             FALSE},
-        {&greeter.ui.logo_image,                 "logo_image",              FALSE},
+        {&greeter.ui.message_widget,            "message_widget",               FALSE, NULL},
+        {&greeter.ui.message_box,               "message_box",                  FALSE, &greeter.ui.message_widget},
 
+        {&greeter.ui.prompt_entry,              "prompt_entry",                 FALSE, NULL},
+        {&greeter.ui.prompt_text,               "prompt_text",                  FALSE, NULL},
+        {&greeter.ui.prompt_box,                "prompt_box",                   FALSE, NULL},
+
+        {&greeter.ui.authentication_widget,     "authentication_widget",        FALSE, NULL},
+        {&greeter.ui.authentication_box,        "authentication_box",           FALSE, &greeter.ui.authentication_widget},
+
+        {&greeter.ui.users_widget,              "users_widget",                 FALSE, NULL},
+        {&greeter.ui.users_box,                 "users_box",                    FALSE, &greeter.ui.users_widget},
+
+        {&greeter.ui.sessions_widget,           "sessions_widget",              FALSE, NULL},
+        {&greeter.ui.sessions_box,              "sessions_box",                 FALSE, &greeter.ui.sessions_widget},
+
+        {&greeter.ui.languages_widget,          "languages_widget",             FALSE, NULL},
+        {&greeter.ui.languages_box,             "languages_box",                FALSE, &greeter.ui.languages_widget},
+
+        {&greeter.ui.user_image_widget,         "user_image_widget",            FALSE, NULL},
+        {&greeter.ui.user_image_box,            "user_image_box",               FALSE, &greeter.ui.user_image_widget},
+
+        {&greeter.ui.date_widget,               "date_widget",                  FALSE, NULL},
+        {&greeter.ui.date_box,                  "date_box",                     FALSE, &greeter.ui.date_widget},
+
+        {&greeter.ui.host_widget,               "host_widget",                  FALSE, NULL},
+        {&greeter.ui.host_box,                  "host_box",                     FALSE, &greeter.ui.host_widget},
+
+        {&greeter.ui.logo_image_widget,         "logo_image_widget",            FALSE, NULL},
+        {&greeter.ui.logo_image_box,            "logo_image_box",               FALSE, &greeter.ui.logo_image_widget},
+
+        {&greeter.ui.power.widget,              "power_widget",                 FALSE, NULL},
+        {&greeter.ui.power.box,                 "power_box",                    FALSE, &greeter.ui.power.widget},
+        {&greeter.ui.power.menu,                "power_menu",                   FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_RESTART],  "power_restart_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
+        {&greeter.ui.power.actions_box[POWER_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_SUSPEND]},
+        {&greeter.ui.power.actions_box[POWER_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_HIBERNATE]},
+        {&greeter.ui.power.actions_box[POWER_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_RESTART]},
+        {&greeter.ui.power.actions_box[POWER_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_SHUTDOWN]},
+
+        {&greeter.ui.a11y.widget,               "a11y_widget",                  FALSE, NULL},
+        {&greeter.ui.a11y.box,                  "a11y_box",                     FALSE, &greeter.ui.a11y.widget},
+        {&greeter.ui.a11y.menu,                 "a11y_menu",                    FALSE, NULL},
+        {&greeter.ui.a11y.osk_widget,           "a11y_osk_widget",              FALSE, NULL},
+        {&greeter.ui.a11y.osk_box,              "a11y_osk_box",                 FALSE, &greeter.ui.a11y.osk_widget},
+        {&greeter.ui.a11y.contrast_widget,      "a11y_contrast_widget",         FALSE, NULL},
+        {&greeter.ui.a11y.contrast_box,         "a11y_contrast_box",            FALSE, &greeter.ui.a11y.contrast_widget},
+        {&greeter.ui.a11y.font_widget,          "a11y_font_widget",             FALSE, NULL},
+        {&greeter.ui.a11y.font_box,             "a11y_font_box",                FALSE, &greeter.ui.a11y.font_widget},
+        {&greeter.ui.a11y.dpi_widget,           "a11y_dpi_widget",              FALSE, NULL},
+        {&greeter.ui.a11y.dpi_box,              "a11y_dpi_box",                 FALSE, &greeter.ui.a11y.dpi_widget},
+
+        {&greeter.ui.clock.time_widget,         "clock_time_widget",            FALSE, NULL},
+        {&greeter.ui.clock.time_box,            "clock_time_box",               FALSE, &greeter.ui.clock.time_widget},
+        {&greeter.ui.clock.time_menu,           "clock_time_menu",              FALSE, NULL},
+        {&greeter.ui.clock.date_widget,         "clock_date_widget",            FALSE, NULL},
+        {&greeter.ui.clock.date_box,            "clock_date_box",               FALSE, &greeter.ui.clock.date_widget},
+
+        {&greeter.ui.layout.widget,             "layout_widget",                FALSE, NULL},
+        {&greeter.ui.layout.box,                "layout_box",                   FALSE, &greeter.ui.layout.widget},
+        {&greeter.ui.layout.menu,               "layout_menu",                  FALSE, NULL},
         {NULL, NULL, FALSE}
     };
 
     for(const struct BuilderWidget* w = WIDGETS; w->pwidget != NULL; ++w)
     {
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
-        if(*w->pwidget == NULL)
+        if(!*w->pwidget && w->child)
+            *w->pwidget = *w->child;
+        if(!*w->pwidget)
         {
             if(w->needed)
             {
@@ -348,25 +388,13 @@ static gboolean init_gui(void)
     else
         greeter.state.default_user_image_scaled = scale_image_by_width(greeter.state.default_user_image,
                                                                        config.appearance.list_view_image_size);
-
-    /* Login window */
     if(!load_sessions_list())
-        gtk_widget_hide(greeter.ui.session_view);
+        gtk_widget_hide(greeter.ui.sessions_box);
 
     if(!load_languages_list() || !config.greeter.show_language_selector)
-        gtk_widget_hide(greeter.ui.language_view);
+        gtk_widget_hide(greeter.ui.languages_box);
 
     load_users_list();
-
-    if(greeter.ui.login_widget && config.appearance.fixed_login_button_width &&
-       GTK_IS_BIN(greeter.ui.login_widget) &&
-       GTK_IS_LABEL(gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget))))
-    {
-        int a = strlen(_("Login"));
-        int b = strlen(_("Unlock"));
-        greeter.ui.login_widget_label = gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget));
-        gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_widget_label), a > b ? a : b);
-    }
 
     set_logo_image();
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
@@ -508,11 +536,15 @@ static void run_gui(void)
             }
         }
     }
+
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
 
-    if(config.appearance.fixed_user_image_size && greeter.ui.user_image)
-        update_minimal_user_image_size();
+    if(config.appearance.fixed_user_image_size && greeter.ui.user_image_widget)
+        set_minimal_user_image_size();
+
+    if(config.appearance.fixed_login_button_width)
+        set_fixed_login_button_width();
 
     if(greeter.ui.date_widget)
     {
@@ -521,7 +553,7 @@ static void run_gui(void)
     }
 
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
-        gtk_widget_hide(greeter.ui.user_view_box);
+        gtk_widget_hide(greeter.ui.users_box);
 
     greeter.state.panel.position = config.panel.position == PANEL_POS_TOP ? WINDOW_POSITION_TOP : WINDOW_POSITION_BOTTOM;
 
@@ -589,12 +621,13 @@ static void append_user(GtkTreeModel* model,
     if(image_file)
     {
         GError* error = NULL;
-        image = gdk_pixbuf_new_from_file(image_file, &error);
-        if(error)
+        GdkPixbuf* new_image = gdk_pixbuf_new_from_file(image_file, &error);
+        if(new_image)
+            image = new_image;
+        else
         {
             g_warning("Failed to load user image (%s): %s", user_name, error->message);
             g_clear_error(&error);
-            image = greeter.state.default_user_image;
         }
     }
 
@@ -641,7 +674,7 @@ static gboolean load_users_list(void)
     g_return_val_if_fail(items != NULL, FALSE);
 
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
 
     for(item = items; item != NULL; item = item->next)
         update_users_names_table(lightdm_user_get_display_name(item->data));
@@ -680,8 +713,8 @@ static GdkPixbuf* get_session_image(const gchar* session,
 
     pixbuf = gdk_pixbuf_new_from_file(image_path, NULL);
 
-    g_free(image_name);
     g_free(image_path);
+    g_free(image_name);
 
     if(pixbuf)
         g_hash_table_insert(images_cache, g_strdup(session), pixbuf);
@@ -696,7 +729,6 @@ static GdkPixbuf* get_session_image(const gchar* session,
         else if(g_strcmp0(session, "kde-plasma") == 0)
             pixbuf = get_session_image("kde", FALSE);
     }
-
     return pixbuf;
 }
 
@@ -713,7 +745,7 @@ static gboolean load_sessions_list(void)
     }
 
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.session_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.sessions_widget);
 
     for(const GList* item = items; item != NULL; item = item->next)
     {
@@ -750,7 +782,7 @@ static gboolean load_languages_list(void)
     }
 
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.language_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.languages_widget);
 
     for(const GList* item = items; item != NULL; item = item->next)
     {
@@ -802,8 +834,6 @@ static gboolean get_first_logged_user(GtkTreeModel* model,
 
 static void init_user_selection(void)
 {
-    g_debug("init_user_selection()");
-
     gchar* last_logged_user = NULL;
     const gchar* selected_user = NULL;
     if(lightdm_greeter_get_select_user_hint(greeter.greeter))
@@ -814,14 +844,14 @@ static void init_user_selection(void)
         selected_user = last_logged_user = get_last_logged_user();
 
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
 
     if(selected_user && get_model_iter_str(model, USER_COLUMN_NAME, selected_user, &iter))
-        set_widget_active_iter(greeter.ui.user_view, &iter);
+        set_widget_active_iter(greeter.ui.users_widget, &iter);
     else if(get_first_logged_user(model, &iter))
-        set_widget_active_iter(greeter.ui.user_view, &iter);
+        set_widget_active_iter(greeter.ui.users_widget, &iter);
     else
-        set_widget_active_first(greeter.ui.user_view);
+        set_widget_active_first(greeter.ui.users_widget);
     g_free(last_logged_user);
 }
 
@@ -829,8 +859,8 @@ static void load_user_options(LightDMUser* user)
 {
     const gboolean logged_in = user && lightdm_user_get_logged_in(user);
 
-    gtk_widget_set_sensitive(greeter.ui.session_view, !logged_in);
-    gtk_widget_set_sensitive(greeter.ui.language_view, !logged_in);
+    gtk_widget_set_sensitive(greeter.ui.sessions_widget, !logged_in);
+    gtk_widget_set_sensitive(greeter.ui.languages_widget, !logged_in);
 
     set_session(user ? lightdm_user_get_session(user) : NULL);
     set_language(user ? lightdm_user_get_language(user) : NULL);
@@ -842,33 +872,25 @@ static void load_user_options(LightDMUser* user)
     }
 }
 
-static void set_prompt_label(const gchar* text)
-{
-    set_widget_text(greeter.ui.prompt_widget, text);
-}
-
 static void set_message_label(const gchar* text)
 {
     gtk_widget_set_visible(greeter.ui.message_widget, text != NULL && strlen(text) > 0);
     set_widget_text(greeter.ui.message_widget, text);
 }
 
-static void set_login_button_state(LoginButtonState state)
+static void set_login_button_state(gboolean logged)
 {
-    const gchar* text = (state == LOGIN_BUTTON_UNLOCK) ? _("Unlock") : _("Login");
-    GtkWidget* widget = greeter.ui.login_widget_label ? greeter.ui.login_widget_label : greeter.ui.login_widget;
+    const gchar* text = logged ? _("Unlock") : _("Login");
+    GtkWidget* widget = greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget;
     set_widget_text(widget, text);
 }
 
 static void set_logo_image(void)
 {
-    if(!greeter.ui.logo_image || !config.appearance.logo)
+    if(!greeter.ui.logo_image_widget || !config.appearance.logo)
         return;
     if(strlen(config.appearance.logo) == 0)
-    {
-        g_debug("Setting logo: empty => hiding");
-        gtk_widget_hide(greeter.ui.logo_image);
-    }
+        gtk_widget_hide(greeter.ui.logo_image_box);
     else if(config.appearance.logo[0] == '#')
     {
         g_debug("Setting logo from icon: %s", config.appearance.logo);
@@ -881,12 +903,12 @@ static void set_logo_image(void)
             if(comma > logo_string)
                 icon_name = g_strndup(logo_string, comma - logo_string);
             if(pixel_size)
-                gtk_image_set_pixel_size(GTK_IMAGE(greeter.ui.logo_image), pixel_size);
+                gtk_image_set_pixel_size(GTK_IMAGE(greeter.ui.logo_image_widget), pixel_size);
         }
         else
             icon_name = g_strdup(logo_string);
         if(icon_name)
-            gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.logo_image), icon_name, GTK_ICON_SIZE_INVALID);
+            gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.logo_image_widget), icon_name, GTK_ICON_SIZE_INVALID);
         g_free(icon_name);
     }
     else
@@ -896,7 +918,7 @@ static void set_logo_image(void)
         GError* error = NULL;
         GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(config.appearance.logo, &error);
         if(pixbuf)
-            gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.logo_image), pixbuf);
+            gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.logo_image_widget), pixbuf);
         else
             g_warning("Failed to load logo: %s", error->message);
         g_object_unref(pixbuf);
@@ -904,10 +926,25 @@ static void set_logo_image(void)
     }
 }
 
-static void update_minimal_user_image_size(void)
+static gboolean update_date_label(gpointer dummy)
+{
+    GDateTime* datetime = g_date_time_new_now_local();
+    if(!datetime)
+    {
+        set_widget_text(greeter.ui.date_widget, "[date]");
+        return FALSE;
+    }
+    gchar* str = g_date_time_format(datetime, config.appearance.date_format);
+    set_widget_text(greeter.ui.date_widget, str);
+    g_free(str);
+    g_date_time_unref(datetime);
+    return TRUE;
+}
+
+static void set_minimal_user_image_size(void)
 {
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
     if(gtk_tree_model_get_iter_first(model, &iter))
     {
         int max_w = 0;
@@ -925,23 +962,23 @@ static void update_minimal_user_image_size(void)
         }
         while(gtk_tree_model_iter_next(model, &iter));
 
-        gtk_widget_set_size_request(greeter.ui.user_image, max_w, max_h);
+        gtk_widget_set_size_request(greeter.ui.user_image_widget, max_w, max_h);
     }
 }
 
-static gboolean update_date_label(gpointer dummy)
+static void set_fixed_login_button_width(void)
 {
-    GDateTime* datetime = g_date_time_new_now_local();
-    if(!datetime)
+    if(greeter.ui.login_label || GTK_IS_BIN(greeter.ui.login_widget))
     {
-        set_widget_text(greeter.ui.date_widget, "[date]");
-        return FALSE;
+        if(!greeter.ui.login_label)
+            greeter.ui.login_label = gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget));
+        if(GTK_IS_LABEL(greeter.ui.login_label))
+        {
+            int a = strlen(_("Login"));
+            int b = strlen(_("Unlock"));
+            gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_label), a > b ? a : b);
+        }
     }
-    gchar* str = g_date_time_format(datetime, config.appearance.date_format);
-    set_widget_text(greeter.ui.date_widget, str);
-    g_free(str);
-    g_date_time_unref(datetime);
-    return TRUE;
 }
 
 static void take_screenshot(void)
@@ -1000,9 +1037,9 @@ static void start_authentication(const gchar* user_name)
         lightdm_greeter_authenticate(greeter.greeter, user_name);
     }
     load_user_options(user);
-    set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
-    gtk_widget_hide(greeter.ui.cancel_widget);
-    gtk_widget_hide(greeter.ui.authentication_widget);
+    set_login_button_state(user && lightdm_user_get_logged_in(user));
+    gtk_widget_hide(greeter.ui.cancel_box);
+    gtk_widget_hide(greeter.ui.authentication_box);
 }
 
 static void cancel_authentication(void)
@@ -1059,17 +1096,17 @@ static void start_session(void)
 
 static gchar* get_user_name(void)
 {
-    return get_widget_selection_str(greeter.ui.user_view, USER_COLUMN_NAME, NULL);
+    return get_widget_selection_str(greeter.ui.users_widget, USER_COLUMN_NAME, NULL);
 }
 
 static UserType get_user_type(void)
 {
-    return get_widget_selection_int(greeter.ui.user_view, USER_COLUMN_TYPE, USER_TYPE_REGULAR);
+    return get_widget_selection_int(greeter.ui.users_widget, USER_COLUMN_TYPE, USER_TYPE_REGULAR);
 }
 
 static gchar* get_session(void)
 {
-    return get_widget_selection_str(greeter.ui.session_view,
+    return get_widget_selection_str(greeter.ui.sessions_widget,
                                     SESSION_COLUMN_NAME,
                                     lightdm_greeter_get_default_session_hint(greeter.greeter));
 }
@@ -1077,10 +1114,10 @@ static gchar* get_session(void)
 static void set_session(const gchar* session)
 {
     GtkTreeIter iter;
-    if(session && get_model_iter_str(get_widget_model(greeter.ui.session_view),
+    if(session && get_model_iter_str(get_widget_model(greeter.ui.sessions_widget),
                                      SESSION_COLUMN_NAME, session, &iter))
     {
-        set_widget_active_iter(greeter.ui.session_view, &iter);
+        set_widget_active_iter(greeter.ui.sessions_widget, &iter);
         return;
     }
 
@@ -1089,21 +1126,21 @@ static void set_session(const gchar* session)
     if(default_session && g_strcmp0(session, default_session) != 0)
         set_session(default_session);
     else
-        set_widget_active_first(greeter.ui.session_view);
+        set_widget_active_first(greeter.ui.sessions_widget);
 }
 
 static gchar* get_language(void)
 {
-    return get_widget_selection_str(greeter.ui.language_view, LANGUAGE_COLUMN_CODE, NULL);
+    return get_widget_selection_str(greeter.ui.languages_widget, LANGUAGE_COLUMN_CODE, NULL);
 }
 
 static void set_language(const gchar* language)
 {
     GtkTreeIter iter;
-    if(language && get_model_iter_str(get_widget_model(greeter.ui.language_view),
+    if(language && get_model_iter_str(get_widget_model(greeter.ui.languages_widget),
                                       LANGUAGE_COLUMN_CODE, language, &iter))
     {
-        set_widget_active_iter(greeter.ui.language_view, &iter);
+        set_widget_active_iter(greeter.ui.languages_widget, &iter);
         return;
     }
 
@@ -1114,7 +1151,7 @@ static void set_language(const gchar* language)
     if(default_language && g_strcmp0(default_language, language) != 0)
         set_language(default_language);
     else
-        set_widget_active_first(greeter.ui.language_view);
+        set_widget_active_first(greeter.ui.languages_widget);
 }
 
 static cairo_surface_t* create_root_surface(GdkScreen* screen)
@@ -1174,7 +1211,7 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
     g_debug("LightDM signal: show-prompt (%s)", text);
 
     greeter.state.prompted = TRUE;
-    set_prompt_label(dgettext("Linux-PAM", text));
+    set_widget_text(greeter.ui.prompt_text, dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
     gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry), type != LIGHTDM_PROMPT_TYPE_SECRET);
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
@@ -1230,7 +1267,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
             g_free(user_name);
         }
     }
-    gtk_widget_hide(greeter.ui.authentication_widget);
+    gtk_widget_hide(greeter.ui.authentication_box);
 }
 
 static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
@@ -1243,7 +1280,7 @@ static void on_user_added(LightDMUserList* user_list,
                           LightDMUser* user)
 {
     g_debug("LightDM signal: user-added");
-    append_user(get_widget_model(greeter.ui.user_view), user, TRUE);
+    append_user(get_widget_model(greeter.ui.users_widget), user, TRUE);
 }
 
 static void on_user_changed(LightDMUserList* user_list,
@@ -1251,7 +1288,7 @@ static void on_user_changed(LightDMUserList* user_list,
 {
     g_debug("LightDM signal: user-changed");
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
     const gchar* name = lightdm_user_get_name(user);
     if(!get_model_iter_str(model, USER_COLUMN_NAME, name, &iter))
         return;
@@ -1268,7 +1305,7 @@ void on_user_removed(LightDMUserList* user_list,
 {
     g_debug("LightDM signal: user-removed");
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.user_view);
+    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
     const gchar* name = lightdm_user_get_name(user);
     if(!get_model_iter_str(model, USER_COLUMN_NAME, name, &iter))
         return;
@@ -1288,16 +1325,16 @@ void on_login_clicked(GtkWidget* widget,
     {
         const gchar* text = gtk_entry_get_text(GTK_ENTRY(greeter.ui.prompt_entry));
         lightdm_greeter_respond(greeter.greeter, text);
-        gtk_widget_show(greeter.ui.cancel_widget);
+        gtk_widget_show(greeter.ui.cancel_box);
         if(get_user_type() == USER_TYPE_OTHER  && gtk_entry_get_visibility(GTK_ENTRY(greeter.ui.prompt_entry)))
         {
             LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), text);
-            set_login_button_state(user && lightdm_user_get_logged_in(user) ? LOGIN_BUTTON_UNLOCK : LOGIN_BUTTON_LOGIN);
+            set_login_button_state(user && lightdm_user_get_logged_in(user));
             load_user_options(user);
         }
         else
         {
-            gtk_widget_show(greeter.ui.authentication_widget);
+            gtk_widget_show(greeter.ui.authentication_box);
         }
     }
     else
@@ -1332,18 +1369,18 @@ void on_user_selection_changed(GtkWidget* widget,
     LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
     #endif
 
-    if(greeter.ui.user_image)
+    if(greeter.ui.user_image_widget)
     {
-        GdkPixbuf* pixbuf = get_widget_selection_image(greeter.ui.user_view, USER_COLUMN_IMAGE, NULL);
-        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image), pixbuf);
-        gtk_widget_set_visible(greeter.ui.user_image, pixbuf != NULL);
+        GdkPixbuf* pixbuf = get_widget_selection_image(greeter.ui.users_widget, USER_COLUMN_IMAGE, NULL);
+        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), pixbuf);
+        gtk_widget_set_visible(greeter.ui.user_image_box, pixbuf != NULL);
     }
     set_message_label(NULL);
 
     start_authentication(user_name);
     g_free(user_name);
 
-    gtk_widget_grab_focus(greeter.ui.user_view);
+    gtk_widget_grab_focus(greeter.ui.users_widget);
 
     #ifdef _DEBUG_
     on_authentication_complete(greeter.greeter);
@@ -1374,15 +1411,15 @@ gboolean on_prompt_key_press(GtkWidget* widget,
     if(event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down)
     {
         GtkTreeIter iter;
-        if(!get_widget_active_iter(greeter.ui.user_view, &iter))
+        if(!get_widget_active_iter(greeter.ui.users_widget, &iter))
             return FALSE;
         gboolean has_next;
         if(event->keyval == GDK_KEY_Up)
-            has_next = gtk_tree_model_iter_previous(get_widget_model(greeter.ui.user_view), &iter);
+            has_next = gtk_tree_model_iter_previous(get_widget_model(greeter.ui.users_widget), &iter);
         else
-            has_next = gtk_tree_model_iter_next(get_widget_model(greeter.ui.user_view), &iter);
+            has_next = gtk_tree_model_iter_next(get_widget_model(greeter.ui.users_widget), &iter);
         if(has_next)
-            set_widget_active_iter(greeter.ui.user_view, &iter);
+            set_widget_active_iter(greeter.ui.users_widget, &iter);
         return TRUE;
     }
     return FALSE;
@@ -1397,8 +1434,8 @@ gboolean on_login_window_key_press(GtkWidget* widget,
     switch(event->keyval)
     {
         case GDK_KEY_F10:
-            if(greeter.ui.panel.menubar)
-                gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel.menubar), FALSE);
+            if(greeter.ui.panel_menubar)
+                gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel_menubar), FALSE);
             else
                 gtk_widget_grab_focus(greeter.ui.panel_window);
             break;
@@ -1430,8 +1467,8 @@ gboolean on_panel_window_key_press(GtkWidget* widget,
     switch(event->keyval)
     {
         case GDK_KEY_F10: case GDK_KEY_Escape:
-            if(greeter.ui.panel.menubar)
-                gtk_menu_shell_cancel(GTK_MENU_SHELL(greeter.ui.panel.menubar));
+            if(greeter.ui.panel_menubar)
+                gtk_menu_shell_cancel(GTK_MENU_SHELL(greeter.ui.panel_menubar));
             gtk_widget_grab_focus(greeter.ui.login_window);
             break;
         default:

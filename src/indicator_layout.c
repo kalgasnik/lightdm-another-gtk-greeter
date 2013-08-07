@@ -81,7 +81,7 @@ void init_layout_indicator(void)
 {
     if(!config.layout.enabled)
     {
-        gtk_widget_hide(greeter.ui.layout.layout_widget);
+        gtk_widget_hide(greeter.ui.layout.box);
         return;
     }
 
@@ -89,7 +89,7 @@ void init_layout_indicator(void)
     if(!kbd)
     {
         g_critical("Layout indicator: initialization failed, hiding widget");
-        gtk_widget_hide(greeter.ui.layout.layout_widget);
+        gtk_widget_hide(greeter.ui.layout.box);
         return;
     }
 
@@ -106,13 +106,13 @@ void init_layout_indicator(void)
                                                          (gpointer)&kbd->groups[i]);
         kbd->groups[i].menu_item = menu_item;
 
-        gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.layout.layout_menu), menu_item);
+        gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.layout.menu), menu_item);
     }
 
     start_monitoring(kbd);
 
-    gtk_widget_show_all(greeter.ui.layout.layout_widget);
-    gtk_widget_show_all(greeter.ui.layout.layout_menu);
+    gtk_widget_show_all(greeter.ui.layout.box);
+    gtk_widget_show_all(greeter.ui.layout.menu);
 }
 
 /* ------------------------------------------------------------------------- *
@@ -188,7 +188,7 @@ static KeyboardInfo* init_kbd()
     return kbd;
 }
 
-void start_monitoring(KeyboardInfo* kbd)
+static void start_monitoring(KeyboardInfo* kbd)
 {
     XkbStateRec state;
     XkbGetState(kbd->display, XkbUseCoreKbd, &state);
@@ -197,7 +197,7 @@ void start_monitoring(KeyboardInfo* kbd)
     xkl_engine_start_listen(kbd->engine, XKLL_MANAGE_WINDOW_STATES);
 }
 
-unsigned char* get_short_names(Display* display)
+static unsigned char* get_short_names(Display* display)
 {
 	Atom type;
     int format;
@@ -280,7 +280,7 @@ static GroupInfo* get_groups(Display* display,
 
 static void update_menu(GroupInfo* group_info)
 {
-    set_widget_text(greeter.ui.layout.layout_widget, group_info->short_name);
+    set_widget_text(greeter.ui.layout.widget, group_info->short_name);
 
     g_signal_handler_block(group_info->menu_item, group_info->menu_signal_id);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(group_info->menu_item), TRUE);

@@ -154,16 +154,16 @@ void init_a11y_indicator(void)
         }
     }
 
-    gtk_widget_set_visible(greeter.ui.a11y.a11y_widget, config.a11y.enabled);
-    gtk_widget_set_visible(greeter.ui.a11y.osk_widget, config.a11y.enabled && config.a11y.osk.enabled);
-    gtk_widget_set_visible(greeter.ui.a11y.font_widget, config.a11y.enabled && config.a11y.font.enabled);
-    gtk_widget_set_visible(greeter.ui.a11y.dpi_widget, config.a11y.enabled && config.a11y.dpi.enabled);
-    gtk_widget_set_visible(greeter.ui.a11y.contrast_widget, config.a11y.enabled && config.a11y.contrast.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.widget, config.a11y.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.osk_box, config.a11y.enabled && config.a11y.osk.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.font_box, config.a11y.enabled && config.a11y.font.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.dpi_box, config.a11y.enabled && config.a11y.dpi.enabled);
+    gtk_widget_set_visible(greeter.ui.a11y.contrast_box, config.a11y.enabled && config.a11y.contrast.enabled);
 
     if(config.a11y.enabled)
     {
-        if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget))
-            fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.a11y_widget));
+        if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.widget))
+            fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.widget));
 
         if(config.a11y.contrast.enabled && a11y_get_contrast_state())
             a11y_toggle_contrast();
@@ -500,7 +500,7 @@ static gboolean spawn_onboard(void)
     {
         keyboard_onboard.pid = pid;
         keyboard_onboard.socket = socket;
-        greeter.ui.onboard = window;
+        greeter.ui.onboard = GTK_WIDGET(window);
     }
     return window != NULL;
 }

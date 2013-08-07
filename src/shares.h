@@ -75,64 +75,89 @@ struct _GreeterData
     {
         GtkWidget*      login_window;
         GtkWidget*      panel_window;
+        GtkWidget*      panel_menubar;
+
         GtkWidget*      login_widget;
-        GtkWidget*      login_widget_label;
+        GtkWidget*      login_label;
+        GtkWidget*      login_box;
+
         GtkWidget*      cancel_widget;
-        GtkWidget*      authentication_widget;
+        GtkWidget*      cancel_box;
+
         GtkWidget*      message_widget;
-        GtkWidget*      prompt_widget;
-        GtkWidget*      user_image;
+        GtkWidget*      message_box;
+
+        GtkWidget*      prompt_entry;
+        GtkWidget*      prompt_text;
+        GtkWidget*      prompt_box;
+
+        GtkWidget*      users_widget;
+        GtkWidget*      users_box;
+
+        GtkWidget*      sessions_widget;
+        GtkWidget*      sessions_box;
+
+        GtkWidget*      languages_widget;
+        GtkWidget*      languages_box;
+
+        GtkWidget*      authentication_widget;
+        GtkWidget*      authentication_box;
+
+        GtkWidget*      user_image_widget;
+        GtkWidget*      user_image_box;
+
         GtkWidget*      date_widget;
+        GtkWidget*      date_box;
 
-        GtkWidget*      user_view;
-        GtkWidget*      session_view;
-        GtkWidget*      language_view;
-        GtkWidget*      user_view_box;
+        GtkWidget*      host_widget;
+        GtkWidget*      host_box;
 
+        GtkWidget*      logo_image_widget;
+        GtkWidget*      logo_image_box;
+
+        GtkWidget*      onboard;
         GtkWidget*      calendar;
 
         struct
         {
-            GtkWidget*  power_widget;
-            GtkWidget*  power_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
             GtkWidget*  actions[POWER_ACTIONS_COUNT];
+            GtkWidget*  actions_box[POWER_ACTIONS_COUNT];
         } power;
 
         struct
         {
-            GtkWidget*  a11y_widget;
-            GtkWidget*  a11y_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
             GtkWidget*  osk_widget;
+            GtkWidget*  osk_box;
             GtkWidget*  contrast_widget;
+            GtkWidget*  contrast_box;
             GtkWidget*  font_widget;
+            GtkWidget*  font_box;
             GtkWidget*  dpi_widget;
+            GtkWidget*  dpi_box;
         } a11y;
 
         struct
         {
             GtkWidget*  time_widget;
+            GtkWidget*  time_box;
             GtkWidget*  time_menu;
             GtkWidget*  date_widget;
+            GtkWidget*  date_box;
             GtkWidget*  calendar_widget;
         } clock;
 
         struct
         {
-            GtkWidget*  layout_widget;
-            GtkWidget*  layout_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
         } layout;
-
-        struct
-        {
-            GtkWidget*  menubar;
-        } panel;
-
-        GtkWidget*      login_box;
-        GtkWidget*      prompt_box;
-        GtkWidget*      prompt_entry;
-        GtkWidget*      host_widget;
-        GtkWidget*      logo_image;
-        GtkWindow*      onboard;
     } ui;
 };
 
@@ -154,13 +179,6 @@ typedef enum
     USER_TYPE_GUEST,
     USER_TYPE_OTHER
 } UserType;
-
-typedef enum
-{
-    LOGIN_BUTTON_NONE,
-    LOGIN_BUTTON_LOGIN,
-    LOGIN_BUTTON_UNLOCK
-} LoginButtonState;
 
 typedef enum
 {

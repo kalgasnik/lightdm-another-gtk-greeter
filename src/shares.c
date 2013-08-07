@@ -121,8 +121,8 @@ void update_windows_layout(void)
             onboard_y += at_top ? + panel_height : -panel_height;
         }
 
-        gtk_window_resize(greeter.ui.onboard, geometry.width - geometry.x, onboard_height);
-        gtk_window_move(greeter.ui.onboard, geometry.x, geometry.y + onboard_y);
+        gtk_window_resize(GTK_WINDOW(greeter.ui.onboard), geometry.width - geometry.x, onboard_height);
+        gtk_window_move(GTK_WINDOW(greeter.ui.onboard), geometry.x, geometry.y + onboard_y);
 
         gint login_x, login_y, login_height;
 

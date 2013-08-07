@@ -19,80 +19,6 @@
 @define-color combobox_font_color shade(@label_font_color, 0.9);
 @define-color combobox_font_color_insensitive shade(@label_font_color_insensitive, 0.9);
 
-#menubar
-{
-    -GtkWidget-window-dragging: false;
-}
-
-#login_window
-{
-    background: transparent;
-    border-style: none;
-    border-radius: 20px;
-    box-shadow: 0px 0px 1px black;
-}
-
-#dialog_window, #dialog_window_info, #dialog_window_warning,
-#dialog_window_question, #dialog_window_error, #power_dialog
-{
-    background: @window_color;
-    border-style: solid;
-    border-radius: 24px;
-    box-shadow: 0px 0px 1px black;
-}
-
-#date_widget, #time_widget, #host_widget, #layout_widget
-{
-    color: @greeter_head_label_color;
-}
-
-#greeter_top, #greeter_bottom
-{
-    background: @greeter_head_color;
-    border: solid;
-    border-radius: 20px 20px 0px 0px;
-}
-
-#greeter_bottom
-{
-    border-radius: 0px 0px 20px 20px;
-}
-
-#greeter_center
-{
-    background: @window_color;
-}
-
-#user_view
-{
-    -GtkWidget-focus-line-width: 0px;
-    -GtkTreeView-vertical-separator: 10px;
-    background-color: transparent;
-    color: @user_view_font_color;
-    border: None;
-    border-radius: 6px;
-    transition: 125ms linear;
-}
-
-#user_view:selected
-{
-    background: @button_color;
-    color: @user_view_font_color_selected;
-    border-style: solid;
-    border-width: 1px;
-    border-color: @button_border_color;
-    transition: 250ms ease-in-out;
-}
-
-#user_view:hover
-{
-    border-style: solid;
-    border-width: 1px;
-    border-color: @button_border_color;
-    box-shadow: 0px 0px 1px alpha(black, 0.4);
-    text-shadow: 0px 0px 3px darkgrey;
-}
-
 GtkLabel
 {
     color: @label_font_color;
@@ -158,4 +84,74 @@ GtkComboBox *:insensitive
 GtkSpinner
 {
     color: alpha(grey, 0.5);
+}
+
+
+#login_window
+{
+    background: transparent;
+    border-style: none;
+    border-radius: 20px;
+    box-shadow: 0px 0px 1px black;
+}
+
+#dialog_window, #dialog_window_info, #dialog_window_warning,
+#dialog_window_question, #dialog_window_error, #power_dialog
+{
+    background: @window_color;
+    border-style: solid;
+    border-radius: 24px;
+    box-shadow: 0px 0px 1px black;
+}
+
+#date_widget, #clock_time_widget, #host_widget, #layout_widget
+{
+    color: @greeter_head_label_color;
+}
+
+#greeter_top, #greeter_bottom
+{
+    background: @greeter_head_color;
+    border: solid;
+    border-radius: 20px 20px 0px 0px;
+}
+
+#greeter_bottom
+{
+    border-radius: 0px 0px 20px 20px;
+}
+
+#greeter_center
+{
+    background: @window_color;
+}
+
+#users_widget
+{
+    -GtkWidget-focus-line-width: 0px;
+    -GtkTreeView-vertical-separator: 10px;
+    background-color: transparent;
+    color: @user_view_font_color;
+    border: None;
+    border-radius: 6px;
+    transition: 125ms linear;
+}
+
+#users_widget:selected
+{
+    background: @button_color;
+    color: @user_view_font_color_selected;
+    border-style: solid;
+    border-width: 1px;
+    border-color: @button_border_color;
+    transition: 250ms ease-in-out;
+}
+
+#users_widget:hover
+{
+    border-style: solid;
+    border-width: 1px;
+    border-color: @button_border_color;
+    box-shadow: 0px 0px 1px alpha(black, 0.4);
+    text-shadow: 0px 0px 3px darkgrey;
 }
