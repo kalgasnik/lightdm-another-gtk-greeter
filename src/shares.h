@@ -52,23 +52,27 @@ typedef enum
     POWER_ACTIONS_COUNT
 } PowerAction;
 
-struct _GreeterData
+typedef struct
 {
     LightDMGreeter* greeter;
-
     struct
     {
         GHashTable*     users_display_names;
+        GHashTable*     users_images;
+
         gboolean        prompted;
         gboolean        cancelling;
-        GdkPixbuf*      default_user_image;
-        GdkPixbuf*      default_user_image_scaled;
         const gchar*    last_background;
         GPid            autostart_pid;
         struct
         {
             WindowPosition position;
         } panel;
+        struct
+        {
+            GdkPixbuf*  default_image;
+            gint        size;
+        } user_image, list_image;
     } state;
 
     struct
@@ -159,9 +163,7 @@ struct _GreeterData
             GtkWidget*  menu;
         } layout;
     } ui;
-};
-
-typedef struct _GreeterData GreeterData;
+} GreeterData;
 
 typedef enum
 {
@@ -169,8 +171,8 @@ typedef enum
     USER_COLUMN_TYPE,
     USER_COLUMN_DISPLAY_NAME,
     USER_COLUMN_WEIGHT,
-    USER_COLUMN_IMAGE,
-    USER_COLUMN_IMAGE_SCALED
+    USER_COLUMN_USER_IMAGE,
+    USER_COLUMN_LIST_IMAGE
 } UsersModelColumn;
 
 typedef enum
@@ -199,9 +201,10 @@ typedef enum
 extern GreeterData greeter;
 extern const gchar* const USER_GUEST;
 extern const gchar* const USER_OTHER;
-
 extern const gchar* const APP_NAME;
 extern const gchar* const DEFAULT_USER_ICON;
+extern const gchar* const ACTION_TEXT_LOGIN;
+extern const gchar* const ACTION_TEXT_UNLOCK;
 
 extern const WindowPosition WINDOW_POSITION_CENTER;
 extern const WindowPosition WINDOW_POSITION_TOP;
@@ -231,9 +234,6 @@ void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
                                         const gchar* text);
-GdkPixbuf* scale_image_by_width        (GdkPixbuf* source,
-                                        int new_width);
-
 GtkTreeModel* get_widget_model         (GtkWidget* widget);
 gchar* get_widget_selection_str        (GtkWidget* widget,
                                         gint column,

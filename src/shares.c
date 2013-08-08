@@ -17,6 +17,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <glib/gi18n.h>
 #include <string.h>
 
 #include "shares.h"
@@ -25,11 +26,12 @@
 /* Variables */
 
 GreeterData greeter = {NULL, };
-const gchar* const USER_GUEST = "*guest";
-const gchar* const USER_OTHER = "*other";
-
-const gchar* const APP_NAME = "lightdm-another-gtk-greeter";
-const gchar* const DEFAULT_USER_ICON = "avatar-default";
+const gchar* const USER_GUEST           = "*guest";
+const gchar* const USER_OTHER           = "*other";
+const gchar* const APP_NAME             = "lightdm-another-gtk-greeter";
+const gchar* const DEFAULT_USER_ICON    = "avatar-default";
+const gchar* const ACTION_TEXT_LOGIN    = N_("Login");
+const gchar* const ACTION_TEXT_UNLOCK   = N_("Unlock");
 
 const WindowPosition WINDOW_POSITION_CENTER =
 {
@@ -196,24 +198,6 @@ void set_widget_text(GtkWidget* widget,
     else if(GTK_IS_LABEL(widget))
         gtk_label_set_label(GTK_LABEL(widget), text);
     else g_return_if_reached();
-}
-
-GdkPixbuf* scale_image_by_width(GdkPixbuf* source,
-                                int new_width)
-{
-    g_return_val_if_fail(GDK_IS_PIXBUF(source), NULL);
-
-    GdkPixbuf* image = source;
-    if(new_width > 0)
-    {
-        int old_w = gdk_pixbuf_get_width(source);
-        if(old_w > new_width)
-        {
-            int new_h = (1.0*new_width/old_w)*gdk_pixbuf_get_height(source);
-            image = gdk_pixbuf_scale_simple(source, new_width, new_h, GDK_INTERP_HYPER);
-        }
-    }
-    return image;
 }
 
 GtkTreeModel* get_widget_model(GtkWidget* widget)

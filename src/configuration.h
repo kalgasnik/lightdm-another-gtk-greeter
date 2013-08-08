@@ -47,7 +47,22 @@ typedef enum
     PANEL_POS_BOTTOM
 } PanelPosition;
 
-struct _GreeterConfig
+typedef enum
+{
+    USER_IMAGE_FIT_NONE,
+    USER_IMAGE_FIT_ALL,
+    USER_IMAGE_FIT_BIGGER,
+    USER_IMAGE_FIT_SMALLER
+} UserImageFit;
+
+typedef enum
+{
+    USER_IMAGE_TYPE_NONE,
+    USER_IMAGE_TYPE_SOURCE,
+    USER_IMAGE_TYPE_FIXED
+} UserImageType;
+
+typedef struct
 {
     struct
     {
@@ -68,9 +83,6 @@ struct _GreeterConfig
         gboolean        user_background;
         gboolean        x_background;
         gchar*          logo;
-        gboolean        fixed_user_image_size;
-        gint            list_view_image_size;
-        gint            default_user_image_size;
         UserNameFormat  user_name_format;
         gchar*          date_format;
         gboolean        fixed_login_button_width;
@@ -81,6 +93,12 @@ struct _GreeterConfig
         gint            dpi;
         gboolean        transparency;
         WindowPosition  position;
+        struct
+        {
+            gboolean     enabled;
+            UserImageFit fit;
+            gint         size;   /* Only for list_image */
+        } user_image, list_image;
     } appearance;
 
     struct
@@ -149,9 +167,7 @@ struct _GreeterConfig
     {
         gboolean        enabled;
     } layout;
-};
-
-typedef struct _GreeterConfig GreeterConfig;
+} GreeterConfig;
 
 /* Variables */
 

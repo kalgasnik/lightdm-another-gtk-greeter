@@ -121,6 +121,7 @@ static struct
 static const gchar* USER_NAME_FORMAT_STRINGS[] = {"name", "display-name", "both", NULL};
 static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
+static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -154,9 +155,11 @@ void load_settings(void)
     config.appearance.user_background         = TRUE;
     config.appearance.x_background            = FALSE;
     config.appearance.logo                    = NULL;
-    config.appearance.fixed_user_image_size   = TRUE;
-    config.appearance.list_view_image_size    = 48;
-    config.appearance.default_user_image_size = 96;
+    config.appearance.user_image.enabled      = TRUE;
+    config.appearance.user_image.fit          = USER_IMAGE_FIT_BIGGER;
+    config.appearance.list_image.enabled      = TRUE;
+    config.appearance.list_image.fit          = USER_IMAGE_FIT_BIGGER;
+    config.appearance.list_image.size         = 48;
     config.appearance.theme                   = NULL;
     config.appearance.icon_theme              = NULL;
     config.appearance.font                    = NULL;
@@ -343,7 +346,7 @@ static void read_appearance_section(GKeyFile* cfg,
         g_key_file_free(theme_cfg);
         g_free(theme);
     }
-    /* memory leak */
+    /* memory leak? */
 
     config.appearance.ui_file                 = read_value_path    (cfg, SECTION, "ui-file", config.appearance.ui_file, path);
     config.appearance.css_file                = read_value_path    (cfg, SECTION, "css-file", config.appearance.css_file, path);
@@ -351,9 +354,15 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
     config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
     config.appearance.logo                    = read_value_path    (cfg, SECTION, "logo", config.appearance.logo, path);
-    config.appearance.fixed_user_image_size   = read_value_bool    (cfg, SECTION, "fixed-user-image-size", config.appearance.fixed_user_image_size);
-    config.appearance.list_view_image_size    = read_value_int     (cfg, SECTION, "list-view-image-size", config.appearance.list_view_image_size);
-    config.appearance.default_user_image_size = read_value_int     (cfg, SECTION, "default-user-image-size", config.appearance.default_user_image_size);
+
+    config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_image.enabled);
+    config.appearance.user_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
+                                                                    USER_IMAGE_FIT_STRINGS, config.appearance.user_image.fit);
+    config.appearance.list_image.enabled      = read_value_bool    (cfg, SECTION, "list-background", config.appearance.list_image.enabled);
+    config.appearance.list_image.fit          = read_value_enum    (cfg, SECTION, "list-image-fit",
+                                                                    USER_IMAGE_FIT_STRINGS, config.appearance.list_image.fit);
+    config.appearance.list_image.size         = read_value_int     (cfg, SECTION, "list-image-size", config.appearance.list_image.size);
+
     config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme", settings, "gtk-theme-name", config.appearance.theme, FALSE);
     config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", config.appearance.icon_theme, FALSE);
     config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", config.appearance.font, FALSE);

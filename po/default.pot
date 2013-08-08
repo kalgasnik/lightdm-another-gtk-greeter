@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-02 15:08+0300\n"
+"POT-Creation-Date: 2013-08-08 23:20+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../data/themes/classic/greeter.ui.h:1 ../data/themes/default/greeter.ui.h:2
-#: ../data/themes/sample.composite/greeter.ui.h:1 ../src/main.c:361
-#: ../src/main.c:855
+#: ../data/themes/sample.composite/greeter.ui.h:1 ../src/shares.c:33
 msgid "Login"
 msgstr ""
 
@@ -118,20 +117,20 @@ msgstr ""
 msgid "Action \"%s\" failed."
 msgstr ""
 
-#: ../src/main.c:188 ../src/main.c:194 ../src/main.c:253
+#: ../src/main.c:194 ../src/main.c:200 ../src/main.c:259
 msgid "Error"
 msgstr ""
 
-#: ../src/main.c:188
+#: ../src/main.c:194
 #, c-format
 msgid "Connection to LightDM failed with error: %s"
 msgstr ""
 
-#: ../src/main.c:194
+#: ../src/main.c:200
 msgid "Connection to LightDM failed"
 msgstr ""
 
-#: ../src/main.c:253
+#: ../src/main.c:259
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -139,54 +138,54 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/main.c:317
+#: ../src/main.c:364
 msgid "Loading UI: error"
 msgstr ""
 
-#: ../src/main.c:317
+#: ../src/main.c:364
 #, c-format
 msgid "Widget '%s' is not found"
 msgstr ""
 
-#: ../src/main.c:362 ../src/main.c:855
-msgid "Unlock"
-msgstr ""
-
-#: ../src/main.c:497 ../src/main.c:503
+#: ../src/main.c:538 ../src/main.c:544
 msgid "Autostart"
 msgstr ""
 
-#: ../src/main.c:497
+#: ../src/main.c:538
 #, c-format
 msgid ""
 "Failed to start command:\n"
 "%s"
 msgstr ""
 
-#: ../src/main.c:503
+#: ../src/main.c:544
 msgid "Failed to autostart"
 msgstr ""
 
-#: ../src/main.c:650
+#: ../src/main.c:707
 msgid "Guest Account"
 msgstr ""
 
-#: ../src/main.c:653
+#: ../src/main.c:710
 msgid "Other..."
 msgstr ""
 
-#: ../src/main.c:970
+#: ../src/main.c:1033
 msgid "Screenshot"
 msgstr ""
 
-#: ../src/main.c:1051
+#: ../src/main.c:1114
 msgid "Failed to start session"
 msgstr ""
 
-#: ../src/main.c:1220
+#: ../src/main.c:1301
 msgid "Incorrect password, please try again"
 msgstr ""
 
-#: ../src/main.c:1225
+#: ../src/main.c:1306
 msgid "Failed to authenticate"
+msgstr ""
+
+#: ../src/shares.c:34
+msgid "Unlock"
 msgstr ""

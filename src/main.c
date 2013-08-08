@@ -56,8 +56,7 @@ static void set_logo_image                  (void);
 static void set_message_label               (const gchar* text);
 static void set_login_button_state          (gboolean logged);
 static gboolean update_date_label           (gpointer dummy);
-static void set_minimal_user_image_size     (void);
-static void set_fixed_login_button_width    (void);
+static void set_login_button_width          (void);
 
 static void take_screenshot                 (void);
 
@@ -73,6 +72,10 @@ static void set_session                     (const gchar* session);
 
 static gchar* get_language                  (void);
 static void set_language                    (const gchar* language);
+
+static GdkPixbuf* fit_image                 (GdkPixbuf* source,
+                                             gint size,
+                                             UserImageFit fit);
 
 static cairo_surface_t* create_root_surface (GdkScreen* screen);
 
@@ -375,19 +378,24 @@ static gboolean init_gui(void)
     g_slist_foreach(builder_widgets, (GFunc)update_widget_name, NULL);
     g_slist_free(builder_widgets);
 
-    greeter.state.default_user_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(),
-                                                                DEFAULT_USER_ICON,
-                                                                config.appearance.default_user_image_size,
-                                                                0, &error);
-    greeter.state.default_user_image_scaled = greeter.state.default_user_image;
-    if(error)
+    if(config.appearance.user_image.enabled)
     {
-        g_warning("Failed to load default avatar: %s", error->message);
-        g_clear_error(&error);
+        gint width, height;
+        gtk_widget_get_size_request(greeter.ui.user_image_widget, &width, &height);
+        gtk_widget_get_preferred_width(greeter.ui.user_image_widget, &width, NULL);
+        gtk_widget_get_preferred_height(greeter.ui.user_image_widget, &height, NULL);
+        greeter.state.user_image.size = MIN(width, height);
+        greeter.state.user_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), DEFAULT_USER_ICON,
+                                                                          greeter.state.user_image.size, 0, NULL);
     }
-    else
-        greeter.state.default_user_image_scaled = scale_image_by_width(greeter.state.default_user_image,
-                                                                       config.appearance.list_view_image_size);
+
+    if(config.appearance.list_image.enabled)
+    {
+        greeter.state.list_image.size = config.appearance.list_image.size;
+        greeter.state.list_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), DEFAULT_USER_ICON,
+                                                                          greeter.state.list_image.size, 0, NULL);
+    }
+
     if(!load_sessions_list())
         gtk_widget_hide(greeter.ui.sessions_box);
 
@@ -540,11 +548,8 @@ static void run_gui(void)
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
 
-    if(config.appearance.fixed_user_image_size && greeter.ui.user_image_widget)
-        set_minimal_user_image_size();
-
     if(config.appearance.fixed_login_button_width)
-        set_fixed_login_button_width();
+        set_login_button_width();
 
     if(greeter.ui.date_widget)
     {
@@ -601,6 +606,9 @@ static void append_user(GtkTreeModel* model,
     const gchar* base_display_name = lightdm_user_get_display_name(user);
     const gchar* user_name = lightdm_user_get_name(user);
     const gchar* image_file = lightdm_user_get_image(user);
+    gchar* display_name = NULL;
+    GdkPixbuf* user_image = greeter.state.user_image.default_image;
+    GdkPixbuf* list_image = greeter.state.list_image.default_image;
 
     g_debug("Adding user: %s (%s)", base_display_name, user_name);
     gint same_name_count = 0;
@@ -609,7 +617,6 @@ static void append_user(GtkTreeModel* model,
     else
         same_name_count = get_same_name_count(base_display_name);
 
-    gchar* display_name = NULL;
     if(config.appearance.user_name_format == USER_NAME_FORMAT_NAME)
         display_name = g_strdup(user_name);
     else if(config.appearance.user_name_format == USER_NAME_FORMAT_BOTH || same_name_count > 1)
@@ -617,18 +624,24 @@ static void append_user(GtkTreeModel* model,
     else
         display_name = g_strdup(base_display_name);
 
-    GdkPixbuf* image = greeter.state.default_user_image;
-    if(image_file)
+    if(config.appearance.user_image.enabled ||
+       config.appearance.list_image.enabled)
     {
         GError* error = NULL;
-        GdkPixbuf* new_image = gdk_pixbuf_new_from_file(image_file, &error);
-        if(new_image)
-            image = new_image;
-        else
+        GdkPixbuf* image = gdk_pixbuf_new_from_file(image_file, &error);
+        if(!image)
         {
             g_warning("Failed to load user image (%s): %s", user_name, error->message);
             g_clear_error(&error);
         }
+        else
+        {
+            if(config.appearance.user_image.enabled)
+                user_image = fit_image(image, greeter.state.user_image.size, config.appearance.user_image.fit);
+            if(config.appearance.list_image.enabled)
+                list_image = fit_image(image, greeter.state.list_image.size, config.appearance.list_image.fit);
+        }
+        g_object_unref(image);
     }
 
     GtkTreeIter iter;
@@ -638,8 +651,8 @@ static void append_user(GtkTreeModel* model,
                        USER_COLUMN_TYPE, USER_TYPE_REGULAR,
                        USER_COLUMN_DISPLAY_NAME, display_name,
                        USER_COLUMN_WEIGHT, lightdm_user_get_logged_in(user) ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL,
-                       USER_COLUMN_IMAGE, image,
-                       USER_COLUMN_IMAGE_SCALED, scale_image_by_width(image, config.appearance.list_view_image_size),
+                       USER_COLUMN_USER_IMAGE, user_image,
+                       USER_COLUMN_LIST_IMAGE, list_image,
                        -1);
     g_free(display_name);
 }
@@ -658,7 +671,8 @@ static void append_custom_user(GtkTreeModel* model,
                        USER_COLUMN_TYPE, type,
                        USER_COLUMN_DISPLAY_NAME, display_name,
                        USER_COLUMN_WEIGHT, PANGO_WEIGHT_NORMAL,
-                       USER_COLUMN_IMAGE, greeter.state.default_user_image,
+                       USER_COLUMN_USER_IMAGE, greeter.state.user_image.default_image,
+                       USER_COLUMN_LIST_IMAGE, greeter.state.list_image.default_image,
                        -1);
 }
 
@@ -880,7 +894,7 @@ static void set_message_label(const gchar* text)
 
 static void set_login_button_state(gboolean logged)
 {
-    const gchar* text = logged ? _("Unlock") : _("Login");
+    const gchar* text = logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_UNLOCK);
     GtkWidget* widget = greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget;
     set_widget_text(widget, text);
 }
@@ -941,32 +955,7 @@ static gboolean update_date_label(gpointer dummy)
     return TRUE;
 }
 
-static void set_minimal_user_image_size(void)
-{
-    GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
-    if(gtk_tree_model_get_iter_first(model, &iter))
-    {
-        int max_w = 0;
-        int max_h = 0;
-        const GdkPixbuf* image;
-        do
-        {
-            gtk_tree_model_get(model, &iter, USER_COLUMN_IMAGE, &image, -1);
-            int w = gdk_pixbuf_get_width(image);
-            int h = gdk_pixbuf_get_height(image);
-            if(w > max_w)
-                max_w = w;
-            if(h > max_h)
-                max_h = h;
-        }
-        while(gtk_tree_model_iter_next(model, &iter));
-
-        gtk_widget_set_size_request(greeter.ui.user_image_widget, max_w, max_h);
-    }
-}
-
-static void set_fixed_login_button_width(void)
+static void set_login_button_width(void)
 {
     if(greeter.ui.login_label || GTK_IS_BIN(greeter.ui.login_widget))
     {
@@ -974,8 +963,8 @@ static void set_fixed_login_button_width(void)
             greeter.ui.login_label = gtk_bin_get_child(GTK_BIN(greeter.ui.login_widget));
         if(GTK_IS_LABEL(greeter.ui.login_label))
         {
-            int a = strlen(_("Login"));
-            int b = strlen(_("Unlock"));
+            int a = strlen(_(ACTION_TEXT_LOGIN));
+            int b = strlen(_(ACTION_TEXT_UNLOCK));
             gtk_label_set_width_chars(GTK_LABEL(greeter.ui.login_label), a > b ? a : b);
         }
     }
@@ -1152,6 +1141,25 @@ static void set_language(const gchar* language)
         set_language(default_language);
     else
         set_widget_active_first(greeter.ui.languages_widget);
+}
+
+static GdkPixbuf* fit_image(GdkPixbuf* source,
+                            gint new_size,
+                            UserImageFit fit)
+{
+    gint width = gdk_pixbuf_get_width(source);
+    gint height = gdk_pixbuf_get_height(source);
+    gint src_size = MAX(width, height);
+    if((fit == USER_IMAGE_FIT_ALL && src_size != new_size) ||
+       (fit == USER_IMAGE_FIT_BIGGER && src_size > new_size) ||
+       (fit == USER_IMAGE_FIT_SMALLER && src_size < new_size))
+    {
+        if(src_size == width)
+            return gdk_pixbuf_scale_simple(source, new_size, (gint)height*new_size/src_size, GDK_INTERP_BILINEAR);
+        else
+            return gdk_pixbuf_scale_simple(source, (gint)width*new_size/src_size, new_size, GDK_INTERP_BILINEAR);
+    }
+    return (GdkPixbuf*)g_object_ref(source);
 }
 
 static cairo_surface_t* create_root_surface(GdkScreen* screen)
@@ -1365,28 +1373,24 @@ void on_user_selection_changed(GtkWidget* widget,
     gchar* user_name = get_user_name();
     g_debug("User selection changed: %s", user_name);
 
-    #ifdef _DEBUG_
-    LightDMUser* user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
-    #endif
-
-    if(greeter.ui.user_image_widget)
+    if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)
     {
-        GdkPixbuf* pixbuf = get_widget_selection_image(greeter.ui.users_widget, USER_COLUMN_IMAGE, NULL);
-        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), pixbuf);
-        gtk_widget_set_visible(greeter.ui.user_image_box, pixbuf != NULL);
+        GdkPixbuf* image = get_widget_selection_image(greeter.ui.users_widget, USER_COLUMN_USER_IMAGE, NULL);
+        if(config.appearance.user_image.fit == USER_IMAGE_FIT_NONE)
+            gtk_widget_set_size_request(greeter.ui.user_image_widget,
+                                        gdk_pixbuf_get_width(image), gdk_pixbuf_get_height(image));
+        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), image);
     }
     set_message_label(NULL);
-
     start_authentication(user_name);
-    g_free(user_name);
-
     gtk_widget_grab_focus(greeter.ui.users_widget);
 
     #ifdef _DEBUG_
     on_authentication_complete(greeter.greeter);
-    if(!lightdm_user_get_logged_in(user))
+    if(!lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
         on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
     #endif
+    g_free(user_name);
 }
 
 gboolean on_user_selection_key_press(GtkWidget* widget,
