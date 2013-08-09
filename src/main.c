@@ -1073,6 +1073,8 @@ static void start_session(void)
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
+        gtk_widget_hide(greeter.ui.login_window);
+        gtk_widget_hide(greeter.ui.panel_window);
         a11y_close();
     }
     else
