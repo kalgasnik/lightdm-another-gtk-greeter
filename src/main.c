@@ -42,7 +42,6 @@
 static gboolean connect_to_lightdm          (void);
 static gboolean init_css                    (void);
 static gboolean init_gui                    (void);
-static void set_background                  (const gchar* value);
 static void run_gui                         (void);
 static void close_gui                       (void);
 
@@ -52,6 +51,11 @@ static gboolean load_languages_list         (void);
 
 static void init_user_selection             (void);
 static void load_user_options               (LightDMUser* user);
+static void set_screen_background           (GdkScreen* screen,
+                                             GdkPixbuf* image,
+                                             GdkRGBA color,
+                                             gboolean set_props);
+static void set_background                  (const gchar* value);
 static void set_logo_image                  (void);
 static void set_message_label               (const gchar* text);
 static void set_login_button_state          (gboolean logged);
@@ -76,8 +80,6 @@ static void set_language                    (const gchar* language);
 static GdkPixbuf* fit_image                 (GdkPixbuf* source,
                                              gint size,
                                              UserImageFit fit);
-
-static cairo_surface_t* create_root_surface (GdkScreen* screen);
 
 /* Callbacks and events */
 static void on_sigterm_signal               (int signum);
@@ -413,115 +415,6 @@ static gboolean init_gui(void)
     setup_window(GTK_WINDOW(greeter.ui.panel_window));
 
     return TRUE;
-}
-
-static void set_screen_background(GdkScreen* screen, GdkPixbuf* image, GdkRGBA color, gboolean set_props)
-{
-    Atom prop_root = None, prop_esetroot = None;
-    Pixmap pixmap = None;
-    Window root_window = RootWindow(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen));
-
-    cairo_surface_t *surface;
-    cairo_t *cairo;
-
-    if(set_props)
-    {
-        prop_root = XInternAtom(GDK_SCREEN_XDISPLAY(screen), "_XROOTPMAP_ID", False);
-        prop_esetroot = XInternAtom(GDK_SCREEN_XDISPLAY(screen), "ESETROOT_PMAP_ID", False);
-        if(!prop_root && !prop_esetroot)
-            set_props = FALSE;
-        else
-        {
-            pixmap = XCreatePixmap(GDK_SCREEN_XDISPLAY(screen), root_window,
-                                   DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
-                                   DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
-                                   DefaultDepth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
-        }
-    }
-
-    if(set_props)
-        surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen), pixmap,
-                                            DefaultVisual(GDK_SCREEN_XDISPLAY(screen), 0),
-                                            DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
-                                            DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
-    else
-        surface = create_root_surface(screen);
-
-    cairo = cairo_create(surface);
-
-    if(!image)
-    {
-        gdk_cairo_set_source_rgba(cairo, &color);
-        cairo_paint(cairo);
-    }
-    else
-    {
-        GdkRectangle geometry;
-        for(int monitor = 0; monitor < gdk_screen_get_n_monitors(screen); monitor++)
-        {
-            gdk_screen_get_monitor_geometry(screen, monitor, &geometry);
-            GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(image, geometry.width, geometry.height, GDK_INTERP_BILINEAR);
-            if(!gdk_pixbuf_get_has_alpha(pixbuf))
-            {
-                GdkPixbuf* p = gdk_pixbuf_add_alpha(pixbuf, FALSE, 255, 255, 255);
-                g_object_unref(pixbuf);
-                pixbuf = p;
-            }
-            gdk_cairo_set_source_pixbuf(cairo, pixbuf, geometry.x, geometry.y);
-            cairo_paint(cairo);
-            g_object_unref(pixbuf);
-        }
-    }
-    cairo_destroy(cairo);
-    cairo_surface_destroy(surface);
-
-    if(set_props)
-    {
-        long pixmap_as_long = (long)pixmap;
-        XChangeProperty(GDK_SCREEN_XDISPLAY(screen), root_window, prop_root, XA_PIXMAP,
-                        32, PropModeReplace, (guchar*)&pixmap_as_long, 1);
-        XChangeProperty(GDK_SCREEN_XDISPLAY(screen), root_window, prop_esetroot, XA_PIXMAP,
-                        32, PropModeReplace, (guchar*)&pixmap_as_long, 1);
-    }
-    else
-        gdk_flush();
-    XClearWindow(GDK_SCREEN_XDISPLAY(screen), root_window);
-}
-
-static void set_background(const gchar* value)
-{
-    if(g_strcmp0(value, greeter.state.last_background) == 0)
-        return;
-
-    GdkPixbuf* background_pixbuf = NULL;
-    GdkRGBA background_color;
-
-    if(gdk_rgba_parse(&background_color, value))
-    {
-        g_debug("Using background color: %s", value);
-    }
-    else
-    {
-        g_debug("Loading background from file: %s", value);
-
-        GError* error = NULL;
-        background_pixbuf = gdk_pixbuf_new_from_file(value, &error);
-
-        if(error)
-        {
-            g_warning("Failed to load background: %s", error->message);
-            g_clear_error(&error);
-            return;
-        }
-    }
-
-    for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
-        set_screen_background(gdk_display_get_screen(gdk_display_get_default(), i),
-                              background_pixbuf, background_color,
-                              config.appearance.x_background);
-
-    if(background_pixbuf)
-        g_object_unref(background_pixbuf);
 }
 
 static void run_gui(void)
@@ -886,6 +779,116 @@ static void load_user_options(LightDMUser* user)
     }
 }
 
+static void set_screen_background(GdkScreen* screen,
+                                  GdkPixbuf* image,
+                                  GdkRGBA color,
+                                  gboolean set_props)
+{
+    Atom prop_root = None;
+    Atom prop_esetroot = None;
+    Pixmap pixmap = None;
+    Window root_window = RootWindow(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen));
+    cairo_surface_t *surface;
+    cairo_t *cairo;
+
+    if(set_props)
+    {
+        prop_root = XInternAtom(GDK_SCREEN_XDISPLAY(screen), "_XROOTPMAP_ID", False);
+        prop_esetroot = XInternAtom(GDK_SCREEN_XDISPLAY(screen), "ESETROOT_PMAP_ID", False);
+        if(!prop_root && !prop_esetroot)
+            set_props = FALSE;
+    }
+
+    pixmap = XCreatePixmap(GDK_SCREEN_XDISPLAY(screen), root_window,
+                           DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
+                           DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
+                           DefaultDepth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
+
+    surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen), pixmap,
+                                        DefaultVisual(GDK_SCREEN_XDISPLAY(screen), 0),
+                                        DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
+                                        DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
+
+    cairo = cairo_create(surface);
+
+    XSetCloseDownMode(GDK_SCREEN_XDISPLAY(screen), RetainPermanent);
+    XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
+                               root_window, cairo_xlib_surface_get_drawable(surface));
+
+    if(!image)
+    {
+        gdk_cairo_set_source_rgba(cairo, &color);
+        cairo_paint(cairo);
+    }
+    else
+    {
+        GdkRectangle geometry;
+        for(int monitor = 0; monitor < gdk_screen_get_n_monitors(screen); monitor++)
+        {
+            gdk_screen_get_monitor_geometry(screen, monitor, &geometry);
+            GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(image, geometry.width, geometry.height, GDK_INTERP_BILINEAR);
+            if(!gdk_pixbuf_get_has_alpha(pixbuf))
+            {
+                GdkPixbuf* p = gdk_pixbuf_add_alpha(pixbuf, FALSE, 255, 255, 255);
+                g_object_unref(pixbuf);
+                pixbuf = p;
+            }
+            gdk_cairo_set_source_pixbuf(cairo, pixbuf, geometry.x, geometry.y);
+            cairo_paint(cairo);
+            g_object_unref(pixbuf);
+        }
+    }
+    cairo_destroy(cairo);
+    cairo_surface_destroy(surface);
+
+    if(set_props)
+    {
+        long pixmap_as_long = (long)pixmap;
+        XChangeProperty(GDK_SCREEN_XDISPLAY(screen), root_window, prop_root, XA_PIXMAP,
+                        32, PropModeReplace, (guchar*)&pixmap_as_long, 1);
+        XChangeProperty(GDK_SCREEN_XDISPLAY(screen), root_window, prop_esetroot, XA_PIXMAP,
+                        32, PropModeReplace, (guchar*)&pixmap_as_long, 1);
+    }
+    gdk_flush();
+    XClearWindow(GDK_SCREEN_XDISPLAY(screen), root_window);
+}
+
+static void set_background(const gchar* value)
+{
+    if(g_strcmp0(value, greeter.state.last_background) == 0)
+        return;
+
+    GdkPixbuf* background_pixbuf = NULL;
+    GdkRGBA background_color;
+
+    if(gdk_rgba_parse(&background_color, value))
+    {
+        g_debug("Using background color: %s", value);
+    }
+    else
+    {
+        g_debug("Loading background from file: %s", value);
+
+        GError* error = NULL;
+        background_pixbuf = gdk_pixbuf_new_from_file(value, &error);
+
+        if(error)
+        {
+            g_warning("Failed to load background: %s", error->message);
+            g_clear_error(&error);
+            return;
+        }
+    }
+
+    for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
+        set_screen_background(gdk_display_get_screen(gdk_display_get_default(), i),
+                              background_pixbuf, background_color,
+                              config.appearance.x_background);
+
+    if(background_pixbuf)
+        g_object_unref(background_pixbuf);
+}
+
 static void set_message_label(const gchar* text)
 {
     gtk_widget_set_visible(greeter.ui.message_widget, text != NULL && strlen(text) > 0);
@@ -1160,43 +1163,6 @@ static GdkPixbuf* fit_image(GdkPixbuf* source,
             return gdk_pixbuf_scale_simple(source, (gint)width*new_size/src_size, new_size, GDK_INTERP_BILINEAR);
     }
     return (GdkPixbuf*)g_object_ref(source);
-}
-
-static cairo_surface_t* create_root_surface(GdkScreen* screen)
-{
-    gint number, width, height;
-    Display* display;
-    Pixmap pixmap;
-    cairo_surface_t* surface;
-
-    number = gdk_screen_get_number(screen);
-    width = gdk_screen_get_width(screen);
-    height = gdk_screen_get_height(screen);
-
-    /* Open a new connection so with Retain Permanent so the pixmap remains when the greeter quits*/
-    gdk_flush();
-    display = XOpenDisplay(gdk_display_get_name(gdk_screen_get_display(screen)));
-    if(!display)
-    {
-        g_warning("Failed to create root pixmap");
-        return NULL;
-    }
-    XSetCloseDownMode(display, RetainPermanent);
-    pixmap = XCreatePixmap(display, RootWindow(display, number), width, height, DefaultDepth(display, number));
-    XCloseDisplay(display);
-
-    /* Convert into a Cairo surface*/
-    surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen),
-                                        pixmap,
-                                        GDK_VISUAL_XVISUAL(gdk_screen_get_system_visual(screen)),
-                                        width, height);
-    /* Use this pixmap for the background*/
-    XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
-                               RootWindow(GDK_SCREEN_XDISPLAY(screen), number),
-                               cairo_xlib_surface_get_drawable(surface));
-
-
-    return surface;
 }
 
 /* ------------------------------------------------------------------------- *
