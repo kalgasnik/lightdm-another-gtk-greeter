@@ -11,18 +11,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="session_liststore">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name image -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name comment -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkWindow" id="login_window">
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
@@ -335,7 +323,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkBox" id="authentication_widget_box">
+                      <object class="GtkBox" id="authentication_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="halign">center</property>
@@ -533,6 +521,18 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="session_liststore">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name display_name -->
+      <column type="gchararray"/>
+      <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name comment -->
+      <column type="gchararray"/>
+    </columns>
   </object>
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>

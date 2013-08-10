@@ -274,16 +274,14 @@ void set_widget_active_iter(GtkWidget* widget,
         gtk_combo_box_set_active_iter(GTK_COMBO_BOX(widget), iter);
     else if(GTK_IS_TREE_VIEW(widget))
     {
-        GtkTreePath* path = gtk_tree_model_get_path(get_widget_model(widget), iter);
-        gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), iter);
-        gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), path, NULL, FALSE, 0.0, 0.0);
+        GtkTreePath* path = gtk_tree_model_get_path(gtk_tree_view_get_model(GTK_TREE_VIEW(widget)), iter);
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(widget), path, NULL, FALSE);
         gtk_tree_path_free(path);
     }
     else if(GTK_IS_ICON_VIEW(widget))
     {
         GtkTreePath* path = gtk_tree_model_get_path(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter);
-        gtk_icon_view_select_path(GTK_ICON_VIEW(widget), path);
-        gtk_icon_view_scroll_to_path(GTK_ICON_VIEW(widget), path, FALSE, 0, 0);
+        gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
         gtk_tree_path_free(path);
     }
     else
@@ -296,16 +294,14 @@ void set_widget_active_first(GtkWidget* widget)
         gtk_combo_box_set_active(GTK_COMBO_BOX(widget), 0);
     else if(GTK_IS_TREE_VIEW(widget))
     {
-        GtkTreeIter iter;
-        if(gtk_tree_model_get_iter_first(gtk_tree_view_get_model(GTK_TREE_VIEW(widget)), &iter))
-            gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), &iter);
-        gtk_tree_view_scroll_to_point(GTK_TREE_VIEW(widget), 0, 0);
+        GtkTreePath* path = gtk_tree_path_new_first();
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
     }
     else if(GTK_IS_ICON_VIEW(widget))
     {
         GtkTreePath* path = gtk_tree_path_new_first();
-        gtk_icon_view_select_path(GTK_ICON_VIEW(widget), path);
-        gtk_icon_view_scroll_to_path(GTK_ICON_VIEW(widget), path, FALSE, 0, 0);
+        gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
         gtk_tree_path_free(path);
     }
     else

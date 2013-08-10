@@ -1190,10 +1190,10 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
     set_widget_text(greeter.ui.prompt_text, dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
     gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry), type != LIGHTDM_PROMPT_TYPE_SECRET);
-    gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
-    gtk_widget_set_sensitive(greeter.ui.login_widget, TRUE);
     gtk_widget_show(greeter.ui.prompt_box);
     gtk_widget_show(greeter.ui.login_box);
+    gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
+    gtk_widget_set_sensitive(greeter.ui.login_widget, TRUE);
     gtk_widget_grab_focus(greeter.ui.prompt_entry);
 }
 
@@ -1352,7 +1352,6 @@ void on_user_selection_changed(GtkWidget* widget,
     set_message_label(NULL);
     start_authentication(user_name);
     gtk_widget_grab_focus(greeter.ui.users_widget);
-
     #ifdef _DEBUG_
     on_authentication_complete(greeter.greeter);
     if(!lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
@@ -1402,7 +1401,6 @@ gboolean on_login_window_key_press(GtkWidget* widget,
                                    gpointer data)
 {
     static guint32 escape_time = 0;
-
     switch(event->keyval)
     {
         case GDK_KEY_F10:

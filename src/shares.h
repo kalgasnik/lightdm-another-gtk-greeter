@@ -58,8 +58,6 @@ typedef struct
     struct
     {
         GHashTable*     users_display_names;
-        GHashTable*     users_images;
-
         gboolean        prompted;
         gboolean        cancelling;
         const gchar*    last_background;
