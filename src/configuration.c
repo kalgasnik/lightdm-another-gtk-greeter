@@ -25,10 +25,6 @@
 
 GreeterConfig config =
 {
-    .appearance =
-    {
-        .transparency = TRUE
-    },
     .greeter =
     {
         .double_escape_time = 300
@@ -252,11 +248,7 @@ gchar* get_last_logged_user(void)
 
 void save_last_logged_user(const gchar* user_name)
 {
-    g_return_if_fail(state_data.config != NULL);
-    g_return_if_fail(user_name != NULL);
-
     g_key_file_set_value(state_data.config, "greeter", "last-user", user_name);
-
     save_key_file(state_data.config, state_data.path);
 }
 
@@ -267,7 +259,6 @@ gboolean a11y_get_font_state(void)
 
 void a11y_save_font_state(gboolean state)
 {
-    g_return_if_fail(state_data.config != NULL);
     g_key_file_set_boolean(state_data.config, "a11y", "font", state);
     save_key_file(state_data.config, state_data.path);
 }
@@ -279,7 +270,6 @@ gboolean a11y_get_dpi_state(void)
 
 void a11y_save_dpi_state(gboolean state)
 {
-    g_return_if_fail(state_data.config != NULL);
     g_key_file_set_boolean(state_data.config, "a11y", "dpi", state);
     save_key_file(state_data.config, state_data.path);
 }
@@ -291,7 +281,6 @@ gboolean a11y_get_contrast_state(void)
 
 void a11y_save_contrast_state(gboolean state)
 {
-    g_return_if_fail(state_data.config != NULL);
     g_key_file_set_boolean(state_data.config, "a11y", "contrast", state);
     save_key_file(state_data.config, state_data.path);
 }
@@ -303,9 +292,6 @@ void a11y_save_contrast_state(gboolean state)
 static void save_key_file(GKeyFile* key_file,
                           const gchar* path)
 {
-    g_return_if_fail(key_file != NULL);
-    g_return_if_fail(path != NULL);
-
     gsize data_length = 0;
     gchar* data = g_key_file_to_data(key_file, &data_length, NULL);
 
@@ -384,18 +370,12 @@ static gboolean read_value_bool(GKeyFile* key_file,
                                 const gchar* key,
                                 gboolean default_value)
 {
-    g_return_val_if_fail(key_file != NULL, default_value);
-    g_return_val_if_fail(section != NULL, default_value);
-    g_return_val_if_fail(key != NULL, default_value);
-
     GError* error = NULL;
     gboolean value = g_key_file_get_boolean(key_file, section, key, &error);
-    if(error)
-    {
-        g_clear_error(&error);
-        return default_value;
-    }
-    return value;
+    if(!error)
+        return value;
+    g_clear_error(&error);
+    return default_value;
 }
 
 static gboolean read_value_bool_gtk(GKeyFile* key_file,
@@ -408,13 +388,9 @@ static gboolean read_value_bool_gtk(GKeyFile* key_file,
 {
     g_return_val_if_fail(settings != NULL, default_value);
     g_return_val_if_fail(property != NULL, default_value);
-    g_return_val_if_fail(key_file != NULL, default_value);
-    g_return_val_if_fail(section != NULL, default_value);
-    g_return_val_if_fail(key != NULL, default_value);
 
     GError* error = NULL;
     gboolean value = g_key_file_get_boolean(key_file, section, key, &error);
-
     if(!error || apply_default)
         g_object_set(settings, property, error ? default_value : value, NULL);
     g_object_get(settings, property, &value, NULL);
@@ -427,18 +403,12 @@ static gint read_value_int(GKeyFile* key_file,
                            const gchar* key,
                            gint default_value)
 {
-    g_return_val_if_fail(key_file != NULL, default_value);
-    g_return_val_if_fail(section != NULL, default_value);
-    g_return_val_if_fail(key != NULL, default_value);
-
     GError* error = NULL;
     gint value = g_key_file_get_integer(key_file, section, key, &error);
-    if(error)
-    {
-        g_clear_error(&error);
-        return default_value;
-    }
-    return value;
+    if(!error)
+        return value;
+    g_clear_error(&error);
+    return default_value;
 }
 
 static gchar* read_value_str(GKeyFile* key_file,
@@ -446,10 +416,6 @@ static gchar* read_value_str(GKeyFile* key_file,
                              const gchar* key,
                              const gchar* default_value)
 {
-    g_return_val_if_fail(key_file != NULL, g_strdup(default_value));
-    g_return_val_if_fail(section != NULL, g_strdup(default_value));
-    g_return_val_if_fail(key != NULL, g_strdup(default_value));
-
     gchar* value = g_key_file_get_string(key_file, section, key, NULL);
     return value ? value : g_strdup(default_value);
 }
@@ -464,13 +430,9 @@ static gchar* read_value_str_gtk(GKeyFile* key_file,
 {
     g_return_val_if_fail(settings != NULL, g_strdup(default_value));
     g_return_val_if_fail(property != NULL, g_strdup(default_value));
-    g_return_val_if_fail(key_file != NULL, g_strdup(default_value));
-    g_return_val_if_fail(section != NULL, g_strdup(default_value));
-    g_return_val_if_fail(key != NULL, g_strdup(default_value));
 
     GError* error = NULL;
     gchar* value = g_key_file_get_string(key_file, section, key, &error);
-
     if(!error || apply_default)
         g_object_set(settings, property, error ? default_value : value, NULL);
     g_object_get(settings, property, &value, NULL);
@@ -484,9 +446,6 @@ static int read_value_enum(GKeyFile* key_file,
                            const gchar** names,
                            gint default_value)
 {
-    g_return_val_if_fail(key_file != NULL, default_value);
-    g_return_val_if_fail(section != NULL, default_value);
-    g_return_val_if_fail(key != NULL, default_value);
     g_return_val_if_fail(names != NULL, default_value);
 
     gchar* value = g_key_file_get_string(key_file, section, key, NULL);
@@ -508,13 +467,7 @@ static WindowPosition read_value_wp(GKeyFile* key_file,
                                     const gchar* key,
                                     const WindowPosition* default_value)
 {
-    g_return_val_if_fail(default_value != NULL, WINDOW_POSITION_CENTER);
-    g_return_val_if_fail(key_file != NULL, *default_value);
-    g_return_val_if_fail(section != NULL, *default_value);
-    g_return_val_if_fail(key != NULL, *default_value);
-
     WindowPosition p = *default_value;
-
     gchar* value = g_key_file_get_value(key_file, section, key, NULL);
     if(value)
     {
@@ -548,11 +501,6 @@ static int read_value_percents(GKeyFile* key_file,
 {
     if(is_percent != NULL)
         *is_percent = default_is_percent;
-
-    g_return_val_if_fail(key_file != NULL, default_value);
-    g_return_val_if_fail(section != NULL, default_value);
-    g_return_val_if_fail(key != NULL, default_value);
-
     GError* error = NULL;
     gchar* value_end;
     gchar* value = g_key_file_get_value(key_file, section, key, &error);
@@ -561,7 +509,6 @@ static int read_value_percents(GKeyFile* key_file,
         g_clear_error(&error);
         return default_value;
     }
-
     gint result = (int)g_strtod(value, &value_end);
     *is_percent = value_end[0] == '%';
     g_free(value);
@@ -572,12 +519,8 @@ static gchar** read_value_command(GKeyFile* key_file,
                                   const gchar* section,
                                   const gchar* key)
 {
-    g_return_val_if_fail(key_file != NULL, NULL);
-    g_return_val_if_fail(section != NULL, NULL);
-    g_return_val_if_fail(key != NULL, NULL);
-
     gchar** array = NULL;
-    gchar* s = read_value_str(key_file, section, key, NULL);
+    gchar*  s = read_value_str(key_file, section, key, NULL);
     g_shell_parse_argv(s, NULL, &array, NULL);
     g_free(s);
     return array;
@@ -591,13 +534,9 @@ static gint read_value_dpi_gtk(GKeyFile* key_file,
 {
     g_return_val_if_fail(settings != NULL, 0);
     g_return_val_if_fail(property != NULL, 0);
-    g_return_val_if_fail(key_file != NULL, 0);
-    g_return_val_if_fail(section != NULL, 0);
-    g_return_val_if_fail(key != NULL, 0);
 
     GError* error = NULL;
     gint value = g_key_file_get_integer(key_file, section, key, &error);
-
     if(!error)
         g_object_set(settings, property, 1024*value, NULL);
     g_object_get(settings, property, &value, NULL);

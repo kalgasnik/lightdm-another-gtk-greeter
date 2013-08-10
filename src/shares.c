@@ -371,11 +371,8 @@ void set_widget_toggled(GtkWidget* widget,
 void setup_window(GtkWindow* window)
 {
     g_return_if_fail(GTK_IS_WINDOW(window));
-    if(config.appearance.transparency)
-    {
-        g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
-        on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
-    }
+    g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
+    on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
 }
 
 /* ---------------------------------------------------------------------------*
