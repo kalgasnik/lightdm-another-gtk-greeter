@@ -173,16 +173,10 @@ static void power_action(const PowerActionData* action)
     }
 
     GError* error = NULL;
-    if(!action->do_action(&error))
+    if(!action->do_action(&error) && error)
     {
-        gchar* error_text;
-        if(error)
-            error_text = g_strdup_printf(_("Action \"%s\" failed with error: %s."), _(action->name), error->message);
-        else
-            error_text = g_strdup_printf(_("Action \"%s\" failed."), _(action->name));
-        g_warning("%s", error_text);
-        show_error(_(action->name), "%s", error_text);
-        g_free(error_text);
+        g_warning(_("Action \"%s\" failed with error: %s."), _(action->name), error->message);
+        show_error(_(action->name), _("Action \"%s\" failed with error: %s."), _(action->name), error->message);
         g_clear_error(&error);
     }
 }

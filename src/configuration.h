@@ -130,7 +130,6 @@ typedef struct
             gboolean    enabled;
             gchar*      theme;
             gchar*      icon_theme;
-            gboolean    check_theme;
             gboolean    initial_state;
         } contrast;
 

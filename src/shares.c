@@ -35,28 +35,22 @@ const gchar* const ACTION_TEXT_UNLOCK   = N_("Unlock");
 
 const WindowPosition WINDOW_POSITION_CENTER =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = FALSE,
-    .y = 50,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = FALSE, .y = 50,
     .anchor = {.width=0, .height=0}
 };
 
 const WindowPosition WINDOW_POSITION_TOP =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = TRUE,
-    .y = 0,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = TRUE,  .y = 0,
     .anchor = {.width=0, .height=-1}
 };
 
 const WindowPosition WINDOW_POSITION_BOTTOM =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = FALSE,
-    .y = 100,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = FALSE, .y = 100,
     .anchor = {.width=0, .height=1}
 };
 
@@ -163,27 +157,19 @@ void show_error(const gchar* title,
 void set_window_position(GtkWidget* window,
                          const WindowPosition* p)
 {
-    GdkScreen* screen;
+    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(window));
     GtkRequisition size;
     GdkRectangle geometry;
     gint dx, dy;
 
-    screen = gtk_window_get_screen(GTK_WINDOW(window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_widget_get_preferred_size(window, NULL, &size);
 
-    dx = p->x_is_absolute ? (p->x < 0 ? geometry.width + p->x : p->x) : (geometry.width)*p->x/100.0;
-    dy = p->y_is_absolute ? (p->y < 0 ? geometry.height + p->y : p->y) : (geometry.height)*p->y/100.0;
+    dx = !p->x_is_absolute ? geometry.width*p->x/100.0  : (p->x < 0) ? geometry.width + p->x  : p->x;
+    dy = !p->y_is_absolute ? geometry.height*p->y/100.0 : (p->y < 0) ? geometry.height + p->y : p->y;
 
-    if(p->anchor.width == 0)
-        dx -= size.width/2;
-    else if(p->anchor.width > 0)
-        dx -= size.width;
-
-    if(p->anchor.height == 0)
-        dy -= size.height/2;
-    else if(p->anchor.height > 0)
-        dy -= size.height;
+    dx -= (p->anchor.width == 0) ? size.width/2 : (p->anchor.width > 0) ? size.width : 0;
+    dy -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
 
     gtk_window_move(GTK_WINDOW(window), geometry.x + dx, geometry.y + dy);
 }
@@ -315,7 +301,6 @@ gboolean get_model_iter_str(GtkTreeModel* model,
 {
     if(!gtk_tree_model_get_iter_first(model, iter))
         return FALSE;
-
     gchar* iter_value;
     do
     {
@@ -325,7 +310,6 @@ gboolean get_model_iter_str(GtkTreeModel* model,
         if(matched)
             return TRUE;
     } while(gtk_tree_model_iter_next(model, iter));
-
     return FALSE;
 }
 
@@ -412,8 +396,7 @@ static void on_transparent_screen_changed(GtkWidget *widget,
                                           GdkScreen *old_screen,
                                           gpointer userdata)
 {
-    GdkScreen* screen = gtk_widget_get_screen(widget);
-    GdkVisual* visual = gdk_screen_get_rgba_visual(screen);
+    GdkVisual* visual = gdk_screen_get_rgba_visual(gtk_widget_get_screen(widget));
     if(visual)
         gtk_widget_set_visual(widget, visual);
 }

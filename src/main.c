@@ -134,13 +134,12 @@ void on_show_menu                           (GtkWidget* widget,
 
 int main(int argc, char** argv)
 {
-    signal(SIGTERM, on_sigterm_signal);
-
     #ifdef _DEBUG_
     GREETER_DATA_DIR = g_build_filename(g_get_current_dir(), GREETER_DATA_DIR, NULL);
     #endif
 
     g_message("Another GTK+ Greeter version %s", PACKAGE_VERSION);
+    signal(SIGTERM, on_sigterm_signal);
 
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);

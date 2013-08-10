@@ -193,7 +193,6 @@ void load_settings(void)
     SECTION = "a11y.contrast";
     config.a11y.contrast.theme                = read_value_str     (cfg, SECTION, "theme", "HighContrast");
     config.a11y.contrast.icon_theme           = read_value_str     (cfg, SECTION, "icon-theme", "HighContrast");
-    config.a11y.contrast.check_theme          = read_value_bool    (cfg, SECTION, "check-theme", TRUE);
     config.a11y.contrast.initial_state        = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
     config.a11y.contrast.enabled              = config.a11y.contrast.theme && (strlen(config.a11y.contrast.theme) > 0);
 
@@ -226,7 +225,7 @@ void load_settings(void)
 
 void read_state(void)
 {
-    g_message("Reading state: %s", CONFIG_FILE);
+    g_message("Reading state");
 
     GError* error = NULL;
     gchar* state_dir = g_build_filename(g_get_user_cache_dir(), APP_NAME, NULL);

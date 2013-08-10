@@ -205,7 +205,6 @@ static unsigned char* get_short_names(Display* display)
     unsigned long nbytes;
     unsigned long bytes_after;
     unsigned char *prop;
-
     int status = XGetWindowProperty(
                     display,                                        // Display
                     RootWindow(display, DefaultScreen(display)),    // Window
@@ -219,8 +218,7 @@ static unsigned char* get_short_names(Display* display)
                     &nitems, &bytes_after,
                     &prop);
 
-	if(status != Success)
-		return NULL;
+    g_return_val_if_fail(status != Success, NULL);
 
 	if(format == 32)
 		nbytes = sizeof(long);
@@ -240,7 +238,7 @@ static unsigned char* get_short_names(Display* display)
     {
         prop_value = prop;
         for(;*prop++ != '\0'; length--)
-            ;
+            continue;
         if(++prop_count == 2)
             break;
     }
