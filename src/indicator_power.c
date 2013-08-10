@@ -108,7 +108,8 @@ void init_power_indicator(void)
     gboolean allow_any = FALSE;
     for(int i = 0; i < POWER_ACTIONS_COUNT; ++i)
     {
-        gtk_widget_set_visible(greeter.ui.power.actions_box[i], POWER_ACTIONS[i].get_allow());
+        gtk_widget_set_visible(greeter.ui.power.actions_box[i],
+                               POWER_ACTIONS[i].get_allow() && config.power.enabled);
         allow_any |= POWER_ACTIONS[i].get_allow();
     }
 
@@ -135,17 +136,12 @@ void power_shutdown(void)
 
 static void power_action(const PowerActionData* action)
 {
-    g_return_if_fail(config.power.enabled);
+    g_return_if_fail(config.power.enabled && action->get_allow());
 
     if(*action->show_prompt_ptr)
     {
-        gtk_widget_hide(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.widget, FALSE);
-
-        GtkWidget* dialog = gtk_message_dialog_new(NULL,
-                                                   GTK_DIALOG_MODAL,
-                                                   GTK_MESSAGE_QUESTION,
-                                                   GTK_BUTTONS_NONE,
+        GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
+                                                   GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE,
                                                    "%s", _(action->prompt));
         gtk_dialog_add_buttons(GTK_DIALOG(dialog),
                                _("Return to Login"), GTK_RESPONSE_CANCEL,
@@ -158,14 +154,15 @@ static void power_action(const PowerActionData* action)
             GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
             gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog), image);
         }
+        gtk_widget_hide(greeter.ui.login_window);
+        gtk_widget_set_sensitive(greeter.ui.power.widget, FALSE);
         gtk_widget_show_all(dialog);
         set_window_position(dialog, &WINDOW_POSITION_CENTER);
 
         gboolean result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
-
         gtk_widget_destroy(dialog);
-        update_windows_layout();
         gtk_widget_show(greeter.ui.login_window);
+        update_windows_layout();
         gtk_widget_set_sensitive(greeter.ui.power.widget, TRUE);
 
         if(!result)

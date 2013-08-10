@@ -153,11 +153,11 @@ void init_a11y_indicator(void)
         if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.widget))
             fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.widget));
 
-        if(config.a11y.contrast.enabled && a11y_get_contrast_state())
+        if(config.a11y.contrast.enabled && get_state_value_int("a11y", "contrast"))
             a11y_toggle_contrast();
-        if(config.a11y.font.enabled && a11y_get_font_state())
+        if(config.a11y.font.enabled && get_state_value_int("a11y", "font"))
             a11y_toggle_font();
-        if(config.a11y.dpi.enabled && a11y_get_dpi_state())
+        if(config.a11y.dpi.enabled && get_state_value_int("a11y", "dpi"))
             a11y_toggle_dpi();
     }
 }
@@ -226,7 +226,7 @@ void a11y_toggle_font(void)
     {
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
-    a11y_save_font_state(a11y.state.font);
+    set_state_value_int("a11y", "font", a11y.state.font);
     update_windows_idle();
 }
 
@@ -247,7 +247,7 @@ void a11y_toggle_dpi(void)
         value = get_increment(value, config.a11y.dpi.increment, config.a11y.dpi.is_percent);
     }
     g_object_set(settings, "gtk-xft-dpi", value*1024, NULL);
-    a11y_save_dpi_state(a11y.state.dpi);
+    set_state_value_int("a11y", "dpi", a11y.state.dpi);
     update_windows_idle();
 }
 
@@ -264,7 +264,7 @@ void a11y_toggle_contrast()
                  a11y.state.contrast ? config.a11y.contrast.theme : config.appearance.theme, NULL);
     g_object_set(settings, "gtk-icon-theme-name",
                  a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
-    a11y_save_contrast_state(a11y.state.contrast);
+    set_state_value_int("a11y", "contrast", a11y.state.contrast);
     update_windows_idle();
 }
 

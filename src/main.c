@@ -607,6 +607,8 @@ static GdkPixbuf* get_session_image(const gchar* session,
                                     gboolean check_alter_names)
 {
     static GHashTable* images_cache = NULL;
+    if(!config.greeter.show_session_icon)
+        return NULL;
     if(!images_cache)
         images_cache = g_hash_table_new_full(g_str_hash, g_str_equal, (GDestroyNotify)g_free, NULL);
 
@@ -616,9 +618,7 @@ static GdkPixbuf* get_session_image(const gchar* session,
 
     gchar* image_name = g_strdup_printf("%s.png", session);
     gchar* image_path = g_build_filename(GREETER_DATA_DIR, image_name, NULL);
-
     pixbuf = gdk_pixbuf_new_from_file(image_path, NULL);
-
     g_free(image_path);
     g_free(image_name);
 
@@ -656,22 +656,15 @@ static gboolean load_sessions_list(void)
     for(const GList* item = items; item != NULL; item = item->next)
     {
         LightDMSession* session = item->data;
-        const gchar* key = lightdm_session_get_key(session);
+        const gchar* name = lightdm_session_get_key(session);
 
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);
         gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                           SESSION_COLUMN_NAME, key,
+                           SESSION_COLUMN_NAME, name,
                            SESSION_COLUMN_DISPLAY_NAME, lightdm_session_get_name(session),
-                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session)
+                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
+                           SESSION_COLUMN_IMAGE, get_session_image(name, TRUE),
                            -1);
-        if(config.greeter.show_session_icon)
-        {
-            GdkPixbuf* pixbuf = get_session_image(key, TRUE);
-            if(pixbuf)
-                gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                                   SESSION_COLUMN_IMAGE, pixbuf,
-                                   -1);
-        }
     }
     return TRUE;
 }
@@ -747,7 +740,7 @@ static void init_user_selection(void)
     else if(lightdm_greeter_get_select_guest_hint(greeter.greeter))
         selected_user = USER_GUEST;
     else
-        selected_user = last_logged_user = get_last_logged_user();
+        selected_user = last_logged_user = get_state_value_str("greeter", "last-user");
 
     GtkTreeIter iter;
     GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
@@ -1069,7 +1062,7 @@ static void start_session(void)
     }
 
     gchar* user_name = get_user_name();
-    save_last_logged_user(user_name);
+    set_state_value_str("greeter", "last-user", user_name);
     g_free(user_name);
 
     gchar* session = get_session();

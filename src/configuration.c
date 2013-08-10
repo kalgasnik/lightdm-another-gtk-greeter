@@ -240,47 +240,32 @@ void read_state(void)
     g_free(state_dir);
 }
 
-gchar* get_last_logged_user(void)
+gchar* get_state_value_str(const gchar* section,
+                           const gchar* key)
 {
-    return read_value_str(state_data.config, "greeter", "last-user", NULL);
+    return read_value_str(state_data.config, section, key, NULL);
 }
 
-void save_last_logged_user(const gchar* user_name)
+void set_state_value_str(const gchar* section,
+                         const gchar* key,
+                         const gchar* value)
 {
-    g_key_file_set_value(state_data.config, "greeter", "last-user", user_name);
+    g_key_file_set_value(state_data.config, section, key, value);
     save_key_file(state_data.config, state_data.path);
 }
 
-gboolean a11y_get_font_state(void)
+gint get_state_value_int(const gchar* section,
+                         const gchar* key)
 {
-    return read_value_bool(state_data.config, "a11y", "font", FALSE);
+    return read_value_int(state_data.config, section, key, 0);
+
 }
 
-void a11y_save_font_state(gboolean state)
+void set_state_value_int(const gchar* section,
+                         const gchar* key,
+                         gint value)
 {
-    g_key_file_set_boolean(state_data.config, "a11y", "font", state);
-    save_key_file(state_data.config, state_data.path);
-}
-
-gboolean a11y_get_dpi_state(void)
-{
-    return read_value_bool(state_data.config, "a11y", "dpi", config.a11y.dpi.initial_state);
-}
-
-void a11y_save_dpi_state(gboolean state)
-{
-    g_key_file_set_boolean(state_data.config, "a11y", "dpi", state);
-    save_key_file(state_data.config, state_data.path);
-}
-
-gboolean a11y_get_contrast_state(void)
-{
-    return read_value_bool(state_data.config, "a11y", "contrast", config.a11y.contrast.initial_state);
-}
-
-void a11y_save_contrast_state(gboolean state)
-{
-    g_key_file_set_boolean(state_data.config, "a11y", "contrast", state);
+    g_key_file_set_integer(state_data.config, section, key, value);
     save_key_file(state_data.config, state_data.path);
 }
 

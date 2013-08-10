@@ -177,16 +177,15 @@ extern GreeterConfig config;
 void load_settings               (void);
 void read_state                  (void);
 
-gchar* get_last_logged_user      (void);
-void save_last_logged_user       (const gchar* user);
-
-gboolean a11y_get_font_state     (void);
-void a11y_save_font_state        (gboolean state);
-
-gboolean a11y_get_dpi_state      (void);
-void a11y_save_dpi_state         (gboolean state);
-
-gboolean a11y_get_contrast_state (void);
-void a11y_save_contrast_state    (gboolean state);
+gchar* get_state_value_str       (const gchar* section,
+                                  const gchar* key);
+void set_state_value_str         (const gchar* section,
+                                  const gchar* key,
+                                  const gchar* value);
+gint get_state_value_int         (const gchar* section,
+                                  const gchar* key);
+void set_state_value_int         (const gchar* section,
+                                  const gchar* key,
+                                  gint value);
 
 #endif // _CONFIGURAION_H_INCLUDED_
