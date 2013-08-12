@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-08 23:20+0300\n"
+"POT-Creation-Date: 2013-08-12 10:34+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,7 +60,7 @@ msgid "High contrast"
 msgstr ""
 
 #: ../data/themes/classic/greeter.ui.h:10
-#: ../data/themes/default/greeter.ui.h:10 ../src/indicator_a11y.c:384
+#: ../data/themes/default/greeter.ui.h:10 ../src/indicator_a11y.c:346
 msgid "On-screen keyboard"
 msgstr ""
 
@@ -72,18 +72,18 @@ msgstr ""
 msgid "Authentication, press <Escape> to cancel..."
 msgstr ""
 
-#: ../src/indicator_a11y.c:384
+#: ../src/indicator_a11y.c:346
 #, c-format
 msgid ""
 "Failed to start keyboard command:\n"
 "%s"
 msgstr ""
 
-#: ../src/indicator_a11y.c:513
+#: ../src/indicator_a11y.c:473
 msgid "Onboard"
 msgstr ""
 
-#: ../src/indicator_a11y.c:513
+#: ../src/indicator_a11y.c:473
 msgid "Failed to start 'onboard', see logs for details."
 msgstr ""
 
@@ -103,34 +103,29 @@ msgstr ""
 msgid "Are you sure you want to close all programs and shutdown the computer?"
 msgstr ""
 
-#: ../src/indicator_power.c:151
+#: ../src/indicator_power.c:147
 msgid "Return to Login"
 msgstr ""
 
-#: ../src/indicator_power.c:180
+#: ../src/indicator_power.c:175 ../src/indicator_power.c:176
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
 msgstr ""
 
-#: ../src/indicator_power.c:182
-#, c-format
-msgid "Action \"%s\" failed."
-msgstr ""
-
-#: ../src/main.c:194 ../src/main.c:200 ../src/main.c:259
+#: ../src/main.c:191 ../src/main.c:197 ../src/main.c:245
 msgid "Error"
 msgstr ""
 
-#: ../src/main.c:194
+#: ../src/main.c:191
 #, c-format
 msgid "Connection to LightDM failed with error: %s"
 msgstr ""
 
-#: ../src/main.c:200
+#: ../src/main.c:197
 msgid "Connection to LightDM failed"
 msgstr ""
 
-#: ../src/main.c:259
+#: ../src/main.c:245
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -138,51 +133,36 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/main.c:364
+#: ../src/main.c:350
 msgid "Loading UI: error"
 msgstr ""
 
-#: ../src/main.c:364
+#: ../src/main.c:350
 #, c-format
 msgid "Widget '%s' is not found"
 msgstr ""
 
-#: ../src/main.c:538 ../src/main.c:544
-msgid "Autostart"
-msgstr ""
-
-#: ../src/main.c:538
-#, c-format
-msgid ""
-"Failed to start command:\n"
-"%s"
-msgstr ""
-
-#: ../src/main.c:544
-msgid "Failed to autostart"
-msgstr ""
-
-#: ../src/main.c:707
+#: ../src/main.c:567
 msgid "Guest Account"
 msgstr ""
 
-#: ../src/main.c:710
+#: ../src/main.c:570
 msgid "Other..."
 msgstr ""
 
-#: ../src/main.c:1033
+#: ../src/main.c:960
 msgid "Screenshot"
 msgstr ""
 
-#: ../src/main.c:1114
+#: ../src/main.c:1043
 msgid "Failed to start session"
 msgstr ""
 
-#: ../src/main.c:1301
+#: ../src/main.c:1193
 msgid "Incorrect password, please try again"
 msgstr ""
 
-#: ../src/main.c:1306
+#: ../src/main.c:1198
 msgid "Failed to authenticate"
 msgstr ""
 

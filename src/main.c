@@ -406,17 +406,8 @@ static void run_gui(void)
         GError* error;
         if(!g_spawn_async(NULL, config.greeter.autostart_command, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &greeter.state.autostart_pid, &error))
         {
-            if(error)
-            {
-                g_warning("Autostart command error: %s", error->message);
-                show_error(_("Autostart"), _("Failed to start command:\n%s"), error->message);
-                g_clear_error(&error);
-            }
-            else
-            {
-                g_warning("Autostart command failed");
-                show_error(_("Autostart"), _("Failed to autostart"));
-            }
+            g_warning("Autostart command failed with error: %s", error ? error->message : "unknown");
+            g_clear_error(&error);
         }
     }
 
