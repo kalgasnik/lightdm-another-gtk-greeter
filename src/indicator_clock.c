@@ -27,9 +27,9 @@
     #include <libido/libido.h>
 #endif
 
-#include "shares.h"
 #include "configuration.h"
 #include "indicator_clock.h"
+#include "shares.h"
 
 /* Static variables */
 
@@ -54,11 +54,11 @@ void init_clock_indicator(void)
 {
     if(!config.clock.enabled)
     {
-        gtk_widget_hide(greeter.ui.clock.time_widget);
+        gtk_widget_hide(greeter.ui.clock.time_box);
         return;
     }
 
-    if(config.clock.calendar)
+    if(config.clock.calendar && GTK_IS_MENU_SHELL(greeter.ui.clock.time_menu))
     {
         GtkWidget* calendar_menuitem = NULL;
 
@@ -68,7 +68,9 @@ void init_clock_indicator(void)
         #else
         calendar_menuitem = create_simple_calendar_item(&greeter.ui.clock.calendar_widget);
         #endif
-        greeter.ui.clock.date_widget = gtk_menu_item_new_with_label("");
+
+        if(!greeter.ui.clock.date_widget)
+            greeter.ui.clock.date_widget = gtk_menu_item_new_with_label("");
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), greeter.ui.clock.date_widget);
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.clock.time_menu), calendar_menuitem);
 
@@ -87,9 +89,12 @@ void init_clock_indicator(void)
     else
         gtk_widget_hide(greeter.ui.clock.time_menu);
 
-    clock_handler(NULL);
-    g_timeout_add_seconds(1, (GSourceFunc)clock_handler, (gpointer)TRUE);
-    gtk_widget_show(greeter.ui.clock.time_widget);
+    if(greeter.ui.clock.time_widget)
+    {
+        clock_handler(NULL);
+        g_timeout_add_seconds(1, (GSourceFunc)clock_handler, (gpointer)TRUE);
+        gtk_widget_show(greeter.ui.clock.time_widget);
+    }
 }
 
  /* ---------------------------------------------------------------------------*
@@ -117,14 +122,11 @@ static gboolean clock_handler(gpointer* data)
 #ifndef CLOCK_USE_IDO_CALENDAR
 static GtkWidget* create_simple_calendar_item(GtkWidget** calendar_out)
 {
-    g_return_val_if_fail(calendar_out != NULL, NULL);
-
+    GtkWidget* menu_item = gtk_menu_item_new();
     GtkWidget* calendar = *calendar_out = gtk_calendar_new();
     gtk_calendar_set_display_options(GTK_CALENDAR(calendar),
                                      GTK_CALENDAR_SHOW_HEADING | GTK_CALENDAR_NO_MONTH_CHANGE |
                                      GTK_CALENDAR_SHOW_DAY_NAMES | GTK_CALENDAR_SHOW_DETAILS);
-
-    GtkWidget* menu_item = gtk_menu_item_new();
     gtk_widget_set_sensitive(menu_item, FALSE);
     gtk_container_add(GTK_CONTAINER(menu_item), calendar);
     return menu_item;
@@ -135,8 +137,6 @@ static gboolean on_visibility_notify(GtkWidget* widget,
                                      GdkEvent* event,
                                      gpointer data)
 {
-    g_return_val_if_fail(GTK_IS_WIDGET(greeter.ui.clock.date_widget), TRUE);
-
     GDateTime* datetime = g_date_time_new_now_local();
     if(!datetime)
     {

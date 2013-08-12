@@ -27,4 +27,6 @@
 /* Return FALSE if error occurred or if panel is empty */
 void init_power_indicator              (void);
 
+void power_shutdown                    (void);
+
 #endif // _POWER_MENU_H_INCLUDED_

@@ -27,20 +27,11 @@
 #include "indicator_power.h"
 
 #ifdef _DEBUG_
-gboolean lightdm_suspend(GError** error) { g_message("lightdm_suspend()"); return TRUE; }
+gboolean lightdm_suspend(GError** error)   { g_message("lightdm_suspend()"); return TRUE; }
 gboolean lightdm_hibernate(GError** error) { g_message("lightdm_hibernate()"); return TRUE; }
-gboolean lightdm_restart(GError** error) { g_message("lightdm_restart()"); return TRUE; }
-gboolean lightdm_shutdown(GError** error) { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
+gboolean lightdm_restart(GError** error)   { g_message("lightdm_restart()"); return TRUE; }
+gboolean lightdm_shutdown(GError** error)  { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
 #endif
-
-G_MODULE_EXPORT void on_power_suspend_activate   (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_hibernate_activate (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_restart_activate   (GtkWidget* widget,
-                                                  gpointer* data);
-G_MODULE_EXPORT void on_power_shutdown_activate  (GtkWidget* widget,
-                                                  gpointer* data);
 
 /* Types */
 
@@ -92,16 +83,17 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     }
 };
 
-/* Exported functions */
+/* GUI callbacks */
 
-G_MODULE_EXPORT void on_suspend_activate         (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_hibernate_activate       (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_restart_activate         (GtkWidget* widget,
-                                                  gpointer data);
-G_MODULE_EXPORT void on_shutdown_activate        (GtkWidget* widget,
-                                                  gpointer data);
+void on_power_suspend_activate             (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_hibernate_activate           (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_restart_activate             (GtkWidget* widget,
+                                            gpointer* data);
+void on_power_shutdown_activate            (GtkWidget* widget,
+                                            gpointer* data);
+
 
 /* Static functions */
 
@@ -116,7 +108,8 @@ void init_power_indicator(void)
     gboolean allow_any = FALSE;
     for(int i = 0; i < POWER_ACTIONS_COUNT; ++i)
     {
-        gtk_widget_set_visible(greeter.ui.power.actions[i], POWER_ACTIONS[i].get_allow());
+        gtk_widget_set_visible(greeter.ui.power.actions_box[i],
+                               POWER_ACTIONS[i].get_allow() && config.power.enabled);
         allow_any |= POWER_ACTIONS[i].get_allow();
     }
 
@@ -124,12 +117,17 @@ void init_power_indicator(void)
     {
         if(!allow_any)
             g_warning("Power menu: no actions allowed, hiding widget");
-        gtk_widget_hide(greeter.ui.power.power_widget);
+        gtk_widget_hide(greeter.ui.power.box);
     }
-    else if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.power.power_widget))
+    else if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.power.widget))
     {
-        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.power.power_widget));
+        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.power.widget));
     }
+}
+
+void power_shutdown(void)
+{
+    on_power_shutdown_activate(NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------- *
@@ -138,50 +136,44 @@ void init_power_indicator(void)
 
 static void power_action(const PowerActionData* action)
 {
+    g_return_if_fail(config.power.enabled && action->get_allow());
+
     if(*action->show_prompt_ptr)
     {
-        gtk_widget_hide(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.power_widget, FALSE);
-
-        GtkWidget* dialog = gtk_message_dialog_new(NULL,
-                                                   GTK_DIALOG_MODAL,
-                                                   GTK_MESSAGE_QUESTION,
-                                                   GTK_BUTTONS_NONE,
+        GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
+                                                   GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE,
                                                    "%s", _(action->prompt));
         gtk_dialog_add_buttons(GTK_DIALOG(dialog),
                                _("Return to Login"), GTK_RESPONSE_CANCEL,
                                _(action->name), GTK_RESPONSE_OK, NULL);
+        gtk_widget_set_name(dialog, "power_dialog");
         gtk_window_set_title(GTK_WINDOW(dialog), action->name);
+        setup_window(GTK_WINDOW(dialog));
         if(action->icon && gtk_icon_theme_has_icon(gtk_icon_theme_get_default(), action->icon))
         {
             GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
             gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog), image);
         }
+        gtk_widget_hide(greeter.ui.login_window);
+        gtk_widget_set_sensitive(greeter.ui.power.widget, FALSE);
         gtk_widget_show_all(dialog);
         set_window_position(dialog, &WINDOW_POSITION_CENTER);
 
         gboolean result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
-
         gtk_widget_destroy(dialog);
-        update_windows_layout();
         gtk_widget_show(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.power_widget, TRUE);
+        update_windows_layout();
+        gtk_widget_set_sensitive(greeter.ui.power.widget, TRUE);
 
         if(!result)
             return;
     }
 
     GError* error = NULL;
-    if(!action->do_action(&error))
+    if(!action->do_action(&error) && error)
     {
-        gchar* error_text;
-        if(error)
-            error_text = g_strdup_printf(_("Action \"%s\" failed with error: %s."), _(action->name), error->message);
-        else
-            error_text = g_strdup_printf(_("Action \"%s\" failed."), _(action->name));
-        g_warning("%s", error_text);
-        show_error(_(action->name), "%s", error_text);
-        g_free(error_text);
+        g_warning(_("Action \"%s\" failed with error: %s."), _(action->name), error->message);
+        show_error(_(action->name), _("Action \"%s\" failed with error: %s."), _(action->name), error->message);
         g_clear_error(&error);
     }
 }
@@ -190,26 +182,26 @@ static void power_action(const PowerActionData* action)
  * Definitions: exported
  * ------------------------------------------------------------------------- */
 
-G_MODULE_EXPORT void on_power_suspend_activate(GtkWidget* widget,
-                                               gpointer* data)
+void on_power_suspend_activate(GtkWidget* widget,
+                               gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_SUSPEND]);
 }
 
-G_MODULE_EXPORT void on_power_hibernate_activate(GtkWidget* widget,
-                                                 gpointer* data)
+void on_power_hibernate_activate(GtkWidget* widget,
+                                 gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_HIBERNATE]);
 }
 
-G_MODULE_EXPORT void on_power_restart_activate(GtkWidget* widget,
-                                               gpointer* data)
+void on_power_restart_activate(GtkWidget* widget,
+                               gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_RESTART]);
 }
 
-G_MODULE_EXPORT void on_power_shutdown_activate(GtkWidget* widget,
-                                                gpointer* data)
+void on_power_shutdown_activate(GtkWidget* widget,
+                                gpointer* data)
 {
     power_action(&POWER_ACTIONS[POWER_SHUTDOWN]);
 }

@@ -52,90 +52,116 @@ typedef enum
     POWER_ACTIONS_COUNT
 } PowerAction;
 
-struct _GreeterData
+typedef struct
 {
     LightDMGreeter* greeter;
-
     struct
     {
         GHashTable*     users_display_names;
         gboolean        prompted;
         gboolean        cancelling;
-        GdkPixbuf*      default_user_image;
-        GdkPixbuf*      default_user_image_scaled;
         const gchar*    last_background;
-
+        GPid            autostart_pid;
         struct
         {
             WindowPosition position;
         } panel;
+        struct
+        {
+            GdkPixbuf*  default_image;
+            gint        size;
+        } user_image, list_image;
     } state;
 
     struct
     {
         GtkWidget*      login_window;
         GtkWidget*      panel_window;
+        GtkWidget*      panel_menubar;
+
         GtkWidget*      login_widget;
-        GtkWidget*      login_widget_label;
+        GtkWidget*      login_label;
+        GtkWidget*      login_box;
+
         GtkWidget*      cancel_widget;
+        GtkWidget*      cancel_box;
+
         GtkWidget*      message_widget;
-        GtkWidget*      prompt_widget;
-        GtkWidget*      user_image;
+        GtkWidget*      message_box;
+
+        GtkWidget*      prompt_entry;
+        GtkWidget*      prompt_text;
+        GtkWidget*      prompt_box;
+
+        GtkWidget*      users_widget;
+        GtkWidget*      users_box;
+
+        GtkWidget*      sessions_widget;
+        GtkWidget*      sessions_box;
+
+        GtkWidget*      languages_widget;
+        GtkWidget*      languages_box;
+
+        GtkWidget*      authentication_widget;
+        GtkWidget*      authentication_box;
+
+        GtkWidget*      user_image_widget;
+        GtkWidget*      user_image_box;
+
         GtkWidget*      date_widget;
+        GtkWidget*      date_box;
 
-        GtkWidget*      user_view;
-        GtkWidget*      session_view;
-        GtkWidget*      language_view;
-        GtkWidget*      user_view_box;
+        GtkWidget*      host_widget;
+        GtkWidget*      host_box;
 
+        GtkWidget*      logo_image_widget;
+        GtkWidget*      logo_image_box;
+
+        GtkWidget*      onboard;
         GtkWidget*      calendar;
 
         struct
         {
-            GtkWidget*  power_widget;
-            GtkWidget*  power_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
             GtkWidget*  actions[POWER_ACTIONS_COUNT];
+            GtkWidget*  actions_box[POWER_ACTIONS_COUNT];
         } power;
 
         struct
         {
-            GtkWidget*  a11y_widget;
-            GtkWidget*  a11y_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
             GtkWidget*  osk_widget;
+            GtkWidget*  osk_box;
             GtkWidget*  contrast_widget;
+            GtkWidget*  contrast_box;
             GtkWidget*  font_widget;
+            GtkWidget*  font_box;
             GtkWidget*  dpi_widget;
+            GtkWidget*  dpi_box;
         } a11y;
 
         struct
         {
             GtkWidget*  time_widget;
+            GtkWidget*  time_box;
             GtkWidget*  time_menu;
             GtkWidget*  date_widget;
+            GtkWidget*  date_box;
             GtkWidget*  calendar_widget;
         } clock;
 
         struct
         {
-            GtkWidget*  layout_widget;
-            GtkWidget*  layout_menu;
+            GtkWidget*  widget;
+            GtkWidget*  box;
+            GtkWidget*  menu;
         } layout;
-
-        struct
-        {
-            GtkWidget*  menubar;
-        } panel;
-
-        GtkWidget*      login_box;
-        GtkWidget*      prompt_box;
-        GtkWidget*      prompt_entry;
-        GtkWidget*      host_widget;
-        GtkWidget*      logo_image;
-        GtkWindow*      onboard;
     } ui;
-};
-
-typedef struct _GreeterData GreeterData;
+} GreeterData;
 
 typedef enum
 {
@@ -143,8 +169,8 @@ typedef enum
     USER_COLUMN_TYPE,
     USER_COLUMN_DISPLAY_NAME,
     USER_COLUMN_WEIGHT,
-    USER_COLUMN_IMAGE,
-    USER_COLUMN_IMAGE_SCALED
+    USER_COLUMN_USER_IMAGE,
+    USER_COLUMN_LIST_IMAGE
 } UsersModelColumn;
 
 typedef enum
@@ -153,13 +179,6 @@ typedef enum
     USER_TYPE_GUEST,
     USER_TYPE_OTHER
 } UserType;
-
-typedef enum
-{
-    LOGIN_BUTTON_NONE,
-    LOGIN_BUTTON_LOGIN,
-    LOGIN_BUTTON_UNLOCK
-} LoginButtonState;
 
 typedef enum
 {
@@ -180,20 +199,21 @@ typedef enum
 extern GreeterData greeter;
 extern const gchar* const USER_GUEST;
 extern const gchar* const USER_OTHER;
-
 extern const gchar* const APP_NAME;
 extern const gchar* const DEFAULT_USER_ICON;
+extern const gchar* const ACTION_TEXT_LOGIN;
+extern const gchar* const ACTION_TEXT_UNLOCK;
 
 extern const WindowPosition WINDOW_POSITION_CENTER;
 extern const WindowPosition WINDOW_POSITION_TOP;
 extern const WindowPosition WINDOW_POSITION_BOTTOM;
 
 #ifdef _DEBUG_
-extern const gchar* const GETTEXT_PACKAGE;
-extern const gchar* const LOCALE_DIR;
-extern const gchar* const GREETER_DATA_DIR;
-extern const gchar* const CONFIG_FILE;
-extern const gchar* const PACKAGE_VERSION;
+extern gchar* GETTEXT_PACKAGE;
+extern gchar* LOCALE_DIR;
+extern gchar* GREETER_DATA_DIR;
+extern gchar* CONFIG_FILE;
+extern gchar* PACKAGE_VERSION;
 #endif
 
 /* Functions */
@@ -212,9 +232,6 @@ void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
                                         const gchar* text);
-GdkPixbuf* scale_image_by_width        (GdkPixbuf* source,
-                                        int new_width);
-
 GtkTreeModel* get_widget_model         (GtkWidget* widget);
 gchar* get_widget_selection_str        (GtkWidget* widget,
                                         gint column,
@@ -242,8 +259,9 @@ gboolean get_model_iter_str            (GtkTreeModel* model,
 void fix_image_menu_item_if_empty      (GtkImageMenuItem* widget);
 gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
-                                        gboolean state);
+                                        gboolean state,
+                                        GCallback suppress_callback);
 
-void enable_window_transparency        (GtkWidget* window);
+void setup_window                      (GtkWindow* window);
 
 #endif // _SHARES_H_INCLUDED_

@@ -28,7 +28,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">6</property>
         <child>
-          <object class="GtkImage" id="logo_image">
+          <object class="GtkImage" id="logo_image_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="pixel_size">65</property>
@@ -53,7 +53,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkComboBox" id="user_view">
+          <object class="GtkComboBox" id="users_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="model">user_liststore</property>
@@ -80,7 +80,7 @@
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkLabel" id="prompt_widget">
+              <object class="GtkLabel" id="prompt_text">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" comments="This is a placeholder string and will be replaced by the greeter with a prompt string from PAM.">[prompt]</property>
@@ -130,7 +130,7 @@
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkComboBox" id="session_view">
+              <object class="GtkComboBox" id="sessions_widget">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="model">session_liststore</property>
@@ -156,7 +156,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkComboBox" id="language_view">
+              <object class="GtkComboBox" id="languages_widget">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="model">language_liststore</property>
@@ -231,7 +231,7 @@
     <property name="decorated">False</property>
     <property name="has_resize_grip">False</property>
     <child>
-      <object class="GtkMenuBar" id="menubar">
+      <object class="GtkMenuBar" id="panel_menubar">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="pack_direction">rtl</property>
@@ -330,10 +330,16 @@
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem" id="time_widget">
+          <object class="GtkMenuItem" id="clock_time_widget">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label">[time]</property>
+            <child type="submenu">
+              <object class="GtkMenu" id="clock_time_menu">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>

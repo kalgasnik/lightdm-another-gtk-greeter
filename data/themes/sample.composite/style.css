@@ -1,0 +1,157 @@
+@define-color window_color rgba(25, 25, 25, 0.45);
+
+@define-color label_font_color lightgrey;
+@define-color label_font_color_insensitive shade(@label_font_color, 0.75);
+
+@define-color greeter_head_color rgba(25, 25, 25, 0.6);
+@define-color greeter_head_label_color shade(@label_font_color, 0.85);
+
+@define-color user_view_font_color grey;
+@define-color user_view_font_color_selected darker(@user_view_font_color);
+
+@define-color button_border_color rgba(0, 0, 0, 0.35);
+@define-color button_color rgba(0, 0, 0, 0.1);
+@define-color button_color_hover rgba(0, 0, 0, 0.25);
+@define-color button_color_active rgba(0, 0, 0, 0.45);
+@define-color button_color_focused rgba(0, 0, 0, 0.65);
+@define-color button_color_insensitive transparent;
+
+@define-color combobox_font_color shade(@label_font_color, 0.9);
+@define-color combobox_font_color_insensitive shade(@label_font_color_insensitive, 0.9);
+
+GtkLabel
+{
+    color: @label_font_color;
+}
+
+GtkButton
+{
+    background: @button_color;
+    color: @label_font_color;
+    box-shadow: none;
+    border-style: outset;
+    border-width: 1px;
+    border-color: @button_border_color;
+    border-radius: 5px;
+}
+
+GtkButton:hover
+{
+    background: @button_color_hover;
+    transition: 200ms linear;
+}
+
+GtkButton:active
+{
+    background: @button_color_active;
+    color: shade(@label_font_color, 1.1);
+    box-shadow: 0px 0px 2px black;
+    text-shadow: 0px 0px 1px darkgrey;
+    transition: 100ms easy-in;
+}
+
+GtkButton:focused
+{
+    background: @button_color_focused;
+    color: shade(@label_font_color, 0.8);
+    transition: 125ms linear;
+}
+
+GtkButton:insensitive
+{
+    background: @button_color_insensitive;
+    text-shadow: 1px 1px shade(@button_font_color_insensitive, 0.5);
+    transition: 250ms linear;
+}
+
+GtkComboBox
+{
+	-GtkComboBox-shadow-type: none;
+}
+
+GtkComboBox *
+{
+	color: @combobox_font_color;
+}
+
+GtkComboBox *:insensitive
+{
+	color: @combobox_font_color_insensitive;
+    text-shadow: 1px 1px shade(@combobox_font_color_insensitive, 0.5);
+    -GtkArrow-arrow-scaling: 0;
+}
+
+GtkSpinner
+{
+    color: alpha(grey, 0.5);
+}
+
+
+#login_window
+{
+    background: transparent;
+    border-style: none;
+    border-radius: 20px;
+    box-shadow: 0px 0px 1px black;
+}
+
+#dialog_window, #dialog_window_info, #dialog_window_warning,
+#dialog_window_question, #dialog_window_error, #power_dialog
+{
+    background: @window_color;
+    border-style: solid;
+    border-radius: 24px;
+    box-shadow: 0px 0px 1px black;
+}
+
+#date_widget, #clock_time_widget, #host_widget, #layout_widget
+{
+    color: @greeter_head_label_color;
+}
+
+#greeter_top, #greeter_bottom
+{
+    background: @greeter_head_color;
+    border: solid;
+    border-radius: 20px 20px 0px 0px;
+}
+
+#greeter_bottom
+{
+    border-radius: 0px 0px 20px 20px;
+}
+
+#greeter_center
+{
+    background: @window_color;
+}
+
+#users_widget
+{
+    -GtkWidget-focus-line-width: 0px;
+    -GtkTreeView-vertical-separator: 10px;
+    background-color: transparent;
+    color: @user_view_font_color;
+    border: None;
+    border-radius: 6px;
+    transition: 125ms linear;
+}
+
+#users_widget:selected
+{
+    background: @button_color;
+    color: @user_view_font_color_selected;
+    border-style: solid;
+    border-width: 1px;
+    border-color: @button_border_color;
+    transition: 250ms ease-in-out;
+}
+
+#users_widget:hover
+{
+    border-style: solid;
+    border-width: 1px;
+    border-color: @button_border_color;
+    box-shadow: 0px 0px 1px alpha(black, 0.4);
+    text-shadow: 0px 0px 3px darkgrey;
+}

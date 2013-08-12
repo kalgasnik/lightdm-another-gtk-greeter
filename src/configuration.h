@@ -47,15 +47,30 @@ typedef enum
     PANEL_POS_BOTTOM
 } PanelPosition;
 
-struct _GreeterConfig
+typedef enum
+{
+    USER_IMAGE_FIT_NONE,
+    USER_IMAGE_FIT_ALL,
+    USER_IMAGE_FIT_BIGGER,
+    USER_IMAGE_FIT_SMALLER
+} UserImageFit;
+
+typedef enum
+{
+    USER_IMAGE_TYPE_NONE,
+    USER_IMAGE_TYPE_SOURCE,
+    USER_IMAGE_TYPE_FIXED
+} UserImageType;
+
+typedef struct
 {
     struct
     {
         gboolean        allow_other_users;
         gboolean        show_language_selector;
         gboolean        show_session_icon;
-        WindowPosition  position;
         guint32         double_escape_time;
+        gchar**         autostart_command;
     } greeter;
 
     struct
@@ -66,10 +81,8 @@ struct _GreeterConfig
         gchar*          icon_theme;
         gchar*          background;
         gboolean        user_background;
+        gboolean        x_background;
         gchar*          logo;
-        gboolean        fixed_user_image_size;
-        gint            list_view_image_size;
-        gint            default_user_image_size;
         UserNameFormat  user_name_format;
         gchar*          date_format;
         gboolean        fixed_login_button_width;
@@ -78,6 +91,14 @@ struct _GreeterConfig
         gchar*          rgba;
         gboolean        antialias;
         gint            dpi;
+        gboolean        transparency;
+        WindowPosition  position;
+        struct
+        {
+            gboolean     enabled;
+            UserImageFit fit;
+            gint         size;   /* Only for list_image */
+        } user_image, list_image;
     } appearance;
 
     struct
@@ -106,14 +127,15 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gchar*      theme;
             gchar*      icon_theme;
-            gboolean    check_theme;
             gboolean    initial_state;
         } contrast;
 
         struct
         {
+            gboolean    enabled;
             gchar**     command;
             gboolean    use_onboard;
             gboolean    initial_state;
@@ -125,6 +147,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gint        increment;
             gboolean    is_percent;
             gboolean    initial_state;
@@ -132,6 +155,7 @@ struct _GreeterConfig
 
         struct
         {
+            gboolean    enabled;
             gint        increment;
             gboolean    is_percent;
             gboolean    initial_state;
@@ -142,9 +166,7 @@ struct _GreeterConfig
     {
         gboolean        enabled;
     } layout;
-};
-
-typedef struct _GreeterConfig GreeterConfig;
+} GreeterConfig;
 
 /* Variables */
 
@@ -155,16 +177,15 @@ extern GreeterConfig config;
 void load_settings               (void);
 void read_state                  (void);
 
-gchar* get_last_logged_user      (void);
-void save_last_logged_user       (const gchar* user);
-
-gboolean a11y_get_font_state     (void);
-void a11y_save_font_state        (gboolean state);
-
-gboolean a11y_get_dpi_state      (void);
-void a11y_save_dpi_state         (gboolean state);
-
-gboolean a11y_get_contrast_state (void);
-void a11y_save_contrast_state    (gboolean state);
+gchar* get_state_value_str       (const gchar* section,
+                                  const gchar* key);
+void set_state_value_str         (const gchar* section,
+                                  const gchar* key,
+                                  const gchar* value);
+gint get_state_value_int         (const gchar* section,
+                                  const gchar* key);
+void set_state_value_int         (const gchar* section,
+                                  const gchar* key,
+                                  gint value);
 
 #endif // _CONFIGURAION_H_INCLUDED_

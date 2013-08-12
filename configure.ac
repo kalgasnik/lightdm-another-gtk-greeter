@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 
-define(_PACKAGE_VERSION, 1.0.4.6)
+define(_PACKAGE_VERSION, 1.0.4.9)
 
 AC_INIT(lightdm-another-gtk-greeter, _PACKAGE_VERSION, pan.pav.7c5@gmail.com)
 AC_CONFIG_MACRO_DIR([m4])
@@ -73,6 +73,10 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", Gettext package)
 AC_CONFIG_FILES([
     Makefile
     data/Makefile
+    data/themes/Makefile
+    data/themes/default/Makefile
+    data/themes/classic/Makefile
+    data/themes/sample.composite/Makefile
     src/Makefile
     po/Makefile.in])
 AC_OUTPUT

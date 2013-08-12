@@ -17,52 +17,49 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <glib/gi18n.h>
 #include <string.h>
+
 #include "shares.h"
 #include "configuration.h"
 
 /* Variables */
 
 GreeterData greeter = {NULL, };
-const gchar* const USER_GUEST = "*guest";
-const gchar* const USER_OTHER = "*other";
-
-const gchar* const APP_NAME = "lightdm-another-gtk-greeter";
-const gchar* const DEFAULT_USER_ICON = "avatar-default";
+const gchar* const USER_GUEST           = "*guest";
+const gchar* const USER_OTHER           = "*other";
+const gchar* const APP_NAME             = "lightdm-another-gtk-greeter";
+const gchar* const DEFAULT_USER_ICON    = "avatar-default";
+const gchar* const ACTION_TEXT_LOGIN    = N_("Login");
+const gchar* const ACTION_TEXT_UNLOCK   = N_("Unlock");
 
 const WindowPosition WINDOW_POSITION_CENTER =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = FALSE,
-    .y = 50,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = FALSE, .y = 50,
     .anchor = {.width=0, .height=0}
 };
 
 const WindowPosition WINDOW_POSITION_TOP =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = TRUE,
-    .y = 0,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = TRUE,  .y = 0,
     .anchor = {.width=0, .height=-1}
 };
 
 const WindowPosition WINDOW_POSITION_BOTTOM =
 {
-    .x_is_absolute = FALSE,
-    .x = 50,
-    .y_is_absolute = FALSE,
-    .y = 100,
+    .x_is_absolute = FALSE, .x = 50,
+    .y_is_absolute = FALSE, .y = 100,
     .anchor = {.width=0, .height=1}
 };
 
 #ifdef _DEBUG_
-const gchar* const GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
-const gchar* const LOCALE_DIR = "/usr/local/share.locale";
-const gchar* const GREETER_DATA_DIR = "../../data";
-const gchar* const CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.conf";
-const gchar* const PACKAGE_VERSION = "<DEBUG>";
+gchar* GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
+gchar* LOCALE_DIR = "/usr/local/share.locale";
+gchar* GREETER_DATA_DIR = "../../data";
+gchar* CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.dev.conf";
+gchar* PACKAGE_VERSION = "<DEBUG>";
 #endif
 
 /* Static functions */
@@ -87,7 +84,7 @@ void update_windows_layout(void)
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.login_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
 
-    set_window_position(greeter.ui.login_window, &config.greeter.position);
+    set_window_position(greeter.ui.login_window, &config.appearance.position);
 
     if(config.panel.enabled)
     {
@@ -120,8 +117,8 @@ void update_windows_layout(void)
             onboard_y += at_top ? + panel_height : -panel_height;
         }
 
-        gtk_window_resize(greeter.ui.onboard, geometry.width - geometry.x, onboard_height);
-        gtk_window_move(greeter.ui.onboard, geometry.x, geometry.y + onboard_y);
+        gtk_window_resize(GTK_WINDOW(greeter.ui.onboard), geometry.width - geometry.x, onboard_height);
+        gtk_window_move(GTK_WINDOW(greeter.ui.onboard), geometry.x, geometry.y + onboard_y);
 
         gint login_x, login_y, login_height;
 
@@ -160,27 +157,19 @@ void show_error(const gchar* title,
 void set_window_position(GtkWidget* window,
                          const WindowPosition* p)
 {
-    GdkScreen* screen;
+    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(window));
     GtkRequisition size;
     GdkRectangle geometry;
     gint dx, dy;
 
-    screen = gtk_window_get_screen(GTK_WINDOW(window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_widget_get_preferred_size(window, NULL, &size);
 
-    dx = p->x_is_absolute ? (p->x < 0 ? geometry.width + p->x : p->x) : (geometry.width)*p->x/100.0;
-    dy = p->y_is_absolute ? (p->y < 0 ? geometry.height + p->y : p->y) : (geometry.height)*p->y/100.0;
+    dx = !p->x_is_absolute ? geometry.width*p->x/100.0  : (p->x < 0) ? geometry.width + p->x  : p->x;
+    dy = !p->y_is_absolute ? geometry.height*p->y/100.0 : (p->y < 0) ? geometry.height + p->y : p->y;
 
-    if(p->anchor.width == 0)
-        dx -= size.width/2;
-    else if(p->anchor.width > 0)
-        dx -= size.width;
-
-    if(p->anchor.height == 0)
-        dy -= size.height/2;
-    else if(p->anchor.height > 0)
-        dy -= size.height;
+    dx -= (p->anchor.width == 0) ? size.width/2 : (p->anchor.width > 0) ? size.width : 0;
+    dy -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
 
     gtk_window_move(GTK_WINDOW(window), geometry.x + dx, geometry.y + dy);
 }
@@ -197,30 +186,14 @@ void set_widget_text(GtkWidget* widget,
     else g_return_if_reached();
 }
 
-GdkPixbuf* scale_image_by_width(GdkPixbuf* source,
-                                int new_width)
-{
-    g_return_val_if_fail(GDK_IS_PIXBUF(source), NULL);
-
-    GdkPixbuf* image = source;
-    if(new_width > 0)
-    {
-        int old_w = gdk_pixbuf_get_width(source);
-        if(old_w > new_width)
-        {
-            int new_h = (1.0*new_width/old_w)*gdk_pixbuf_get_height(source);
-            image = gdk_pixbuf_scale_simple(source, new_width, new_h, GDK_INTERP_HYPER);
-        }
-    }
-    return image;
-}
-
 GtkTreeModel* get_widget_model(GtkWidget* widget)
 {
     if(GTK_IS_COMBO_BOX(widget))
         return gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
+    if(GTK_IS_ICON_VIEW(widget))
+        return gtk_icon_view_get_model(GTK_ICON_VIEW(widget));
     g_return_val_if_reached(NULL);
 }
 
@@ -265,6 +238,18 @@ gboolean get_widget_active_iter(GtkWidget* widget,
         return gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), iter);
     if(GTK_IS_TREE_VIEW(widget))
         return gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), NULL, iter);
+    if(GTK_IS_ICON_VIEW(widget))
+    {
+        gboolean ok = FALSE;
+        GList* selection = gtk_icon_view_get_selected_items(GTK_ICON_VIEW(widget));
+        if(g_list_first(selection) != NULL)
+        {
+            GtkTreePath* path = (GtkTreePath*)g_list_first(selection)->data;
+            ok = gtk_tree_model_get_iter(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter, path);
+        }
+        g_list_free_full(selection, (GDestroyNotify)gtk_tree_path_free);
+        return ok;
+    }
     g_return_val_if_reached(NULL);
 }
 
@@ -275,15 +260,18 @@ void set_widget_active_iter(GtkWidget* widget,
         gtk_combo_box_set_active_iter(GTK_COMBO_BOX(widget), iter);
     else if(GTK_IS_TREE_VIEW(widget))
     {
-        gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), iter);
-        GtkTreePath* path = gtk_tree_model_get_path(get_widget_model(widget), iter);
-        if(path)
-        {
-            gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), path, NULL, FALSE, 0.0, 0.0);
-            gtk_tree_path_free(path);
-        }
+        GtkTreePath* path = gtk_tree_model_get_path(gtk_tree_view_get_model(GTK_TREE_VIEW(widget)), iter);
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
     }
-    else g_return_val_if_reached(NULL);
+    else if(GTK_IS_ICON_VIEW(widget))
+    {
+        GtkTreePath* path = gtk_tree_model_get_path(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter);
+        gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
+    }
+    else
+        g_return_val_if_reached(NULL);
 }
 
 void set_widget_active_first(GtkWidget* widget)
@@ -292,12 +280,18 @@ void set_widget_active_first(GtkWidget* widget)
         gtk_combo_box_set_active(GTK_COMBO_BOX(widget), 0);
     else if(GTK_IS_TREE_VIEW(widget))
     {
-        GtkTreeIter iter;
-        if(gtk_tree_model_get_iter_first(gtk_tree_view_get_model(GTK_TREE_VIEW(widget)), &iter))
-            gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), &iter);
-        gtk_tree_view_scroll_to_point(GTK_TREE_VIEW(widget), 0, 0);
+        GtkTreePath* path = gtk_tree_path_new_first();
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
     }
-    else g_return_val_if_reached(NULL);
+    else if(GTK_IS_ICON_VIEW(widget))
+    {
+        GtkTreePath* path = gtk_tree_path_new_first();
+        gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
+    }
+    else
+        g_return_val_if_reached(NULL);
 }
 
 gboolean get_model_iter_str(GtkTreeModel* model,
@@ -307,7 +301,6 @@ gboolean get_model_iter_str(GtkTreeModel* model,
 {
     if(!gtk_tree_model_get_iter_first(model, iter))
         return FALSE;
-
     gchar* iter_value;
     do
     {
@@ -317,7 +310,6 @@ gboolean get_model_iter_str(GtkTreeModel* model,
         if(matched)
             return TRUE;
     } while(gtk_tree_model_iter_next(model, iter));
-
     return FALSE;
 }
 
@@ -347,21 +339,24 @@ gboolean get_widget_toggled(GtkWidget* widget)
 }
 
 void set_widget_toggled(GtkWidget* widget,
-                        gboolean state)
+                        gboolean state,
+                        GCallback suppress_callback)
 {
+    if(suppress_callback)
+        g_signal_handlers_block_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
     if(GTK_IS_TOGGLE_BUTTON(widget))
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), state);
     else if(GTK_IS_CHECK_MENU_ITEM(widget))
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(widget), state);
-    else
-        g_return_if_reached();
+    if(suppress_callback)
+        g_signal_handlers_unblock_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
 }
 
-void enable_window_transparency(GtkWidget* window)
+void setup_window(GtkWindow* window)
 {
-    //gtk_widget_set_app_paintable(window, TRUE);
+    g_return_if_fail(GTK_IS_WINDOW(window));
     g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
-    on_transparent_screen_changed(window, NULL, NULL);
+    on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
 }
 
 /* ---------------------------------------------------------------------------*
@@ -374,10 +369,22 @@ static void show_message_dialog(GtkMessageType type,
                                 va_list args)
 {
     gchar* message = g_strdup_vprintf(message_format, args);
-    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK,
-                                               "%s", message);
+    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK, "%s", message);
     g_free(message);
 
+    const gchar* window_name = NULL;
+    switch(type)
+    {
+        case GTK_MESSAGE_INFO: window_name = "dialog_window_info"; break;
+        case GTK_MESSAGE_WARNING: window_name = "dialog_window_warning"; break;
+        case GTK_MESSAGE_QUESTION: window_name = "dialog_window_question"; break;
+        case GTK_MESSAGE_ERROR: window_name = "dialog_window_error"; break;
+        default:
+            window_name = "dialog_window";
+    }
+    gtk_widget_set_name(dialog, window_name);
+
+    setup_window(GTK_WINDOW(dialog));
     gtk_window_set_title(GTK_WINDOW(dialog), title);
     gtk_widget_show_all(dialog);
     set_window_position(dialog, &WINDOW_POSITION_CENTER);
@@ -389,8 +396,7 @@ static void on_transparent_screen_changed(GtkWidget *widget,
                                           GdkScreen *old_screen,
                                           gpointer userdata)
 {
-    GdkScreen* screen = gtk_widget_get_screen(widget);
-    GdkVisual* visual = gdk_screen_get_rgba_visual(screen);
+    GdkVisual* visual = gdk_screen_get_rgba_visual(gtk_widget_get_screen(widget));
     if(visual)
         gtk_widget_set_visual(widget, visual);
 }
