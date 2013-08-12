@@ -78,11 +78,11 @@ msgstr ""
 
 #: ../src/indicator_a11y.c:487
 msgid "Onboard"
-msgstr "Abordo (Onboard)"
+msgstr "Abordo"
 
 #: ../src/indicator_a11y.c:487
 msgid "Failed to start 'onboard', see logs for details."
-msgstr "Error al iniciar 'abordo' (Onboard), Vea los regístros para más detalles."
+msgstr "Error al iniciar 'abordo', Vea los regístros para más detalles."
 
 #: ../src/indicator_power.c:66
 msgid "Suspend the computer?"
@@ -107,12 +107,12 @@ msgstr "Regresar a la pantalla de entrada"
 #: ../src/indicator_power.c:180
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
-msgstr "La accion \"%s\" ha fallado con el error: %s."
+msgstr "La accion \"%s\" a fallado con el error: %s."
 
 #: ../src/indicator_power.c:182
 #, c-format
 msgid "Action \"%s\" failed."
-msgstr "La accion \"%s\" ha fallado."
+msgstr "La accion \"%s\" a fallado."
 
 #: ../src/main.c:184 ../src/main.c:190 ../src/main.c:263
 msgid "Error"
