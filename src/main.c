@@ -40,13 +40,13 @@
 /* Static functions */
 
 static gboolean connect_to_lightdm          (void);
-static gboolean init_css                    (void);
+static void init_css                        (void);
 static gboolean init_gui                    (void);
 static void run_gui                         (void);
 static void close_gui                       (void);
 
 static gboolean load_users_list             (void);
-static gboolean load_sessions_list          (void);
+static void load_sessions_list              (void);
 static gboolean load_languages_list         (void);
 
 static void init_user_selection             (void);
@@ -124,8 +124,6 @@ gboolean on_panel_window_key_press          (GtkWidget* widget,
 gboolean on_special_key_press               (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
-void on_show_menu                           (GtkWidget* widget,
-                                             GtkWidget* menu);
 
 
 /* ------------------------------------------------------------------------- *
@@ -167,9 +165,8 @@ int main(int argc, char** argv)
         close_gui();
     }
     else
-    {
         g_critical("Greeter initialization failed");
-    }
+
     return inited ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -214,41 +211,30 @@ static gboolean connect_to_lightdm(void)
     return TRUE;
 }
 
-static gboolean init_css(void)
+static void init_css(void)
 {
     if(!config.appearance.css_file)
     {
         g_message("No CSS file defined");
-        return TRUE;
+        return;
     }
-
     g_message("Loading CSS file: %s", config.appearance.css_file);
-
-    if(!g_file_test(config.appearance.css_file, G_FILE_TEST_EXISTS))
-    {
-        g_warning("Error loading CSS: file not exists");
-        return FALSE;
-    }
 
     GError* error = NULL;
     GtkCssProvider* provider = gtk_css_provider_new();
     GdkScreen* screen = gdk_display_get_default_screen(gdk_display_get_default());
 
     gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    gboolean loaded = gtk_css_provider_load_from_path(provider, config.appearance.css_file, &error);
-
-    if(!loaded)
+    if(!gtk_css_provider_load_from_path(provider, config.appearance.css_file, &error))
     {
         g_warning("Error loading CSS: %s", error->message);
         g_clear_error(&error);
     }
     g_object_unref(provider);
-    return loaded;
 }
 
 static gboolean init_gui(void)
 {
-    g_message("Creating GUI");
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
 
@@ -382,7 +368,6 @@ static gboolean init_gui(void)
     if(config.appearance.user_image.enabled)
     {
         gint width, height;
-        gtk_widget_get_size_request(greeter.ui.user_image_widget, &width, &height);
         gtk_widget_get_preferred_width(greeter.ui.user_image_widget, &width, NULL);
         gtk_widget_get_preferred_height(greeter.ui.user_image_widget, &height, NULL);
         greeter.state.user_image.size = MIN(width, height);
@@ -397,12 +382,10 @@ static gboolean init_gui(void)
                                                                           greeter.state.list_image.size, 0, NULL);
     }
 
-    if(!load_sessions_list())
-        gtk_widget_hide(greeter.ui.sessions_box);
-
     if(!load_languages_list() || !config.greeter.show_language_selector)
         gtk_widget_hide(greeter.ui.languages_box);
 
+    load_sessions_list();
     load_users_list();
 
     set_logo_image();
@@ -503,6 +486,7 @@ static void append_user(GtkTreeModel* model,
     GdkPixbuf* list_image = greeter.state.list_image.default_image;
 
     g_debug("Adding user: %s (%s)", base_display_name, user_name);
+
     gint same_name_count = 0;
     if(update_hash_table)
         same_name_count = update_users_names_table(base_display_name);
@@ -638,35 +622,26 @@ static GdkPixbuf* get_session_image(const gchar* session,
     return pixbuf;
 }
 
-static gboolean load_sessions_list(void)
+static void load_sessions_list(void)
 {
     g_message("Reading sessions list");
 
-    const GList* items = lightdm_get_sessions();
-
-    if(!items)
-    {
-        g_warning("lightdm_get_sessions() return NULL");
-        return FALSE;
-    }
-
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.sessions_widget);
+    GtkListStore* model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
 
-    for(const GList* item = items; item != NULL; item = item->next)
+    for(const GList* item = lightdm_get_sessions(); item != NULL; item = item->next)
     {
         LightDMSession* session = item->data;
         const gchar* name = lightdm_session_get_key(session);
 
-        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+        gtk_list_store_append(model, &iter);
+        gtk_list_store_set(model, &iter,
                            SESSION_COLUMN_NAME, name,
                            SESSION_COLUMN_DISPLAY_NAME, lightdm_session_get_name(session),
                            SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
                            SESSION_COLUMN_IMAGE, get_session_image(name, TRUE),
                            -1);
     }
-    return TRUE;
 }
 
 static gboolean load_languages_list(void)
@@ -1467,11 +1442,4 @@ gboolean on_special_key_press(GtkWidget* widget,
             return FALSE;
     }
     return TRUE;
-}
-
-void on_show_menu(GtkWidget* widget,
-                  GtkWidget* menu)
-{
-    if(gtk_widget_get_visible(menu))
-        gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, GDK_CURRENT_TIME);
 }
