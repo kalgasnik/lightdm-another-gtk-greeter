@@ -1,0 +1,176 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0.4.9\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-08-12 10:34+0300\n"
+"PO-Revision-Date: 2013-08-12 07:18-0400\n"
+"Last-Translator: PAblo Lezaeta Reyes <prflr88@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/themes/classic/greeter.ui.h:1 ../data/themes/default/greeter.ui.h:2
+#: ../data/themes/sample.composite/greeter.ui.h:1 ../src/shares.c:33
+msgid "Login"
+msgstr "Entrada"
+
+#: ../data/themes/classic/greeter.ui.h:2 ../data/themes/default/greeter.ui.h:1
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../data/themes/classic/greeter.ui.h:3 ../data/themes/default/greeter.ui.h:4
+#: ../src/indicator_power.c:56
+msgid "Suspend"
+msgstr "Suspender"
+
+#: ../data/themes/classic/greeter.ui.h:4 ../data/themes/default/greeter.ui.h:5
+#: ../src/indicator_power.c:64
+msgid "Hibernate"
+msgstr "Hibernar"
+
+#: ../data/themes/classic/greeter.ui.h:5 ../data/themes/default/greeter.ui.h:6
+#: ../src/indicator_power.c:72
+msgid "Restart"
+msgstr "Reiniciar"
+
+#: ../data/themes/classic/greeter.ui.h:6 ../data/themes/default/greeter.ui.h:7
+#: ../src/indicator_power.c:80
+msgid "Shutdown"
+msgstr "Apagar"
+
+#: ../data/themes/classic/greeter.ui.h:7 ../data/themes/default/greeter.ui.h:8
+msgid "Large font"
+msgstr "Fuentes grandes"
+
+#: ../data/themes/classic/greeter.ui.h:8
+#: ../data/themes/default/greeter.ui.h:11
+msgid "Large dpi"
+msgstr "DPI alto"
+
+#: ../data/themes/classic/greeter.ui.h:9 ../data/themes/default/greeter.ui.h:9
+msgid "High contrast"
+msgstr "Alto contraste"
+
+#: ../data/themes/classic/greeter.ui.h:10
+#: ../data/themes/default/greeter.ui.h:10 ../src/indicator_a11y.c:346
+msgid "On-screen keyboard"
+msgstr "Teclado en pantalla"
+
+#: ../data/themes/default/greeter.ui.h:3
+msgid "Login options"
+msgstr "Opciones de entrada"
+
+#: ../data/themes/sample.composite/greeter.ui.h:2
+msgid "Authentication, press <Escape> to cancel..."
+msgstr "Autenticación, presione <Escape> para cancelar..."
+
+#: ../src/indicator_a11y.c:346
+#, c-format
+msgid ""
+"Failed to start keyboard command:\n"
+"%s"
+msgstr ""
+"Error al iniciar el comando del teclado:\n"
+"%s"
+
+#: ../src/indicator_a11y.c:473
+msgid "Onboard"
+msgstr "Abordo (Onboard)"
+
+#: ../src/indicator_a11y.c:473
+msgid "Failed to start 'onboard', see logs for details."
+msgstr "Error al iniciar 'abordo' (Onboard), Vea los registros (Logs) para más detalles."
+
+#: ../src/indicator_power.c:57
+msgid "Suspend the computer?"
+msgstr "Suspender equipo"
+
+#: ../src/indicator_power.c:65
+msgid "Hibernate the computer?"
+msgstr "Hibernar equipo"
+
+#: ../src/indicator_power.c:73
+msgid "Are you sure you want to close all programs and restart the computer?"
+msgstr "¿Está seguro que desea cerrar todos los programas para reiniciar el euipo?"
+
+#: ../src/indicator_power.c:81
+msgid "Are you sure you want to close all programs and shutdown the computer?"
+msgstr "¿Está seguro que desea cerrar todos los programas para luego apagar el equipo?"
+
+#: ../src/indicator_power.c:147
+msgid "Return to Login"
+msgstr "Regresar a la entrada"
+
+#: ../src/indicator_power.c:175 ../src/indicator_power.c:176
+#, c-format
+msgid "Action \"%s\" failed with error: %s."
+msgstr "La acción \"%s\" ha fallado con el error: %s"
+
+#: ../src/main.c:191 ../src/main.c:197 ../src/main.c:245
+msgid "Error"
+msgstr "Error"
+
+#: ../src/main.c:191
+#, c-format
+msgid "Connection to LightDM failed with error: %s"
+msgstr "La conexión a LightDM ha fallado con el error: %s"
+
+#: ../src/main.c:197
+msgid "Connection to LightDM failed"
+msgstr "La conexión a LightDM ha fallado"
+
+#: ../src/main.c:245
+#, c-format
+msgid ""
+"Error loading UI file:\n"
+"\n"
+"%s"
+msgstr ""
+"Error cargando el archive UI:\n"
+"\n"
+"%s"
+
+#: ../src/main.c:350
+msgid "Loading UI: error"
+msgstr "Cargando el archivo UI: Error"
+
+#: ../src/main.c:350
+#, c-format
+msgid "Widget '%s' is not found"
+msgstr "El widget '%s' no fue encontrado"
+
+#: ../src/main.c:567
+msgid "Guest Account"
+msgstr "Cuenta de invitado"
+
+#: ../src/main.c:570
+msgid "Other..."
+msgstr "Otro..."
+
+#: ../src/main.c:960
+msgid "Screenshot"
+msgstr "Captura de pantalla"
+
+#: ../src/main.c:1043
+msgid "Failed to start session"
+msgstr "Error al iniciar la sesión"
+
+#: ../src/main.c:1193
+msgid "Incorrect password, please try again"
+msgstr "Contraseña incorrecta, Intente nuevamente"
+
+#: ../src/main.c:1198
+msgid "Failed to authenticate"
+msgstr "Fallo al autenticar"
+
+#: ../src/shares.c:34
+msgid "Unlock"
+msgstr "Desbloquear"
