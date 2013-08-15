@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-12 10:34+0300\n"
+"POT-Creation-Date: 2013-08-14 14:40+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,20 +112,20 @@ msgstr ""
 msgid "Action \"%s\" failed with error: %s."
 msgstr ""
 
-#: ../src/main.c:191 ../src/main.c:197 ../src/main.c:245
+#: ../src/main.c:189 ../src/main.c:237
 msgid "Error"
 msgstr ""
 
-#: ../src/main.c:191
+#: ../src/main.c:189
 #, c-format
-msgid "Connection to LightDM failed with error: %s"
+msgid "Connection to LightDM failed: %s"
 msgstr ""
 
-#: ../src/main.c:197
-msgid "Connection to LightDM failed"
+#: ../src/main.c:189
+msgid "unknown error"
 msgstr ""
 
-#: ../src/main.c:245
+#: ../src/main.c:237
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -133,36 +133,36 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/main.c:350
+#: ../src/main.c:342
 msgid "Loading UI: error"
 msgstr ""
 
-#: ../src/main.c:350
+#: ../src/main.c:342
 #, c-format
 msgid "Widget '%s' is not found"
 msgstr ""
 
-#: ../src/main.c:567
+#: ../src/main.c:559
 msgid "Guest Account"
 msgstr ""
 
-#: ../src/main.c:570
+#: ../src/main.c:562
 msgid "Other..."
 msgstr ""
 
-#: ../src/main.c:960
+#: ../src/main.c:952
 msgid "Screenshot"
 msgstr ""
 
-#: ../src/main.c:1043
+#: ../src/main.c:1035
 msgid "Failed to start session"
 msgstr ""
 
-#: ../src/main.c:1193
+#: ../src/main.c:1185
 msgid "Incorrect password, please try again"
 msgstr ""
 
-#: ../src/main.c:1198
+#: ../src/main.c:1190
 msgid "Failed to authenticate"
 msgstr ""
 

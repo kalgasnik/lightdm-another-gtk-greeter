@@ -56,7 +56,7 @@ const WindowPosition WINDOW_POSITION_BOTTOM =
 
 #ifdef _DEBUG_
 gchar* GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
-gchar* LOCALE_DIR = "/usr/local/share.locale";
+gchar* LOCALE_DIR = "/usr/share/locale";
 gchar* GREETER_DATA_DIR = "../../data";
 gchar* CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.dev.conf";
 gchar* PACKAGE_VERSION = "<DEBUG>";

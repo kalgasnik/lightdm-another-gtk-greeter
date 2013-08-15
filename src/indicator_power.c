@@ -172,7 +172,7 @@ static void power_action(const PowerActionData* action)
     GError* error = NULL;
     if(!action->do_action(&error) && error)
     {
-        g_warning(_("Action \"%s\" failed with error: %s."), _(action->name), error->message);
+        g_warning("Action \"%s\" failed with error: %s.", action->name, error->message);
         show_error(_(action->name), _("Action \"%s\" failed with error: %s."), _(action->name), error->message);
         g_clear_error(&error);
     }
