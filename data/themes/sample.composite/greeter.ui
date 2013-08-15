@@ -372,6 +372,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Shutdown</property>
                             <signal name="clicked" handler="on_power_shutdown_activate" swapped="no"/>
                             <child>
                               <object class="GtkImage" id="image4">
@@ -393,6 +394,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Restart</property>
                             <signal name="clicked" handler="on_power_restart_activate" swapped="no"/>
                             <child>
                               <object class="GtkImage" id="image3">
@@ -414,6 +416,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Hibernate</property>
                             <signal name="clicked" handler="on_power_hibernate_activate" swapped="no"/>
                             <child>
                               <object class="GtkImage" id="image5">
@@ -435,6 +438,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Suspend</property>
                             <signal name="clicked" handler="on_power_suspend_activate" swapped="no"/>
                             <child>
                               <object class="GtkImage" id="image6">

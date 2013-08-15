@@ -76,7 +76,7 @@ GtkComboBox *
 
 GtkComboBox *:insensitive
 {
-	color: @combobox_font_color_insensitive;
+    color: @combobox_font_color_insensitive;
     text-shadow: 1px 1px shade(@combobox_font_color_insensitive, 0.5);
     -GtkArrow-arrow-scaling: 0;
 }
@@ -86,33 +86,39 @@ GtkSpinner
     color: alpha(grey, 0.5);
 }
 
+GtkWindow
+{
+    box-shadow: 0px 0px 1px black;
+}
 
 #login_window
 {
-    background: transparent;
-    border-style: none;
     border-radius: 20px;
-    box-shadow: 0px 0px 1px black;
+    background-color: transparent;
 }
 
 #dialog_window, #dialog_window_info, #dialog_window_warning,
 #dialog_window_question, #dialog_window_error, #power_dialog
 {
-    background: @window_color;
-    border-style: solid;
     border-radius: 24px;
-    box-shadow: 0px 0px 1px black;
-}
-
-#date_widget, #clock_time_widget, #host_widget, #layout_widget
-{
-    color: @greeter_head_label_color;
+    background: @window_color;
+    /* Fix fir gtk-3.6.4 */
+    background-image: -gtk-gradient (linear,
+        left top, right bottom,
+        from (transparent), to (transparent));
 }
 
 #greeter_top, #greeter_bottom
 {
     background: @greeter_head_color;
-    border: solid;
+    /* Fix fir gtk-3.6.4 */
+    background-image: -gtk-gradient (linear,
+        left top, right bottom,
+        from (transparent), to (transparent));
+}
+
+#greeter_top
+{
     border-radius: 20px 20px 0px 0px;
 }
 
@@ -123,7 +129,12 @@ GtkSpinner
 
 #greeter_center
 {
-    background: @window_color;
+    background-color: @window_color;
+}
+
+#date_widget, #clock_time_widget, #host_widget, #layout_widget
+{
+    color: @greeter_head_label_color;
 }
 
 #users_widget
