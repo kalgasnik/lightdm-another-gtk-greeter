@@ -185,17 +185,9 @@ static gboolean connect_to_lightdm(void)
     GError* error = NULL;
     if(!lightdm_greeter_connect_sync(greeter.greeter, &error))
     {
-        if(error)
-        {
-            g_critical("Connection to LightDM failed with error: %s", error->message);
-            show_error(_("Error"), _("Connection to LightDM failed with error: %s"), error->message);
-            g_clear_error(&error);
-        }
-        else
-        {
-            g_critical("Connection to LightDM failed");
-            show_error(_("Error"), _("Connection to LightDM failed"));
-        }
+        g_critical("Connection to LightDM failed: %s", error ? error->message : "unknown error");
+        show_error(_("Error"), _("Connection to LightDM failed: %s"), error ? error->message : _("unknown error"));
+        g_clear_error(&error);
         return FALSE;
     }
     #endif

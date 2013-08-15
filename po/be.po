@@ -5,73 +5,73 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 1.0.4.9\n"
+"Project-Id-Version: lightdm-another-gtk-greeter-10.4.9\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-14 14:40+0300\n"
-"PO-Revision-Date: 2013-08-14 14:47+0300\n"
-"Last-Translator: PAblo Lezaeta Reyes <prflr88@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: es\n"
+"POT-Creation-Date: 2013-08-12 10:34+0300\n"
+"PO-Revision-Date: 2013-08-15 09:07+0300\n"
+"Last-Translator: andrew.p <pan.pav.7c5@gmail.com>\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.7\n"
 "X-Poedit-SourceCharset: UTF-8\n"
+"Language: be\n"
 
 #: ../data/themes/classic/greeter.ui.h:1 ../data/themes/default/greeter.ui.h:2
 #: ../data/themes/sample.composite/greeter.ui.h:1 ../src/shares.c:33
 msgid "Login"
-msgstr "Entrada"
+msgstr "Увайсці"
 
 #: ../data/themes/classic/greeter.ui.h:2 ../data/themes/default/greeter.ui.h:1
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "Адмена"
 
 #: ../data/themes/classic/greeter.ui.h:3 ../data/themes/default/greeter.ui.h:4
 #: ../src/indicator_power.c:56
 msgid "Suspend"
-msgstr "Suspender"
+msgstr "Рэжым чакання"
 
 #: ../data/themes/classic/greeter.ui.h:4 ../data/themes/default/greeter.ui.h:5
 #: ../src/indicator_power.c:64
 msgid "Hibernate"
-msgstr "Hibernar"
+msgstr "Рэжым сну"
 
 #: ../data/themes/classic/greeter.ui.h:5 ../data/themes/default/greeter.ui.h:6
 #: ../src/indicator_power.c:72
 msgid "Restart"
-msgstr "Reiniciar"
+msgstr "Перазагрузка"
 
 #: ../data/themes/classic/greeter.ui.h:6 ../data/themes/default/greeter.ui.h:7
 #: ../src/indicator_power.c:80
 msgid "Shutdown"
-msgstr "Apagar"
+msgstr "Выключэнне"
 
 #: ../data/themes/classic/greeter.ui.h:7 ../data/themes/default/greeter.ui.h:8
 msgid "Large font"
-msgstr "Fuentes grandes"
+msgstr "Вялікі шрыфт"
 
 #: ../data/themes/classic/greeter.ui.h:8
 #: ../data/themes/default/greeter.ui.h:11
 msgid "Large dpi"
-msgstr "DPI alto"
+msgstr "Высокі DPI"
 
 #: ../data/themes/classic/greeter.ui.h:9 ../data/themes/default/greeter.ui.h:9
 msgid "High contrast"
-msgstr "Alto contraste"
+msgstr "Высокая кантраснасць"
 
 #: ../data/themes/classic/greeter.ui.h:10
 #: ../data/themes/default/greeter.ui.h:10 ../src/indicator_a11y.c:346
 msgid "On-screen keyboard"
-msgstr "Teclado en pantalla"
+msgstr "Экранная клавіятура"
 
 #: ../data/themes/default/greeter.ui.h:3
 msgid "Login options"
-msgstr "Opciones de entrada"
+msgstr "Опцыі"
 
 #: ../data/themes/sample.composite/greeter.ui.h:2
 msgid "Authentication, press <Escape> to cancel..."
-msgstr "Autenticación, presione <Escape> para cancelar..."
+msgstr "Выконваецца ўваход, націсніце <Esc> для адмены..."
 
 #: ../src/indicator_a11y.c:346
 #, c-format
@@ -79,107 +79,99 @@ msgid ""
 "Failed to start keyboard command:\n"
 "%s"
 msgstr ""
-"Error al iniciar el comando del teclado:\n"
+"Не атрымалася выканаць загад:\n"
 "%s"
 
 #: ../src/indicator_a11y.c:473
 msgid "Onboard"
-msgstr "Abordo (Onboard)"
+msgstr "Onboard"
 
 #: ../src/indicator_a11y.c:473
 msgid "Failed to start 'onboard', see logs for details."
-msgstr ""
-"Error al iniciar 'abordo' (Onboard), Vea los registros (Logs) para más "
-"detalles."
+msgstr "Не атрямалася"
 
 #: ../src/indicator_power.c:57
 msgid "Suspend the computer?"
-msgstr "Suspender equipo"
+msgstr "Перайсці ў рэжым сну?"
 
 #: ../src/indicator_power.c:65
 msgid "Hibernate the computer?"
-msgstr "Hibernar equipo"
+msgstr "Перайсці ў рэжым чакання?"
 
 #: ../src/indicator_power.c:73
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr ""
-"¿Está seguro que desea cerrar todos los programas para reiniciar el euipo?"
+"Вы ўпэўнены што жадаеце зачыніць усе праграмы і перазагрузіць кампутар?"
 
 #: ../src/indicator_power.c:81
 msgid "Are you sure you want to close all programs and shutdown the computer?"
-msgstr ""
-"¿Está seguro que desea cerrar todos los programas para luego apagar el "
-"equipo?"
+msgstr "Вы ўпэўнены што жадаеце зачыніць усе праграмы і выключыць кампутар?"
 
 #: ../src/indicator_power.c:147
 msgid "Return to Login"
-msgstr "Regresar a la entrada"
+msgstr "Адмена"
 
 #: ../src/indicator_power.c:175 ../src/indicator_power.c:176
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
-msgstr "La acción \"%s\" ha fallado con el error: %s"
+msgstr "Не атрымалася выканаць дзеянне \"%s\": %s"
 
-#: ../src/main.c:189 ../src/main.c:237
+#: ../src/main.c:191 ../src/main.c:197 ../src/main.c:245
 msgid "Error"
-msgstr "Error"
+msgstr "Памылка"
 
-#: ../src/main.c:189
+#: ../src/main.c:191
 #, c-format
-msgid "Connection to LightDM failed: %s"
-msgstr "La conexión a LightDM ha fallado: %s"
+msgid "Connection to LightDM failed with error: %s"
+msgstr "Не атрымалася ўсталяваць злучэнне з LightDM: %s"
 
-#: ../src/main.c:189
-msgid "unknown error"
-msgstr "error desconocido"
+#: ../src/main.c:197
+msgid "Connection to LightDM failed"
+msgstr "Не атрымалася ўсталяваць злучэнне з LightDM"
 
-#: ../src/main.c:237
+#: ../src/main.c:245
 #, c-format
 msgid ""
 "Error loading UI file:\n"
 "\n"
 "%s"
 msgstr ""
-"Error cargando el archive UI:\n"
-"\n"
+"Памылка пры загрузцы інтэрфейсу:\n"
 "%s"
 
-#: ../src/main.c:342
+#: ../src/main.c:350
 msgid "Loading UI: error"
-msgstr "Cargando el archivo UI: Error"
+msgstr "Загрузка інтэрфейсу: памылка"
 
-#: ../src/main.c:342
+#: ../src/main.c:350
 #, c-format
 msgid "Widget '%s' is not found"
-msgstr "El widget '%s' no fue encontrado"
+msgstr "Неабходны элемент інтэрфейсу  \"%s\" ня знойдзены"
 
-#: ../src/main.c:559
+#: ../src/main.c:567
 msgid "Guest Account"
-msgstr "Cuenta de invitado"
+msgstr "Гасцявы акаўнт"
 
-#: ../src/main.c:562
+#: ../src/main.c:570
 msgid "Other..."
-msgstr "Otro..."
+msgstr "Іншы..."
 
-#: ../src/main.c:952
+#: ../src/main.c:960
 msgid "Screenshot"
-msgstr "Captura de pantalla"
+msgstr "Здымак экрана"
 
-#: ../src/main.c:1035
+#: ../src/main.c:1043
 msgid "Failed to start session"
-msgstr "Error al iniciar la sesión"
+msgstr "Не атрымалася запусціць сесію"
 
-#: ../src/main.c:1185
+#: ../src/main.c:1193
 msgid "Incorrect password, please try again"
-msgstr "Contraseña incorrecta, Intente nuevamente"
+msgstr "Няправільны пароль,паспрабуйце яшчэ раз"
 
-#: ../src/main.c:1190
+#: ../src/main.c:1198
 msgid "Failed to authenticate"
-msgstr "Fallo al autenticar"
+msgstr "Не атрымалася выканаць уваход"
 
 #: ../src/shares.c:34
 msgid "Unlock"
-msgstr "Desbloquear"
-
-#~ msgid "Connection to LightDM failed with error: %s"
-#~ msgstr "La conexión a LightDM ha fallado con el error: %s"
+msgstr "Увайсці"
