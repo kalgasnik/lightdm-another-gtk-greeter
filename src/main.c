@@ -761,7 +761,9 @@ static void set_screen_background(GdkScreen* screen,
 
     cairo = cairo_create(surface);
 
+    #ifndef _DEBUG_
     XSetCloseDownMode(GDK_SCREEN_XDISPLAY(screen), RetainPermanent);
+    #endif
     XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
                                root_window, cairo_xlib_surface_get_drawable(surface));
 
@@ -847,9 +849,8 @@ static void set_message_label(const gchar* text)
 
 static void set_login_button_state(gboolean logged)
 {
-    const gchar* text = logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_UNLOCK);
-    GtkWidget* widget = greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget;
-    set_widget_text(widget, text);
+    set_widget_text(greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget,
+                    logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_LOGIN));
 }
 
 static void set_logo_image(void)
@@ -881,7 +882,6 @@ static void set_logo_image(void)
     else
     {
         g_debug("Loading logo from file: %s", config.appearance.logo);
-
         GError* error = NULL;
         GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(config.appearance.logo, &error);
         if(pixbuf)
@@ -988,7 +988,6 @@ static void cancel_authentication(void)
 {
     g_message("Cancelling authentication for current user");
 
-    /* If in authentication then stop that first */
     greeter.state.cancelling = FALSE;
     if(lightdm_greeter_get_in_authentication(greeter.greeter))
     {
@@ -997,7 +996,6 @@ static void cancel_authentication(void)
         set_message_label(NULL);
     }
 
-    /* Start a new login */
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
         start_authentication(USER_OTHER);
     else
@@ -1088,7 +1086,6 @@ static void set_language(const gchar* language)
         return;
     }
 
-    /* If failed to find this language, then try the default */
     const gchar* default_language = NULL;
     if(lightdm_get_language())
         default_language = lightdm_language_get_code(lightdm_get_language());

@@ -163,7 +163,7 @@ void load_settings(void)
     config.appearance.hintstyle               = NULL;
     config.appearance.rgba                    = NULL;
     config.appearance.antialias               = FALSE;
-    config.appearance.dpi                     = -1;
+    config.appearance.dpi                     = 0;
     config.appearance.user_name_format        = USER_NAME_FORMAT_DISPLAYNAME;
     config.appearance.date_format             = "%A, %e %B";
     config.appearance.position                = WINDOW_POSITION_CENTER;
@@ -340,14 +340,12 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.hintstyle               = read_value_str_gtk (cfg, SECTION, "xft-hintstyle", settings, "gtk-xft-hintstyle", config.appearance.hintstyle, FALSE);
     config.appearance.rgba                    = read_value_str_gtk (cfg, SECTION, "xft-rgba", settings, "gtk-xft-rgba", config.appearance.rgba, FALSE);
     config.appearance.antialias               = read_value_bool_gtk(cfg, SECTION, "xft-antialias", settings, "gtk-xft-antialias", config.appearance.antialias, FALSE);
-    if(g_key_file_has_key(cfg, SECTION, "xft-dpi", NULL))
-        config.appearance.dpi                 = read_value_dpi_gtk (cfg, SECTION, "xft-dpi", settings, "gtk-xft-dpi");
+    config.appearance.dpi                     = read_value_dpi_gtk (cfg, SECTION, "xft-dpi", settings, "gtk-xft-dpi");
     config.appearance.user_name_format        = read_value_enum    (cfg, SECTION, "user-name-format",
                                                                     USER_NAME_FORMAT_STRINGS, config.appearance.user_name_format);
     config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
     config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
 }
-
 
 static gboolean read_value_bool(GKeyFile* key_file,
                                 const gchar* section,

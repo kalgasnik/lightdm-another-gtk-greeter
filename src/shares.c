@@ -101,7 +101,7 @@ void update_windows_layout(void)
             case ONBOARD_POS_PANEL: at_top = panel_at_top; break;
             case ONBOARD_POS_PANEL_OPPOSITE: at_top =  !panel_at_top; break;
             case ONBOARD_POS_BOTTOM: at_top = FALSE; break;
-            case ONBOARD_POS_TOP: ;
+            case ONBOARD_POS_TOP:
             default: at_top = TRUE;
         };
 
@@ -121,7 +121,6 @@ void update_windows_layout(void)
         gtk_window_move(GTK_WINDOW(greeter.ui.onboard), geometry.x, geometry.y + onboard_y);
 
         gint login_x, login_y, login_height;
-
         gtk_window_get_position(GTK_WINDOW(greeter.ui.login_window), &login_x, &login_y);
         gtk_widget_get_preferred_height(greeter.ui.login_window, NULL, &login_height);
 

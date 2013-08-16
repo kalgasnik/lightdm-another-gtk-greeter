@@ -275,7 +275,7 @@ void a11y_toggle_contrast()
 void on_a11y_font_toggled(GtkWidget* widget,
                           gpointer data)
 {
-    a11y_toggle_contrast();
+    a11y_toggle_font();
 }
 
 void on_a11y_dpi_toggled(GtkWidget* widget,
@@ -369,7 +369,6 @@ static gboolean osk_check_onboard(void)
 
 static void hide_onboard_window(GtkWidget* widget, gpointer data)
 {
-    g_debug("Hiding 'onboard' window");
     gtk_widget_hide(widget);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
 }
