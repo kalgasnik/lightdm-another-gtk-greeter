@@ -218,7 +218,7 @@ static unsigned char* get_short_names(Display* display)
                     &nitems, &bytes_after,
                     &prop);
 
-    g_return_val_if_fail(status != Success, NULL);
+    g_return_val_if_fail(status == Success, NULL);
 
 	if(format == 32)
 		nbytes = sizeof(long);
