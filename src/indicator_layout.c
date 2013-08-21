@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
 #include <gtk/gtk.h>
@@ -39,7 +40,6 @@ typedef struct _GroupInfo
     const gchar* name;
     const gchar* short_name;
     GtkWidget* menu_item;
-    gulong menu_signal_id;
 } GroupInfo;
 
 typedef struct _KeyboardInfo
@@ -68,7 +68,7 @@ static GdkFilterReturn xkb_evt_filter  (GdkXEvent* xev,
 
 static KeyboardInfo* init_kbd          (void);
 static void start_monitoring           (KeyboardInfo* kbd);
-static unsigned char* get_short_names  (Display* display);
+static gchar** get_layouts             (Display* display);
 static GroupInfo* get_groups           (Display* display,
                                         int* size);
 static void update_menu                (GroupInfo* group_info);
@@ -99,13 +99,8 @@ void init_layout_indicator(void)
     {
         menu_item = gtk_radio_menu_item_new_with_label(menu_group, kbd->groups[i].name);
         menu_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(menu_item));
-
-        kbd->groups[i].menu_signal_id = g_signal_connect(G_OBJECT(menu_item),
-                                                         "toggled",
-                                                         G_CALLBACK(on_layout_clicked),
-                                                         (gpointer)&kbd->groups[i]);
         kbd->groups[i].menu_item = menu_item;
-
+        g_signal_connect(G_OBJECT(menu_item), "toggled", G_CALLBACK(on_layout_clicked), (gpointer)&kbd->groups[i]);
         gtk_menu_shell_append(GTK_MENU_SHELL(greeter.ui.layout.menu), menu_item);
     }
 
@@ -194,68 +189,45 @@ static void start_monitoring(KeyboardInfo* kbd)
     XkbGetState(kbd->display, XkbUseCoreKbd, &state);
     update_menu(&kbd->groups[state.group]);
     gdk_window_add_filter(NULL, (GdkFilterFunc)xkb_evt_filter, (gpointer)kbd);
-    xkl_engine_start_listen(kbd->engine, XKLL_MANAGE_WINDOW_STATES);
+    xkl_engine_start_listen(kbd->engine, XKLL_TRACK_KEYBOARD_STATE);
 }
 
-static unsigned char* get_short_names(Display* display)
+static gchar** get_layouts(Display* display)
 {
+    const int LAYOUTS_PROP_NUM = 2;
 	Atom type;
     int format;
     unsigned long nitems;
-    unsigned long nbytes;
     unsigned long bytes_after;
     unsigned char *prop;
-    int status = XGetWindowProperty(
-                    display,                                        // Display
-                    RootWindow(display, DefaultScreen(display)),    // Window
-                    XInternAtom(display, "_XKB_RULES_NAMES", 1),    // Property
-                    0,              // Offset
-                    1024,           // Length
-                    FALSE,          // Delete
-                    AnyPropertyType,// Requared type
-                    &type,          // Actual type
-                    &format,
-                    &nitems, &bytes_after,
-                    &prop);
+    int status = XGetWindowProperty(display, RootWindow(display, DefaultScreen(display)),
+                                    XInternAtom(display, "_XKB_RULES_NAMES", 1),
+                                    0, 1024,          /* Offset, length */
+                                    FALSE,            /* Delete */
+                                    XA_STRING, &type, /* Requared type, actual type */
+                                    &format,
+                                    &nitems, &bytes_after,
+                                    &prop);
 
     g_return_val_if_fail(status == Success, NULL);
+    g_return_val_if_fail(nitems >= LAYOUTS_PROP_NUM, NULL);
+    g_return_val_if_fail(format == 8, NULL);
+    g_return_val_if_fail(type == XA_STRING, NULL);
 
-	if(format == 32)
-		nbytes = sizeof(long);
-	else if(format == 16)
-		nbytes = sizeof(short);
-	else if(format == 8)
-		nbytes = sizeof(char);
-	else
-		return NULL;
-
-    int prop_count = -1;
-	long length = nitems*nbytes;
-	unsigned char *prop_value = NULL;
-
-    // Keyboard Layouts: property #2
-    while(length >= format/8)
-    {
-        prop_value = prop;
-        for(;*prop++ != '\0'; length--)
-            continue;
-        if(++prop_count == 2)
-            break;
-    }
-    return prop_value;
+    unsigned char *p = prop;
+    for(int prop_n = 0; prop_n < LAYOUTS_PROP_NUM; ++prop_n)
+        p += strlen((const char*)p) + 1;
+    gchar** layouts = g_strsplit((const gchar*)p, ",", 0);
+    XFree(prop);
+    return layouts;
 }
 
 static GroupInfo* get_groups(Display* display,
                              int* size)
 {
-    unsigned char* short_names_str = get_short_names(display);
-    if(!short_names_str)
-        return NULL;
-
-    gchar** short_names = g_strsplit((char*)short_names_str, ",", 0);
-    int groups_count = 0;
-    while(short_names[groups_count])
-        groups_count++;
+    gchar** short_names = get_layouts(display);
+    int groups_count = g_strv_length(short_names);
+    g_return_val_if_fail(groups_count > (config.layout.enabled_for_one ? 0 : 1), NULL);
 
     XkbDescPtr xkb = XkbAllocKeyboard();
     XkbGetNames(display, XkbGroupNamesMask, xkb);
@@ -279,10 +251,5 @@ static GroupInfo* get_groups(Display* display,
 static void update_menu(GroupInfo* group_info)
 {
     set_widget_text(greeter.ui.layout.widget, group_info->short_name);
-
-    g_signal_handler_block(group_info->menu_item, group_info->menu_signal_id);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(group_info->menu_item), TRUE);
-    g_signal_handler_unblock(group_info->menu_item, group_info->menu_signal_id);
+    set_widget_toggled(group_info->menu_item, TRUE, G_CALLBACK(on_layout_clicked));
 }
-
-

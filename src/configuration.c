@@ -28,6 +28,10 @@ GreeterConfig config =
     .greeter =
     {
         .double_escape_time = 300
+    },
+    .layout =
+    {
+        .enabled_for_one = TRUE
     }
 };
 

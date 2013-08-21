@@ -176,7 +176,7 @@ void a11y_toggle_osk()
 
     a11y.state.osk = !a11y.state.osk;
     if(greeter.ui.a11y.osk_widget);
-        set_widget_toggled(greeter.ui.a11y.osk_widget, a11y.state.osk, (GCallback)on_a11y_osk_toggled);
+        set_widget_toggled(greeter.ui.a11y.osk_widget, a11y.state.osk, G_CALLBACK(on_a11y_osk_toggled));
 
     if(a11y.state.osk)
         a11y.onscreen_keyboard->open();
@@ -375,35 +375,24 @@ static void hide_onboard_window(GtkWidget* widget, gpointer data)
 
 static gboolean spawn_onboard(void)
 {
-    const gchar* CMD_LINE = "onboard --xid";
-    g_debug("Spawning 'onboard' process");
-
-    gchar** argv = NULL;
-    if(!g_shell_parse_argv(CMD_LINE, NULL, &argv, NULL))
-        g_warning("Something strange happened: g_shell_parse_argv(%s) return FALSE", CMD_LINE);
-
-    g_return_val_if_fail(argv != NULL, FALSE);
-
+    gchar* COMMAND_LINE[] = {"onboard", "--xid", NULL};
     GPid pid = 0;
     GtkWindow* window = NULL;
     GtkSocket* socket = NULL;
     GError* error = NULL;
-
     gint out_fd = 0;
-    gboolean spawned = g_spawn_async_with_pipes(NULL,
-                                 argv,
+
+    if(!g_spawn_async_with_pipes(NULL,
+                                 COMMAND_LINE,
                                  NULL,
                                  G_SPAWN_SEARCH_PATH,
                                  NULL,
                                  NULL,
                                  &pid,
                                  NULL, &out_fd, NULL,
-                                 &error);
-    g_strfreev(argv);
-
-    if(!spawned)
+                                 &error))
     {
-        g_warning("'onboard' command failed: %s", error->message);
+        g_warning("\"Onboard\" command failed: %s", error->message);
         g_clear_error(&error);
         return FALSE;
     }
@@ -431,7 +420,7 @@ static gboolean spawn_onboard(void)
         }
         else
         {
-            g_debug("'onboard' socket: %d", id);
+            g_message("\"Onboard\" socket: %d", id);
 
             window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
             g_signal_connect(window, "delete-event", G_CALLBACK(hide_onboard_window), NULL);
@@ -444,18 +433,18 @@ static gboolean spawn_onboard(void)
         }
     }
     else if(error)
-        g_warning("Can not read 'onboard' output: %s", error->message);
+        g_warning("Can not read \"Onboard\" output: %s", error->message);
 
     g_clear_error(&error);
     g_free(text);
     g_io_channel_unref(out_channel);
 
-    if(window == 0 && pid != 0)
+    if(!window && pid != 0)
     {
         kill(pid, SIGTERM);
         g_spawn_close_pid(pid);
     }
-    else if(window != 0)
+    else if(window)
     {
         keyboard_onboard.pid = pid;
         keyboard_onboard.socket = socket;
@@ -466,7 +455,6 @@ static gboolean spawn_onboard(void)
 
 static void osk_open_onboard(void)
 {
-    g_debug("Opening 'onboard'");
     if(!greeter.ui.onboard && !spawn_onboard())
     {
         show_error(_("Onboard"), _("Failed to start 'onboard', see logs for details."));
@@ -479,20 +467,16 @@ static void osk_open_onboard(void)
 
 static void osk_close_onboard(void)
 {
-    g_debug("Closing 'onboard' window");
     gtk_widget_hide(GTK_WIDGET(keyboard_onboard.socket));
     gtk_widget_hide(greeter.ui.onboard);
 }
 
 static void osk_kill_onboard(void)
 {
-    g_debug("Killing 'onboard'");
     g_return_if_fail(keyboard_onboard.pid != 0);
-
     kill(keyboard_onboard.pid, SIGTERM);
     g_spawn_close_pid(keyboard_onboard.pid);
     gtk_widget_destroy(GTK_WIDGET(greeter.ui.onboard));
     keyboard_onboard.pid = 0;
     greeter.ui.onboard = NULL;
 }
-

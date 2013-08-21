@@ -165,6 +165,7 @@ typedef struct
     struct
     {
         gboolean        enabled;
+        gboolean        enabled_for_one;
     } layout;
 } GreeterConfig;
 
