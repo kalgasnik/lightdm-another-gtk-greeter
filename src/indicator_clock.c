@@ -33,7 +33,6 @@
 
 /* Static variables */
 
-static gboolean clock_stopped = FALSE;
 static gulong visibility_notify_id = 0;
 
 /* Static functions */
@@ -103,20 +102,13 @@ void init_clock_indicator(void)
 
 static gboolean clock_handler(gpointer* data)
 {
-    if(clock_stopped)
-        return FALSE;
     GDateTime* datetime = g_date_time_new_now_local();
-    if(!datetime)
-    {
-        set_widget_text(greeter.ui.clock.time_widget, "[time]");
-        clock_stopped = TRUE;
-        return FALSE;
-    }
+    g_return_val_if_fail(datetime != NULL, FALSE);
     gchar* str = g_date_time_format(datetime, config.clock.time_format);
     set_widget_text(greeter.ui.clock.time_widget, str);
     g_free(str);
     g_date_time_unref(datetime);
-    return data != NULL;
+    return TRUE;
 }
 
 #ifndef CLOCK_USE_IDO_CALENDAR

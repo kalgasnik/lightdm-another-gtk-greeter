@@ -843,7 +843,7 @@ static void set_background(const gchar* value)
 
 static void set_message_label(const gchar* text)
 {
-    gtk_widget_set_visible(greeter.ui.message_widget, text != NULL && strlen(text) > 0);
+    gtk_widget_set_visible(greeter.ui.message_box, text != NULL && strlen(text) > 0);
     set_widget_text(greeter.ui.message_widget, text);
 }
 
@@ -896,11 +896,7 @@ static void set_logo_image(void)
 static gboolean update_date_label(gpointer dummy)
 {
     GDateTime* datetime = g_date_time_new_now_local();
-    if(!datetime)
-    {
-        set_widget_text(greeter.ui.date_widget, "[date]");
-        return FALSE;
-    }
+    g_return_val_if_fail(datetime != NULL, FALSE);
     gchar* str = g_date_time_format(datetime, config.appearance.date_format);
     set_widget_text(greeter.ui.date_widget, str);
     g_free(str);

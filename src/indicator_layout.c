@@ -66,11 +66,11 @@ static GdkFilterReturn xkb_evt_filter  (GdkXEvent* xev,
 
 /* Static functions */
 
-static KeyboardInfo* init_kbd          (void);
+static KeyboardInfo* init_xkb          (void);
 static void start_monitoring           (KeyboardInfo* kbd);
 static gchar** get_layouts             (Display* display);
 static GroupInfo* get_groups           (Display* display,
-                                        int* size);
+                                        int* count);
 static void update_menu                (GroupInfo* group_info);
 
 /* ------------------------------------------------------------------------- *
@@ -85,7 +85,7 @@ void init_layout_indicator(void)
         return;
     }
 
-    KeyboardInfo* kbd = init_kbd();
+    KeyboardInfo* kbd = init_xkb();
     if(!kbd)
     {
         g_critical("Layout indicator: initialization failed, hiding widget");
@@ -146,29 +146,19 @@ static GdkFilterReturn xkb_evt_filter(GdkXEvent* xev,
  * Definitions: static
  * ------------------------------------------------------------------------- */
 
-static KeyboardInfo* init_kbd()
+static KeyboardInfo* init_xkb()
 {
-    Display* display = XkbOpenDisplay(NULL, NULL, NULL, NULL, NULL, NULL);
-    if(!display)
-    {
-        g_warning("Layout indicator is not inited: cann't open display");
-        return NULL;
-    }
+    Display* display;
+    XklEngine* engine;
+    GroupInfo* groups;
+    int groups_count;
 
-    XklEngine* engine = xkl_engine_get_instance(display);
-    if(!engine)
-    {
-        g_warning("Layout indicator is not inited: cann't get Xkl engine");
-        return NULL;
-    }
-
-    int groups_count = 0;
-    GroupInfo* groups = get_groups(display, &groups_count);
-    if(!groups)
-    {
-        g_warning("Layout indicator is not inited: cann't get layouts");
-        return NULL;
-    }
+    display = XkbOpenDisplay(NULL, NULL, NULL, NULL, NULL, NULL);
+    g_return_val_if_fail(display != NULL && 0, NULL);
+    engine = xkl_engine_get_instance(display);
+    g_return_val_if_fail(display != NULL, NULL);
+    groups = get_groups(display, &groups_count);
+    g_return_val_if_fail(display != NULL, NULL);
 
     KeyboardInfo* kbd = g_malloc(sizeof(KeyboardInfo));
     kbd->display = display;
@@ -223,17 +213,17 @@ static gchar** get_layouts(Display* display)
 }
 
 static GroupInfo* get_groups(Display* display,
-                             int* size)
+                             int* count)
 {
     gchar** short_names = get_layouts(display);
-    int groups_count = g_strv_length(short_names);
-    g_return_val_if_fail(groups_count > (config.layout.enabled_for_one ? 0 : 1), NULL);
-
+    g_return_val_if_fail(short_names != NULL, NULL);
+    *count = g_strv_length(short_names);
+    g_return_val_if_fail(*count > (config.layout.enabled_for_one ? 0 : 1), NULL);
     XkbDescPtr xkb = XkbAllocKeyboard();
     XkbGetNames(display, XkbGroupNamesMask, xkb);
 
-    GroupInfo* groups = g_malloc(sizeof(GroupInfo)*groups_count);
-    for(int i = 0; i < groups_count; ++i)
+    GroupInfo* groups = g_malloc(sizeof(GroupInfo)*(*count));
+    for(int i = 0; i < *count; ++i)
     {
         char* name = XGetAtomName(display, xkb->names->groups[i]);
         groups[i].group_id = i;
@@ -243,8 +233,6 @@ static GroupInfo* get_groups(Display* display,
     }
     g_strfreev(short_names);
     XFree(xkb);
-
-    *size = groups_count;
     return groups;
 }
 

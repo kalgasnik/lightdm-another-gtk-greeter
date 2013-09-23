@@ -149,8 +149,8 @@ void load_settings(void)
     config.greeter.autostart_command          = read_value_command (cfg, SECTION, "autostart-command");
 
     SECTION = "appearance";
-    config.appearance.ui_file                 = "themes/classic/greeter.ui";
-    config.appearance.css_file                = NULL;
+    config.appearance.ui_file                 = "themes/default/greeter.ui";
+    config.appearance.css_file                = "themes/default/style.css";
     config.appearance.background              = NULL;
     config.appearance.user_background         = TRUE;
     config.appearance.x_background            = FALSE;

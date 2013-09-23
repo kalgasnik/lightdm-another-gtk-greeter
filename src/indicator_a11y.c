@@ -191,7 +191,7 @@ void a11y_toggle_font(void)
 
     a11y.state.font = !a11y.state.font;
     if(greeter.ui.a11y.font_widget)
-        set_widget_toggled(greeter.ui.a11y.font_widget, a11y.state.font, (GCallback)on_a11y_font_toggled);
+        set_widget_toggled(greeter.ui.a11y.font_widget, a11y.state.font, G_CALLBACK(on_a11y_font_toggled));
 
     GtkSettings* settings = gtk_settings_get_default();
     if(a11y.state.font)
@@ -236,7 +236,7 @@ void a11y_toggle_dpi(void)
 
     a11y.state.dpi = !a11y.state.dpi;
     if(greeter.ui.a11y.dpi_widget)
-        set_widget_toggled(greeter.ui.a11y.dpi_widget, a11y.state.dpi, (GCallback)on_a11y_dpi_toggled);
+        set_widget_toggled(greeter.ui.a11y.dpi_widget, a11y.state.dpi, G_CALLBACK(on_a11y_dpi_toggled));
 
     gint value = config.appearance.dpi;
     GtkSettings* settings = gtk_settings_get_default();
@@ -257,7 +257,7 @@ void a11y_toggle_contrast()
 
     a11y.state.contrast = !a11y.state.contrast;
     if(greeter.ui.a11y.contrast_widget)
-        set_widget_toggled(greeter.ui.a11y.contrast_widget, a11y.state.contrast, (GCallback)on_a11y_contrast_toggled);
+        set_widget_toggled(greeter.ui.a11y.contrast_widget, a11y.state.contrast, G_CALLBACK(on_a11y_contrast_toggled));
 
     GtkSettings* settings = gtk_settings_get_default();
     g_object_set(settings, "gtk-theme-name",
@@ -413,7 +413,7 @@ static gboolean spawn_onboard(void)
         {
             g_warning("Unrecognized output from 'onboard': '%s'", text);
         }
-        else if(!(socket = (GtkSocket*)gtk_socket_new()))
+        else if(!(socket = GTK_SOCKET(gtk_socket_new())))
         {
             g_warning("Can not connect to 'onboard': %s", error->message);
             g_clear_error(&error);

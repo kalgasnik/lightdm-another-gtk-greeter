@@ -221,9 +221,6 @@ extern gchar* PACKAGE_VERSION;
 /* Set positions of all application windows according to settings and current program state */
 void update_windows_layout             (void);
 
-void show_message                      (const gchar* title,
-                                        const gchar* message_format,
-                                        ...) G_GNUC_PRINTF (2, 3);
 void show_error                        (const gchar* title,
                                         const gchar* message_format,
                                         ...) G_GNUC_PRINTF (2, 3);

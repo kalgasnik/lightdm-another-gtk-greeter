@@ -133,16 +133,6 @@ void update_windows_layout(void)
     }
 }
 
-void show_message(const gchar* title,
-                  const gchar* message_format,
-                  ...)
-{
-    va_list argptr;
-    va_start(argptr, message_format);
-    show_message_dialog(GTK_MESSAGE_INFO, title, message_format, argptr);
-    va_end(argptr);
-}
-
 void show_error(const gchar* title,
                 const gchar* message_format,
                 ...)
@@ -182,6 +172,8 @@ void set_widget_text(GtkWidget* widget,
         gtk_button_set_label(GTK_BUTTON(widget), text);
     else if(GTK_IS_LABEL(widget))
         gtk_label_set_label(GTK_LABEL(widget), text);
+    else if(GTK_IS_ENTRY(widget))
+        gtk_entry_set_text(GTK_ENTRY(widget), text);
     else g_return_if_reached();
 }
 
