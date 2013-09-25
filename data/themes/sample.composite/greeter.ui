@@ -215,10 +215,17 @@
                             <property name="can_focus">False</property>
                             <property name="spacing">6</property>
                             <child>
-                              <object class="GtkLabel" id="prompt_text">
+                              <object class="GtkEventBox" id="eventbox1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" comments="This is a placeholder string and will be replaced by the greeter with a prompt string from PAM.">[prompt]</property>
+                                <signal name="button-press-event" handler="on_password_mouse_clicked" swapped="no"/>
+                                <child>
+                                  <object class="GtkLabel" id="prompt_text">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" comments="This is a placeholder string and will be replaced by the greeter with a prompt string from PAM.">[prompt]</property>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

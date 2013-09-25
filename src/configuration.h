@@ -71,6 +71,7 @@ typedef struct
         gboolean        show_session_icon;
         guint32         double_escape_time;
         gchar**         autostart_command;
+        gboolean        allow_password_toggle;
     } greeter;
 
     struct
@@ -99,6 +100,7 @@ typedef struct
             UserImageFit fit;
             gint         size;   /* Only for list_image */
         } user_image, list_image;
+        gboolean        invert_password_state; /* set to 1 if gui provide "hide password" widget instead of "show password" */
     } appearance;
 
     struct

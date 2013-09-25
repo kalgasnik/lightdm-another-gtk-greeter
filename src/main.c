@@ -124,6 +124,11 @@ gboolean on_panel_window_key_press          (GtkWidget* widget,
 gboolean on_special_key_press               (GtkWidget* widget,
                                              GdkEventKey* event,
                                              gpointer data);
+void on_password_toggled                    (GtkWidget* widget,
+                                             gpointer data);
+gboolean on_password_mouse_clicked          (GtkWidget* widget,
+                                             GdkEventButton* event,
+                                             gpointer data);
 
 
 /* ------------------------------------------------------------------------- *
@@ -326,6 +331,9 @@ static gboolean init_gui(void)
         {&greeter.ui.layout.widget,             "layout_widget",                FALSE, NULL},
         {&greeter.ui.layout.box,                "layout_box",                   FALSE, &greeter.ui.layout.widget},
         {&greeter.ui.layout.menu,               "layout_menu",                  FALSE, NULL},
+
+        {&greeter.ui.password_toggle_widget,    "password_toggle_widget",       FALSE, NULL},
+        {&greeter.ui.password_toggle_box,       "password_toggle_box",          FALSE, &greeter.ui.password_toggle_widget},
         {NULL, NULL, FALSE}
     };
 
@@ -1129,10 +1137,17 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
 {
     g_debug("LightDM signal: show-prompt (%s)", text);
 
+    greeter.state.password_required = (type == LIGHTDM_PROMPT_TYPE_SECRET);
     greeter.state.prompted = TRUE;
     set_widget_text(greeter.ui.prompt_text, dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
-    gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry), type != LIGHTDM_PROMPT_TYPE_SECRET);
+    gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry),
+                             !greeter.state.password_required || greeter.state.show_password);
+    gtk_widget_set_visible(greeter.ui.password_toggle_box,
+                           config.greeter.allow_password_toggle && greeter.state.password_required);
+    set_widget_toggled(greeter.ui.password_toggle_widget,
+                       config.appearance.invert_password_state ? !greeter.state.show_password : greeter.state.show_password,
+                       G_CALLBACK(on_password_toggled));
     gtk_widget_show(greeter.ui.prompt_box);
     gtk_widget_show(greeter.ui.login_box);
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
@@ -1160,6 +1175,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
     }
 
     gtk_widget_hide(greeter.ui.prompt_box);
+    gtk_widget_hide(greeter.ui.password_toggle_box);
     gtk_widget_show(greeter.ui.login_box);
 
     #ifdef _DEBUG_
@@ -1418,4 +1434,26 @@ gboolean on_special_key_press(GtkWidget* widget,
             return FALSE;
     }
     return TRUE;
+}
+
+void on_password_toggled(GtkWidget* widget,
+                         gpointer data)
+{
+    if(config.greeter.allow_password_toggle && greeter.state.password_required)
+    {
+        greeter.state.show_password = !greeter.state.show_password;
+        set_widget_toggled(greeter.ui.password_toggle_widget,
+                           config.appearance.invert_password_state ? !greeter.state.show_password : greeter.state.show_password,
+                           G_CALLBACK(on_password_toggled));
+        gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry), greeter.state.show_password);
+    }
+}
+
+gboolean on_password_mouse_clicked(GtkWidget* widget,
+                                   GdkEventButton* event,
+                                   gpointer data)
+{
+    if(event->type == GDK_BUTTON_PRESS && event->button == 1)
+        on_password_toggled(widget, data);
+    return FALSE;
 }

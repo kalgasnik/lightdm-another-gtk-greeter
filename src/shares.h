@@ -71,6 +71,9 @@ typedef struct
             GdkPixbuf*  default_image;
             gint        size;
         } user_image, list_image;
+
+        gboolean        password_required;
+        gboolean        show_password;
     } state;
 
     struct
@@ -116,6 +119,9 @@ typedef struct
 
         GtkWidget*      logo_image_widget;
         GtkWidget*      logo_image_box;
+
+        GtkWidget*      password_toggle_widget;
+        GtkWidget*      password_toggle_box;
 
         GtkWidget*      onboard;
         GtkWidget*      calendar;
