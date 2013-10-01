@@ -129,6 +129,9 @@ void on_password_toggled                    (GtkWidget* widget,
 gboolean on_password_mouse_clicked          (GtkWidget* widget,
                                              GdkEventButton* event,
                                              gpointer data);
+void on_screen_changed                      (GtkWidget* widget,
+                                             GdkScreen* previous_screen,
+                                             gpointer data);
 
 
 /* ------------------------------------------------------------------------- *
@@ -232,10 +235,10 @@ static void init_css(void)
 
 static gboolean init_gui(void)
 {
+    g_message("Loading UI file: %s", config.appearance.ui_file);
+
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
-
-    g_message("Loading UI file: %s", config.appearance.ui_file);
     if(!gtk_builder_add_from_file(builder, config.appearance.ui_file, &error))
     {
         g_critical("Error loading UI file: %s", error->message);
@@ -256,9 +259,14 @@ static gboolean init_gui(void)
 
     const struct BuilderWidget WIDGETS[] =
     {
-        {&greeter.ui.login_window,              "login_window",                 FALSE, NULL},
-        {&greeter.ui.panel_window,              "panel_window",                 FALSE, NULL},
+        {&greeter.ui.screen_window,             "screen_window",                FALSE, NULL},
+        {&greeter.ui.screen_layout,             "screen_layout",                FALSE, NULL},
+
+        {&greeter.ui.main_content,              "main_content",                 FALSE, NULL},
+        {&greeter.ui.main_layout,               "main_layout",                  FALSE, NULL},
+        {&greeter.ui.panel_content,             "panel_content",                FALSE, NULL},
         {&greeter.ui.panel_menubar,             "panel_menubar",                FALSE, NULL},
+        {&greeter.ui.onboard_content,           "onboard_content",              FALSE, NULL},
 
         {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
         {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
@@ -391,11 +399,23 @@ static gboolean init_gui(void)
     set_logo_image();
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
+    /* Screen layout */
+    rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.main_content, UI_LAYOUT_ROW_MAIN);
+
+    if(config.panel.enabled)
+    {
+        rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.panel_content,
+                             config.panel.position == PANEL_POS_TOP ? UI_LAYOUT_ROW_PANEL_TOP : UI_LAYOUT_ROW_PANEL_BOTTOM);
+    }
+    else
+        gtk_widget_hide(greeter.ui.panel_content);
+
+    gtk_widget_hide(greeter.ui.onboard_content);
+
+    on_screen_changed(greeter.ui.screen_window, NULL, NULL);
+    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), 0, 0);
+
     gtk_builder_connect_signals(builder, greeter.greeter);
-
-    setup_window(GTK_WINDOW(greeter.ui.login_window));
-    setup_window(GTK_WINDOW(greeter.ui.panel_window));
-
     return TRUE;
 }
 
@@ -426,14 +446,10 @@ static void run_gui(void)
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
         gtk_widget_hide(greeter.ui.users_box);
 
-    greeter.state.panel.position = config.panel.position == PANEL_POS_TOP ? WINDOW_POSITION_TOP : WINDOW_POSITION_BOTTOM;
+    gtk_widget_show(greeter.ui.screen_window);
+//    update_windows_layout();
 
-    gtk_widget_show(greeter.ui.login_window);
-    gtk_widget_show(greeter.ui.panel_window);
-
-    update_windows_layout();
-
-    gdk_window_focus(gtk_widget_get_window(greeter.ui.login_window), GDK_CURRENT_TIME);
+    gtk_widget_grab_focus(greeter.ui.main_content);
     gtk_main();
 }
 
@@ -813,6 +829,34 @@ static void set_screen_background(GdkScreen* screen,
     XClearWindow(GDK_SCREEN_XDISPLAY(screen), root_window);
 }
 
+static gboolean on_draw_screen_background(GtkWidget* widget,
+                                         cairo_t* cr,
+                                         gpointer data)
+{
+    gdk_cairo_set_source_pixbuf(cr, greeter.state.window_background, 0, 0);
+    cairo_paint(cr);
+    return TRUE;
+}
+
+static void set_window_background(GdkWindow* window,
+                                  GdkPixbuf* image,
+                                  GdkRGBA* color)
+{
+    static gulong draw_handler_id = 0;
+    if(image)
+    {
+        greeter.state.window_background = GDK_PIXBUF(g_object_ref(image));
+        draw_handler_id = g_signal_connect(greeter.ui.screen_window, "draw",
+                                           G_CALLBACK(on_draw_screen_background), NULL);
+    }
+    else
+    {
+        if(draw_handler_id)
+            g_signal_handler_disconnect(greeter.ui.screen_window, draw_handler_id);
+        gtk_widget_override_background_color(greeter.ui.screen_window, GTK_STATE_FLAG_NORMAL, color);
+    }
+}
+
 static void set_background(const gchar* value)
 {
     if(g_strcmp0(value, greeter.state.last_background) == 0)
@@ -841,10 +885,18 @@ static void set_background(const gchar* value)
     }
 
     for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
-        set_screen_background(gdk_display_get_screen(gdk_display_get_default(), i),
-                              background_pixbuf, background_color,
-                              config.appearance.x_background);
+    {
+        GdkScreen* screen = gdk_display_get_screen(gdk_display_get_default(), i);
+        if(screen == gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window)))
+            set_window_background(gtk_widget_get_window(greeter.ui.screen_window),
+                                  background_pixbuf, &background_color);
+        else
+            set_screen_background(screen,
+                                  background_pixbuf, background_color,
+                                  config.appearance.x_background);
+    }
 
+    greeter.state.last_background = value;
     if(background_pixbuf)
         g_object_unref(background_pixbuf);
 }
@@ -1028,8 +1080,8 @@ static void start_session(void)
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
-        gtk_widget_hide(greeter.ui.login_window);
-        gtk_widget_hide(greeter.ui.panel_window);
+        gtk_widget_hide(greeter.ui.main_content);
+        gtk_widget_hide(greeter.ui.panel_content);
         a11y_close();
     }
     else
@@ -1366,7 +1418,7 @@ gboolean on_login_window_key_press(GtkWidget* widget,
             if(greeter.ui.panel_menubar)
                 gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel_menubar), FALSE);
             else
-                gtk_widget_grab_focus(greeter.ui.panel_window);
+                gtk_widget_grab_focus(greeter.ui.panel_content);
             break;
         case GDK_KEY_Escape:
             if(escape_time && event->time - escape_time <= config.greeter.double_escape_time)
@@ -1398,7 +1450,7 @@ gboolean on_panel_window_key_press(GtkWidget* widget,
         case GDK_KEY_F10: case GDK_KEY_Escape:
             if(greeter.ui.panel_menubar)
                 gtk_menu_shell_cancel(GTK_MENU_SHELL(greeter.ui.panel_menubar));
-            gtk_widget_grab_focus(greeter.ui.login_window);
+            gtk_widget_grab_focus(greeter.ui.main_content);
             break;
         default:
             return FALSE;
@@ -1457,3 +1509,15 @@ gboolean on_password_mouse_clicked(GtkWidget* widget,
         on_password_toggled(widget, data);
     return FALSE;
 }
+
+void on_screen_changed(GtkWidget* widget,
+                       GdkScreen* previous_screen,
+                       gpointer data)
+{
+    GdkRectangle geometry;
+    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
+    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+    gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
+    update_main_window_layout();
+}
+

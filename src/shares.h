@@ -74,13 +74,19 @@ typedef struct
 
         gboolean        password_required;
         gboolean        show_password;
+        GdkPixbuf*      window_background;
     } state;
 
     struct
     {
-        GtkWidget*      login_window;
-        GtkWidget*      panel_window;
+        GtkWidget*      screen_window;
+        GtkWidget*      screen_layout;
+
+        GtkWidget*      main_content;
+        GtkWidget*      main_layout;
+        GtkWidget*      panel_content;
         GtkWidget*      panel_menubar;
+        GtkWidget*      onboard_content;
 
         GtkWidget*      login_widget;
         GtkWidget*      login_label;
@@ -123,7 +129,6 @@ typedef struct
         GtkWidget*      password_toggle_widget;
         GtkWidget*      password_toggle_box;
 
-        GtkWidget*      onboard;
         GtkWidget*      calendar;
 
         struct
@@ -200,6 +205,13 @@ typedef enum
     LANGUAGE_COLUMN_DISPLAY_NAME
 } LanguagesModelColumn;
 
+#define UI_LAYOUT_WIDTH                 1
+#define UI_LAYOUT_ROW_PANEL_TOP         0
+#define UI_LAYOUT_ROW_ONBOARD_TOP       1
+#define UI_LAYOUT_ROW_MAIN              3
+#define UI_LAYOUT_ROW_ONBOARD_BOTTOM    5
+#define UI_LAYOUT_ROW_PANEL_BOTTOM      6
+
 /* Variables */
 
 extern GreeterData greeter;
@@ -224,13 +236,12 @@ extern gchar* PACKAGE_VERSION;
 
 /* Functions */
 
-/* Set positions of all application windows according to settings and current program state */
-void update_windows_layout             (void);
-
 void show_error                        (const gchar* title,
                                         const gchar* message_format,
                                         ...) G_GNUC_PRINTF (2, 3);
-
+void rearrange_grid_child              (GtkGrid* grid,
+                                        GtkWidget* child,
+                                        gint row);
 void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
@@ -266,5 +277,7 @@ void set_widget_toggled                (GtkWidget* widget,
                                         GCallback suppress_callback);
 
 void setup_window                      (GtkWindow* window);
+/* Set positions of main window according to settings and current program state */
+void update_main_window_layout         (void);
 
 #endif // _SHARES_H_INCLUDED_

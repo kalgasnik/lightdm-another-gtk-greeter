@@ -78,61 +78,6 @@ static void on_transparent_screen_changed (GtkWidget *widget,
  * Definitions: public
  * -------------------------------------------------------------------------- */
 
-void update_windows_layout(void)
-{
-    GdkRectangle geometry;
-    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.login_window));
-    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
-
-    set_window_position(greeter.ui.login_window, &config.appearance.position);
-
-    if(config.panel.enabled)
-    {
-        gtk_widget_set_size_request(greeter.ui.panel_window, geometry.width, -1);
-        set_window_position(greeter.ui.panel_window, &greeter.state.panel.position);
-    }
-
-    if(greeter.ui.onboard && gtk_widget_get_visible(GTK_WIDGET(greeter.ui.onboard)))
-    {
-        gboolean panel_at_top = config.panel.position == PANEL_POS_TOP;
-        gboolean at_top;
-        switch(config.a11y.osk.onboard_position)
-        {
-            case ONBOARD_POS_PANEL: at_top = panel_at_top; break;
-            case ONBOARD_POS_PANEL_OPPOSITE: at_top =  !panel_at_top; break;
-            case ONBOARD_POS_BOTTOM: at_top = FALSE; break;
-            case ONBOARD_POS_TOP:
-            default: at_top = TRUE;
-        };
-
-        gint onboard_height = config.a11y.osk.onboard_height_is_percent ? geometry.height*config.a11y.osk.onboard_height/100 : config.a11y.osk.onboard_height;
-        gint onboard_y = at_top ? 0 : geometry.height - onboard_height;
-
-        if(at_top ==  panel_at_top
-           && greeter.ui.panel_window
-           && gtk_widget_get_visible(greeter.ui.panel_window))
-        {
-            gint panel_height;
-            gtk_widget_get_preferred_height(greeter.ui.panel_window, NULL, &panel_height);
-            onboard_y += at_top ? + panel_height : -panel_height;
-        }
-
-        gtk_window_resize(GTK_WINDOW(greeter.ui.onboard), geometry.width - geometry.x, onboard_height);
-        gtk_window_move(GTK_WINDOW(greeter.ui.onboard), geometry.x, geometry.y + onboard_y);
-
-        gint login_x, login_y, login_height;
-        gtk_window_get_position(GTK_WINDOW(greeter.ui.login_window), &login_x, &login_y);
-        gtk_widget_get_preferred_height(greeter.ui.login_window, NULL, &login_height);
-
-        gint new_login_y = login_y;
-        if(at_top && login_y < onboard_y + onboard_height)
-            new_login_y = onboard_y + onboard_height + 5;
-        else if(!at_top && login_y + login_height > onboard_y)
-            new_login_y = onboard_y - login_height - 5;
-        gtk_window_move(GTK_WINDOW(greeter.ui.login_window), login_x, new_login_y);
-    }
-}
-
 void show_error(const gchar* title,
                 const gchar* message_format,
                 ...)
@@ -141,6 +86,14 @@ void show_error(const gchar* title,
     va_start(argptr, message_format);
     show_message_dialog(GTK_MESSAGE_ERROR, title, message_format, argptr);
     va_end(argptr);
+}
+
+void rearrange_grid_child(GtkGrid* grid,
+                          GtkWidget* child,
+                          gint row)
+{
+    gtk_container_remove(GTK_CONTAINER(grid), child);
+    gtk_grid_attach(grid, child, 0, row, 1, 1);
 }
 
 void set_window_position(GtkWidget* window,
@@ -348,6 +301,12 @@ void setup_window(GtkWindow* window)
     g_return_if_fail(GTK_IS_WINDOW(window));
     g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
     on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
+}
+
+void update_main_window_layout(void)
+{
+    if(GTK_IS_FIXED(greeter.ui.main_layout))
+        set_window_position(greeter.ui.main_content, &config.appearance.position);
 }
 
 /* ---------------------------------------------------------------------------*

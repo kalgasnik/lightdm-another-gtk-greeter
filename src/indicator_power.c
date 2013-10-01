@@ -140,6 +140,7 @@ static void power_action(const PowerActionData* action)
 
     if(*action->show_prompt_ptr)
     {
+        gboolean result;
         GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
                                                    GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE,
                                                    "%s", _(action->prompt));
@@ -154,16 +155,13 @@ static void power_action(const PowerActionData* action)
             GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
             gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog), image);
         }
-        gtk_widget_hide(greeter.ui.login_window);
-        gtk_widget_set_sensitive(greeter.ui.power.widget, FALSE);
+        gtk_widget_hide(greeter.ui.screen_layout);
         gtk_widget_show_all(dialog);
         set_window_position(dialog, &WINDOW_POSITION_CENTER);
-
-        gboolean result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
+        result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
         gtk_widget_destroy(dialog);
-        gtk_widget_show(greeter.ui.login_window);
-        update_windows_layout();
-        gtk_widget_set_sensitive(greeter.ui.power.widget, TRUE);
+        gtk_widget_show(greeter.ui.screen_layout);
+        gtk_widget_grab_focus(greeter.ui.prompt_entry);
 
         if(!result)
             return;

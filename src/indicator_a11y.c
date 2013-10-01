@@ -317,7 +317,7 @@ static gboolean program_is_available(const gchar* name)
 
 static gboolean update_windows_callback(gpointer data)
 {
-    update_windows_layout();
+    update_main_window_layout();
     return FALSE;
 }
 
@@ -364,20 +364,14 @@ static void osk_kill_custom(void)
 
 static gboolean osk_check_onboard(void)
 {
-    return program_is_available("onboard");
-}
-
-static void hide_onboard_window(GtkWidget* widget, gpointer data)
-{
-    gtk_widget_hide(widget);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
+    /* we need widget to place "onboard" in it */
+    return greeter.ui.onboard_content && program_is_available("onboard");
 }
 
 static gboolean spawn_onboard(void)
 {
     gchar* COMMAND_LINE[] = {"onboard", "--xid", NULL};
     GPid pid = 0;
-    GtkWindow* window = NULL;
     GtkSocket* socket = NULL;
     GError* error = NULL;
     gint out_fd = 0;
@@ -422,14 +416,32 @@ static gboolean spawn_onboard(void)
         {
             g_message("\"Onboard\" socket: %d", id);
 
-            window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-            g_signal_connect(window, "delete-event", G_CALLBACK(hide_onboard_window), NULL);
-            gtk_window_set_accept_focus(window, FALSE);
-            gtk_window_set_decorated(window, FALSE);
-            gtk_window_set_focus_on_map(window, FALSE);
-            gtk_widget_show(GTK_WIDGET(socket));
-            gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(socket));
+            gboolean at_top;
+
+            switch(config.a11y.osk.onboard_position)
+            {
+            case ONBOARD_POS_TOP: at_top = TRUE; break;
+            case ONBOARD_POS_BOTTOM: at_top = FALSE; break;
+            case ONBOARD_POS_PANEL: at_top = config.panel.position == PANEL_POS_TOP; break;
+            case ONBOARD_POS_PANEL_OPPOSITE: at_top = config.panel.position != PANEL_POS_TOP;
+            };
+
+            if(config.a11y.osk.onboard_height_is_percent)
+            {
+                GdkRectangle geometry;
+                GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
+                gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+                gtk_widget_set_size_request(greeter.ui.onboard_content,
+                                            -1, geometry.height*config.a11y.osk.onboard_height/100);
+            }
+            else
+                gtk_widget_set_size_request(greeter.ui.onboard_content, -1, config.a11y.osk.onboard_height);
+
+            rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.onboard_content,
+                                 at_top ? UI_LAYOUT_ROW_ONBOARD_TOP : UI_LAYOUT_ROW_ONBOARD_BOTTOM);
+            gtk_container_add(GTK_CONTAINER(greeter.ui.onboard_content), GTK_WIDGET(socket));
             gtk_socket_add_id(socket, atol(text));
+            gtk_widget_show_all(greeter.ui.onboard_content);
         }
     }
     else if(error)
@@ -439,44 +451,43 @@ static gboolean spawn_onboard(void)
     g_free(text);
     g_io_channel_unref(out_channel);
 
-    if(!window && pid != 0)
+    if(!socket && pid != 0)
     {
         kill(pid, SIGTERM);
         g_spawn_close_pid(pid);
     }
-    else if(window)
+    else if(socket)
     {
         keyboard_onboard.pid = pid;
         keyboard_onboard.socket = socket;
-        greeter.ui.onboard = GTK_WIDGET(window);
     }
-    return window != NULL;
+    return socket != NULL;
 }
 
 static void osk_open_onboard(void)
 {
-    if(!greeter.ui.onboard && !spawn_onboard())
+    if(!keyboard_onboard.socket && !spawn_onboard())
     {
         show_error(_("Onboard"), _("Failed to start 'onboard', see logs for details."));
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
         a11y.onscreen_keyboard = NULL;
         return;
     }
-    gtk_widget_show_all(greeter.ui.onboard);
+    gtk_widget_show_all(greeter.ui.onboard_content);
 }
 
 static void osk_close_onboard(void)
 {
     gtk_widget_hide(GTK_WIDGET(keyboard_onboard.socket));
-    gtk_widget_hide(greeter.ui.onboard);
+    gtk_widget_hide(greeter.ui.onboard_content);
 }
 
 static void osk_kill_onboard(void)
 {
     g_return_if_fail(keyboard_onboard.pid != 0);
+    gtk_widget_hide(GTK_WIDGET(greeter.ui.onboard_content));
+    gtk_container_remove(GTK_CONTAINER(greeter.ui.onboard_content), gtk_bin_get_child(GTK_BIN(greeter.ui.onboard_content)));
     kill(keyboard_onboard.pid, SIGTERM);
     g_spawn_close_pid(keyboard_onboard.pid);
-    gtk_widget_destroy(GTK_WIDGET(greeter.ui.onboard));
     keyboard_onboard.pid = 0;
-    greeter.ui.onboard = NULL;
 }

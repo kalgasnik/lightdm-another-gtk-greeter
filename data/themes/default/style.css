@@ -3,3 +3,18 @@
 {
     -GtkWidget-window-dragging: false;
 }
+
+#main_content, #main_border
+{
+    border-radius: 12px;
+}
+
+#main_border
+{
+    border: 1px solid shade(@bg_color, 0.75);
+}
+
+#main_content
+{
+    background: @bg_color;
+}
