@@ -131,7 +131,7 @@ gboolean on_password_mouse_clicked          (GtkWidget* widget,
                                              gpointer data);
 void on_screen_changed                      (GtkWidget* widget,
                                              GdkScreen* previous_screen,
-                                             gpointer data);
+                                             gboolean update_layout);
 
 
 /* ------------------------------------------------------------------------- *
@@ -263,10 +263,14 @@ static gboolean init_gui(void)
         {&greeter.ui.screen_layout,             "screen_layout",                FALSE, NULL},
 
         {&greeter.ui.main_content,              "main_content",                 FALSE, NULL},
-        {&greeter.ui.main_layout,               "main_layout",                  FALSE, NULL},
+        {&greeter.ui.main_layout,               "main_layout",                  FALSE, &greeter.ui.main_content},
         {&greeter.ui.panel_content,             "panel_content",                FALSE, NULL},
+        {&greeter.ui.panel_layout,              "panel_layout",                 FALSE, &greeter.ui.panel_content},
         {&greeter.ui.panel_menubar,             "panel_menubar",                FALSE, NULL},
         {&greeter.ui.onboard_content,           "onboard_content",              FALSE, NULL},
+        {&greeter.ui.onboard_layout,            "onboard_layout",               FALSE, &greeter.ui.onboard_content},
+        {&greeter.ui.messagebox_content,        "messagebox_content",           FALSE, NULL},
+        {&greeter.ui.messagebox_layout,         "messagebox_layout",            FALSE, &greeter.ui.messagebox_content},
 
         {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
         {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
@@ -369,6 +373,7 @@ static gboolean init_gui(void)
         if(GTK_IS_WIDGET(object))
             gtk_widget_set_name(GTK_WIDGET(object), gtk_buildable_get_name(GTK_BUILDABLE(object)));
     }
+
     GSList* builder_widgets = gtk_builder_get_objects(builder);
     g_slist_foreach(builder_widgets, (GFunc)update_widget_name, NULL);
     g_slist_free(builder_widgets);
@@ -400,21 +405,20 @@ static gboolean init_gui(void)
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
     /* Screen layout */
-    rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.main_content, UI_LAYOUT_ROW_MAIN);
+    rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.main_layout, UI_LAYOUT_ROW_MAIN);
 
     if(config.panel.enabled)
     {
-        rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.panel_content,
+        rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.panel_layout,
                              config.panel.position == PANEL_POS_TOP ? UI_LAYOUT_ROW_PANEL_TOP : UI_LAYOUT_ROW_PANEL_BOTTOM);
     }
     else
-        gtk_widget_hide(greeter.ui.panel_content);
+        gtk_widget_hide(greeter.ui.panel_layout);
 
-    gtk_widget_hide(greeter.ui.onboard_content);
+    gtk_widget_hide(greeter.ui.onboard_layout);
+    gtk_widget_hide(greeter.ui.messagebox_layout);
 
-    on_screen_changed(greeter.ui.screen_window, NULL, NULL);
     gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), 0, 0);
-
     gtk_builder_connect_signals(builder, greeter.greeter);
     return TRUE;
 }
@@ -446,10 +450,10 @@ static void run_gui(void)
     if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
         gtk_widget_hide(greeter.ui.users_box);
 
+    on_screen_changed(greeter.ui.screen_window, NULL, FALSE);
     gtk_widget_show(greeter.ui.screen_window);
-//    update_windows_layout();
-
     gtk_widget_grab_focus(greeter.ui.main_content);
+    update_main_window_layout();
     gtk_main();
 }
 
@@ -1080,8 +1084,8 @@ static void start_session(void)
     gchar* session = get_session();
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
-        gtk_widget_hide(greeter.ui.main_content);
-        gtk_widget_hide(greeter.ui.panel_content);
+        gtk_widget_hide(greeter.ui.main_layout);
+        gtk_widget_hide(greeter.ui.panel_layout);
         a11y_close();
     }
     else
@@ -1512,12 +1516,13 @@ gboolean on_password_mouse_clicked(GtkWidget* widget,
 
 void on_screen_changed(GtkWidget* widget,
                        GdkScreen* previous_screen,
-                       gpointer data)
+                       gboolean update_layout)
 {
     GdkRectangle geometry;
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
-    gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
-    update_main_window_layout();
+    gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
+    /* Call it separately at application start */
+    if(update_layout)
+        update_main_window_layout();
 }
-

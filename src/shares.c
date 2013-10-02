@@ -69,11 +69,6 @@ static void show_message_dialog           (GtkMessageType type,
                                            const gchar* message_format,
                                            va_list args);
 
-static void on_transparent_screen_changed (GtkWidget *widget,
-                                           GdkScreen *old_screen,
-                                           gpointer userdata);
-
-
 /* ---------------------------------------------------------------------------*
  * Definitions: public
  * -------------------------------------------------------------------------- */
@@ -296,17 +291,42 @@ void set_widget_toggled(GtkWidget* widget,
         g_signal_handlers_unblock_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
 }
 
-void setup_window(GtkWindow* window)
-{
-    g_return_if_fail(GTK_IS_WINDOW(window));
-    g_signal_connect(G_OBJECT(window), "screen-changed", G_CALLBACK(on_transparent_screen_changed), NULL);
-    on_transparent_screen_changed(GTK_WIDGET(window), NULL, NULL);
-}
-
 void update_main_window_layout(void)
 {
-    if(GTK_IS_FIXED(greeter.ui.main_layout))
-        set_window_position(greeter.ui.main_content, &config.appearance.position);
+    if(greeter.ui.main_layout == greeter.ui.main_content ||
+       !GTK_IS_FIXED(greeter.ui.main_layout))
+        return;
+    const WindowPosition* p = &config.appearance.position;
+    GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
+    GtkRequisition size;
+    GtkAllocation size_layout;
+    GdkRectangle geometry;
+    gint x, y;
+
+    gtk_container_check_resize(GTK_CONTAINER(greeter.ui.screen_layout));
+
+    gtk_widget_get_preferred_size(greeter.ui.main_content, NULL, &size);
+    gtk_widget_get_allocation(greeter.ui.main_layout, &size_layout);
+    if(config.appearance.position_is_relative)
+        geometry = (GtkAllocation){.x = 0, .y = 0,
+                                   .width = size_layout.width, .height = size_layout.height};
+    else
+        gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+
+    x = geometry.x + !p->x_is_absolute ? geometry.width*p->x/100.0  : (p->x < 0) ? geometry.width + p->x  : p->x;
+    y = geometry.x + !p->y_is_absolute ? geometry.height*p->y/100.0 : (p->y < 0) ? geometry.height + p->y : p->y;
+
+    x -= (p->anchor.width == 0) ? size.width/2 : (p->anchor.width > 0) ? size.width : 0;
+    y -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
+
+    if(!config.appearance.position_is_relative)
+        gtk_widget_translate_coordinates(greeter.ui.screen_window, greeter.ui.main_layout,
+                                         x, y, &x, &y);
+    if(y < 0)
+        y = 1;
+    else if(y + size.height > size_layout.height)
+        y = size_layout.height - size.height - 1;
+    gtk_fixed_move(GTK_FIXED(greeter.ui.main_layout), greeter.ui.main_content, x, y);
 }
 
 /* ---------------------------------------------------------------------------*
@@ -333,20 +353,9 @@ static void show_message_dialog(GtkMessageType type,
             window_name = "dialog_window";
     }
     gtk_widget_set_name(dialog, window_name);
-
-    setup_window(GTK_WINDOW(dialog));
     gtk_window_set_title(GTK_WINDOW(dialog), title);
     gtk_widget_show_all(dialog);
     set_window_position(dialog, &WINDOW_POSITION_CENTER);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
-}
-
-static void on_transparent_screen_changed(GtkWidget *widget,
-                                          GdkScreen *old_screen,
-                                          gpointer userdata)
-{
-    GdkVisual* visual = gdk_screen_get_rgba_visual(gtk_widget_get_screen(widget));
-    if(visual)
-        gtk_widget_set_visual(widget, visual);
 }

@@ -172,6 +172,7 @@ void load_settings(void)
     config.appearance.user_name_format        = USER_NAME_FORMAT_DISPLAYNAME;
     config.appearance.date_format             = "%A, %e %B";
     config.appearance.position                = WINDOW_POSITION_CENTER;
+    config.appearance.position_is_relative    = FALSE;
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings);
 
@@ -350,6 +351,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                                                     USER_NAME_FORMAT_STRINGS, config.appearance.user_name_format);
     config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
     config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
+    config.appearance.position_is_relative    = read_value_bool    (cfg, SECTION, "position-is-relative", config.appearance.position_is_relative);
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,

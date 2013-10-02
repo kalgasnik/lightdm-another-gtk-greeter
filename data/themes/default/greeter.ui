@@ -21,7 +21,6 @@
   </object>
   <object class="GtkWindow" id="screen_window">
     <property name="can_focus">False</property>
-    <property name="resizable">False</property>
     <property name="decorated">False</property>
     <signal name="screen-changed" handler="on_screen_changed" swapped="no"/>
     <signal name="key-press-event" handler="on_special_key_press" swapped="no"/>
@@ -29,6 +28,8 @@
       <object class="GtkGrid" id="screen_layout">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <child>
           <object class="GtkEventBox" id="panel_content">
             <property name="visible">True</property>
@@ -164,7 +165,7 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
+            <property name="top_attach">3</property>
             <property name="width">1</property>
             <property name="height">1</property>
           </packing>
@@ -185,184 +186,143 @@
           </packing>
         </child>
         <child>
-          <object class="GtkEventBox" id="main_content">
-            <property name="width_request">600</property>
+          <object class="GtkFixed" id="main_layout">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
             <child>
-              <object class="GtkViewport" id="main_border">
+              <object class="GtkEventBox" id="main_content">
+                <property name="width_request">600</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
                 <child>
-                  <object class="GtkGrid" id="grid1">
+                  <object class="GtkViewport" id="main_border">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="margin_left">16</property>
-                    <property name="margin_right">16</property>
-                    <property name="margin_top">16</property>
-                    <property name="margin_bottom">16</property>
-                    <property name="row_spacing">6</property>
-                    <property name="column_spacing">6</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkSeparator" id="separator3">
+                      <object class="GtkGrid" id="grid1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">1</property>
-                        <property name="width">2</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkGrid" id="grid2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="halign">center</property>
-                        <property name="valign">center</property>
+                        <property name="margin_left">12</property>
+                        <property name="margin_right">12</property>
+                        <property name="margin_top">12</property>
+                        <property name="margin_bottom">12</property>
+                        <property name="row_spacing">6</property>
+                        <property name="column_spacing">6</property>
                         <child>
-                          <object class="GtkImage" id="logo_image_widget">
+                          <object class="GtkSeparator" id="separator3">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="halign">end</property>
-                            <property name="pixel_size">65</property>
-                            <property name="icon_name">computer</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">1</property>
+                            <property name="width">2</property>
+                            <property name="height">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkGrid" id="grid2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkImage" id="logo_image_widget">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">end</property>
+                                <property name="pixel_size">65</property>
+                                <property name="icon_name">computer</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">0</property>
+                                <property name="width">1</property>
+                                <property name="height">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="host_widget">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="label">[host]</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">0</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="date_widget">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="label">[date]</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">1</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
                             <property name="top_attach">0</property>
-                            <property name="width">1</property>
-                            <property name="height">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="host_widget">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="halign">start</property>
-                            <property name="label">[host]</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">0</property>
-                            <property name="width">1</property>
+                            <property name="width">2</property>
                             <property name="height">1</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLabel" id="date_widget">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="halign">start</property>
-                            <property name="label">[date]</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                        <property name="width">2</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkBox" id="users_box">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="spacing">6</property>
-                        <child>
-                          <object class="GtkTreeView" id="users_widget">
-                            <property name="width_request">225</property>
-                            <property name="height_request">175</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="model">user_liststore</property>
-                            <property name="headers_visible">False</property>
-                            <property name="headers_clickable">False</property>
-                            <property name="search_column">0</property>
-                            <signal name="row-activated" handler="on_login_clicked" swapped="no"/>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection" id="treeview-selection">
-                                <signal name="changed" handler="on_user_selection_changed" swapped="no"/>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                                <property name="title">column</property>
-                                <child>
-                                  <object class="GtkCellRendererPixbuf" id="user_view_renderer_image"/>
-                                  <attributes>
-                                    <attribute name="pixbuf">5</attribute>
-                                  </attributes>
-                                </child>
-                                <child>
-                                  <object class="GtkCellRendererText" id="user_view_renderer_name"/>
-                                  <attributes>
-                                    <attribute name="text">2</attribute>
-                                    <attribute name="weight">3</attribute>
-                                  </attributes>
-                                </child>
-                              </object>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator" id="separator2">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="orientation">vertical</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">2</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkGrid" id="grid3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="hexpand">True</property>
-                        <property name="row_spacing">4</property>
-                        <property name="column_spacing">4</property>
-                        <child>
-                          <object class="GtkHBox" id="prompt_box">
-                            <property name="width_request">300</property>
+                          <object class="GtkBox" id="users_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="spacing">6</property>
                             <child>
-                              <object class="GtkLabel" id="prompt_text">
+                              <object class="GtkTreeView" id="users_widget">
+                                <property name="width_request">225</property>
+                                <property name="height_request">175</property>
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" comments="This is a placeholder string and will be replaced by the greeter with a prompt string from PAM.">[prompt]</property>
+                                <property name="can_focus">True</property>
+                                <property name="model">user_liststore</property>
+                                <property name="headers_visible">False</property>
+                                <property name="headers_clickable">False</property>
+                                <property name="search_column">0</property>
+                                <signal name="row-activated" handler="on_login_clicked" swapped="no"/>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection" id="treeview-selection">
+                                    <signal name="changed" handler="on_user_selection_changed" swapped="no"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                                    <property name="title">column</property>
+                                    <child>
+                                      <object class="GtkCellRendererPixbuf" id="user_view_renderer_image"/>
+                                      <attributes>
+                                        <attribute name="pixbuf">5</attribute>
+                                      </attributes>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCellRendererText" id="user_view_renderer_name"/>
+                                      <attributes>
+                                        <attribute name="text">2</attribute>
+                                        <attribute name="weight">3</attribute>
+                                      </attributes>
+                                    </child>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -371,16 +331,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="prompt_entry">
+                              <object class="GtkSeparator" id="separator2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="invisible_char">•</property>
-                                <property name="invisible_char_set">True</property>
-                                <signal name="activate" handler="on_prompt_activate" swapped="no"/>
-                                <signal name="key-press-event" handler="on_prompt_key_press" swapped="no"/>
+                                <property name="can_focus">False</property>
+                                <property name="orientation">vertical</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">1</property>
                               </packing>
@@ -388,35 +345,29 @@
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
-                            <property name="top_attach">0</property>
-                            <property name="width">3</property>
+                            <property name="top_attach">2</property>
+                            <property name="width">1</property>
                             <property name="height">1</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkExpander" id="expander1">
+                          <object class="GtkGrid" id="grid3">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="valign">end</property>
-                            <property name="spacing">6</property>
+                            <property name="can_focus">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="row_spacing">4</property>
+                            <property name="column_spacing">4</property>
                             <child>
-                              <object class="GtkBox" id="box4">
+                              <object class="GtkHBox" id="prompt_box">
+                                <property name="width_request">300</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
                                 <property name="spacing">6</property>
                                 <child>
-                                  <object class="GtkComboBox" id="languages_widget">
+                                  <object class="GtkLabel" id="prompt_text">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="valign">center</property>
-                                    <property name="model">language_liststore</property>
-                                    <child>
-                                      <object class="GtkCellRendererText" id="language_renderer_name"/>
-                                      <attributes>
-                                        <attribute name="text">1</attribute>
-                                      </attributes>
-                                    </child>
+                                    <property name="label" comments="This is a placeholder string and will be replaced by the greeter with a prompt string from PAM.">[prompt]</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -425,130 +376,225 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkComboBox" id="sessions_widget">
+                                  <object class="GtkEntry" id="prompt_entry">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="model">session_liststore</property>
-                                    <child>
-                                      <object class="GtkCellRendererText" id="session_renderer_name"/>
-                                      <attributes>
-                                        <attribute name="text">1</attribute>
-                                      </attributes>
-                                    </child>
-                                    <child>
-                                      <object class="GtkCellRendererPixbuf" id="session_renderer_image">
-                                        <property name="xalign">1</property>
-                                      </object>
-                                      <attributes>
-                                        <attribute name="pixbuf">2</attribute>
-                                      </attributes>
-                                    </child>
+                                    <property name="can_focus">True</property>
+                                    <property name="invisible_char">•</property>
+                                    <property name="invisible_char_set">True</property>
+                                    <signal name="activate" handler="on_prompt_activate" swapped="no"/>
+                                    <signal name="key-press-event" handler="on_prompt_key_press" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">False</property>
+                                    <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
                               </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">0</property>
+                                <property name="width">3</property>
+                                <property name="height">1</property>
+                              </packing>
                             </child>
-                            <child type="label">
-                              <object class="GtkLabel" id="label1">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Login options</property>
-                              </object>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">5</property>
-                            <property name="width">3</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkBox" id="password_toggle_box">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkCheckButton" id="password_toggle_widget">
+                              <object class="GtkExpander" id="expander1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="receives_default">False</property>
-                                <property name="halign">end</property>
-                                <property name="focus_on_click">False</property>
-                                <property name="xalign">0</property>
-                                <property name="draw_indicator">True</property>
-                                <signal name="toggled" handler="on_password_toggled" swapped="no"/>
+                                <property name="valign">end</property>
+                                <property name="spacing">6</property>
+                                <child>
+                                  <object class="GtkBox" id="box4">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkComboBox" id="languages_widget">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="valign">center</property>
+                                        <property name="model">language_liststore</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="language_renderer_name"/>
+                                          <attributes>
+                                            <attribute name="text">1</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkComboBox" id="sessions_widget">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="model">session_liststore</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="session_renderer_name"/>
+                                          <attributes>
+                                            <attribute name="text">1</attribute>
+                                          </attributes>
+                                        </child>
+                                        <child>
+                                          <object class="GtkCellRendererPixbuf" id="session_renderer_image">
+                                            <property name="xalign">1</property>
+                                          </object>
+                                          <attributes>
+                                            <attribute name="pixbuf">2</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child type="label">
+                                  <object class="GtkLabel" id="label1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Login options</property>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="pack_type">end</property>
-                                <property name="position">0</property>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">5</property>
+                                <property name="width">3</property>
+                                <property name="height">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label2">
+                              <object class="GtkBox" id="password_toggle_box">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Show password</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="password_toggle_widget">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="halign">end</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="on_password_toggled" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="label2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Show password</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
                               </object>
                               <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="pack_type">end</property>
-                                <property name="position">1</property>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">1</property>
+                                <property name="width">3</property>
+                                <property name="height">1</property>
                               </packing>
                             </child>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">1</property>
-                            <property name="width">3</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="message_widget">
-                            <property name="can_focus">False</property>
-                            <property name="valign">start</property>
-                            <property name="vexpand">True</property>
-                            <property name="label" comments="This is a placeholder string and will be replaced with a message from PAM">[message]</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">3</property>
-                            <property name="width">3</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="login_widget">
-                            <property name="label" translatable="yes">Login</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="halign">end</property>
-                            <property name="valign">start</property>
-                            <signal name="clicked" handler="on_login_clicked" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="left_attach">2</property>
-                            <property name="top_attach">2</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="cancel_widget">
-                            <property name="label" translatable="yes">Cancel</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="halign">end</property>
-                            <property name="valign">start</property>
-                            <signal name="clicked" handler="on_cancel_clicked" swapped="no"/>
+                            <child>
+                              <object class="GtkLabel" id="message_widget">
+                                <property name="can_focus">False</property>
+                                <property name="valign">start</property>
+                                <property name="vexpand">True</property>
+                                <property name="label" comments="This is a placeholder string and will be replaced with a message from PAM">[message]</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">3</property>
+                                <property name="width">3</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="login_widget">
+                                <property name="label" translatable="yes">Login</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="halign">end</property>
+                                <property name="valign">start</property>
+                                <signal name="clicked" handler="on_login_clicked" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="left_attach">2</property>
+                                <property name="top_attach">2</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="cancel_widget">
+                                <property name="label" translatable="yes">Cancel</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="halign">end</property>
+                                <property name="valign">start</property>
+                                <signal name="clicked" handler="on_cancel_clicked" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">2</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkEventBox" id="eventbox1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">2</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkEventBox" id="eventbox2">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">0</property>
+                                <property name="top_attach">4</property>
+                                <property name="width">3</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -557,46 +603,7 @@
                             <property name="height">1</property>
                           </packing>
                         </child>
-                        <child>
-                          <object class="GtkEventBox" id="eventbox1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="hexpand">True</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">2</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEventBox" id="eventbox2">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="hexpand">True</property>
-                            <property name="vexpand">True</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">4</property>
-                            <property name="width">3</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
                       </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
                     </child>
                   </object>
                 </child>
@@ -606,6 +613,122 @@
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">0</property>
+            <property name="width">1</property>
+            <property name="height">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEventBox" id="messagebox_content">
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkViewport" id="messagebox_border">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkGrid" id="grid4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="margin_left">12</property>
+                    <property name="margin_right">12</property>
+                    <property name="margin_top">12</property>
+                    <property name="margin_bottom">12</property>
+                    <child>
+                      <object class="GtkLabel" id="messagebox_title">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="label">[title]</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator" id="separator1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">1</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkImage" id="messagebox_icon">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="margin_right">12</property>
+                        <property name="stock">gtk-about</property>
+                        <property name="icon-size">6</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">1</property>
+                        <property name="height">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="messagebox_text">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="label">[text]</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">2</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButtonBox" id="mesagebox_buttons">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">end</property>
+                        <property name="margin_top">8</property>
+                        <property name="layout_style">start</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">3</property>
+                        <property name="width">1</property>
+                        <property name="height">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
             <property name="width">1</property>
             <property name="height">1</property>
           </packing>

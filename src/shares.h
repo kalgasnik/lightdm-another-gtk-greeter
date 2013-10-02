@@ -85,8 +85,12 @@ typedef struct
         GtkWidget*      main_content;
         GtkWidget*      main_layout;
         GtkWidget*      panel_content;
+        GtkWidget*      panel_layout;
         GtkWidget*      panel_menubar;
         GtkWidget*      onboard_content;
+        GtkWidget*      onboard_layout;
+        GtkWidget*      messagebox_content;
+        GtkWidget*      messagebox_layout;
 
         GtkWidget*      login_widget;
         GtkWidget*      login_label;
@@ -206,11 +210,16 @@ typedef enum
 } LanguagesModelColumn;
 
 #define UI_LAYOUT_WIDTH                 1
-#define UI_LAYOUT_ROW_PANEL_TOP         0
-#define UI_LAYOUT_ROW_ONBOARD_TOP       1
-#define UI_LAYOUT_ROW_MAIN              3
-#define UI_LAYOUT_ROW_ONBOARD_BOTTOM    5
-#define UI_LAYOUT_ROW_PANEL_BOTTOM      6
+
+enum
+{
+    UI_LAYOUT_ROW_PANEL_TOP = 0,
+    UI_LAYOUT_ROW_ONBOARD_TOP,
+    UI_LAYOUT_ROW_MAIN,
+    UI_LAYOUT_ROW_MESSAGE,
+    UI_LAYOUT_ROW_ONBOARD_BOTTOM,
+    UI_LAYOUT_ROW_PANEL_BOTTOM,
+};
 
 /* Variables */
 
@@ -239,6 +248,10 @@ extern gchar* PACKAGE_VERSION;
 void show_error                        (const gchar* title,
                                         const gchar* message_format,
                                         ...) G_GNUC_PRINTF (2, 3);
+gint show_message                      (const gchar* icon_name,
+                                        const gchar* title,
+                                        const gchar* message,
+                                        const gchar* buttons);
 void rearrange_grid_child              (GtkGrid* grid,
                                         GtkWidget* child,
                                         gint row);
@@ -275,8 +288,6 @@ gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
                                         gboolean state,
                                         GCallback suppress_callback);
-
-void setup_window                      (GtkWindow* window);
 /* Set positions of main window according to settings and current program state */
 void update_main_window_layout         (void);
 

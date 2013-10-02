@@ -4,17 +4,18 @@
     -GtkWidget-window-dragging: false;
 }
 
-#main_content, #main_border
+#main_content, #main_border,
+#messagebox_content, #messagebox_border
 {
     border-radius: 12px;
 }
 
-#main_border
+#main_border, #messagebox_border
 {
     border: 1px solid shade(@bg_color, 0.75);
 }
 
-#main_content
+#main_content, #messagebox_content
 {
     background: @bg_color;
 }

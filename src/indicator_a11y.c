@@ -54,8 +54,6 @@ static gint get_increment                       (gint value,
                                                  gint increment,
                                                  gboolean is_percent);
 static gboolean program_is_available            (const gchar* name);
-static gboolean update_windows_callback         (gpointer data);
-static void update_windows_idle                 (void);
 
 static gboolean osk_check_custom                (void);
 static void osk_open_custom                     (void);
@@ -182,7 +180,8 @@ void a11y_toggle_osk()
         a11y.onscreen_keyboard->open();
     else
         a11y.onscreen_keyboard->close();
-    update_windows_idle();
+    update_main_window_layout();
+//    update_windows_idle();
 }
 
 void a11y_toggle_font(void)
@@ -227,7 +226,7 @@ void a11y_toggle_font(void)
         g_object_set(settings, "gtk-font-name", config.appearance.font, NULL);
     }
     set_state_value_int("a11y", "font", a11y.state.font);
-    update_windows_idle();
+    update_main_window_layout();
 }
 
 void a11y_toggle_dpi(void)
@@ -248,7 +247,7 @@ void a11y_toggle_dpi(void)
     }
     g_object_set(settings, "gtk-xft-dpi", value*1024, NULL);
     set_state_value_int("a11y", "dpi", a11y.state.dpi);
-    update_windows_idle();
+    update_main_window_layout();
 }
 
 void a11y_toggle_contrast()
@@ -265,7 +264,7 @@ void a11y_toggle_contrast()
     g_object_set(settings, "gtk-icon-theme-name",
                  a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
     set_state_value_int("a11y", "contrast", a11y.state.contrast);
-    update_windows_idle();
+    update_main_window_layout();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -313,17 +312,6 @@ static gboolean program_is_available(const gchar* name)
     int result = system(cmd);
     g_free(cmd);
     return result == 0;
-}
-
-static gboolean update_windows_callback(gpointer data)
-{
-    update_main_window_layout();
-    return FALSE;
-}
-
-static void update_windows_idle(void)
-{
-    g_idle_add((GSourceFunc)update_windows_callback, NULL);
 }
 
 static gboolean osk_check_custom(void)
@@ -431,17 +419,17 @@ static gboolean spawn_onboard(void)
                 GdkRectangle geometry;
                 GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
                 gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
-                gtk_widget_set_size_request(greeter.ui.onboard_content,
+                gtk_widget_set_size_request(greeter.ui.onboard_layout,
                                             -1, geometry.height*config.a11y.osk.onboard_height/100);
             }
             else
                 gtk_widget_set_size_request(greeter.ui.onboard_content, -1, config.a11y.osk.onboard_height);
 
-            rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.onboard_content,
+            rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.onboard_layout,
                                  at_top ? UI_LAYOUT_ROW_ONBOARD_TOP : UI_LAYOUT_ROW_ONBOARD_BOTTOM);
             gtk_container_add(GTK_CONTAINER(greeter.ui.onboard_content), GTK_WIDGET(socket));
             gtk_socket_add_id(socket, atol(text));
-            gtk_widget_show_all(greeter.ui.onboard_content);
+            gtk_widget_show(GTK_WIDGET(socket));
         }
     }
     else if(error)
@@ -473,13 +461,12 @@ static void osk_open_onboard(void)
         a11y.onscreen_keyboard = NULL;
         return;
     }
-    gtk_widget_show_all(greeter.ui.onboard_content);
+    gtk_widget_show(greeter.ui.onboard_layout);
 }
 
 static void osk_close_onboard(void)
 {
-    gtk_widget_hide(GTK_WIDGET(keyboard_onboard.socket));
-    gtk_widget_hide(greeter.ui.onboard_content);
+    gtk_widget_hide(greeter.ui.onboard_layout);
 }
 
 static void osk_kill_onboard(void)

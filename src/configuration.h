@@ -94,6 +94,8 @@ typedef struct
         gint            dpi;
         gboolean        transparency;
         WindowPosition  position;
+        /* True: position is relative main_layout, False: is absolute */
+        gboolean        position_is_relative;
         struct
         {
             gboolean     enabled;

@@ -149,7 +149,6 @@ static void power_action(const PowerActionData* action)
                                _(action->name), GTK_RESPONSE_OK, NULL);
         gtk_widget_set_name(dialog, "power_dialog");
         gtk_window_set_title(GTK_WINDOW(dialog), action->name);
-        setup_window(GTK_WINDOW(dialog));
         if(action->icon && gtk_icon_theme_has_icon(gtk_icon_theme_get_default(), action->icon))
         {
             GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
