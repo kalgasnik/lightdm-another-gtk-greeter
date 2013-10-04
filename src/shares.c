@@ -17,6 +17,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <glib/gprintf.h>
 #include <glib/gi18n.h>
 #include <string.h>
 
@@ -62,25 +63,138 @@ gchar* CONFIG_FILE = "../../data/lightdm-another-gtk-greeter.dev.conf";
 gchar* PACKAGE_VERSION = "<DEBUG>";
 #endif
 
+typedef struct
+{
+    GMainLoop* loop;
+    gint response;
+    gint cancel_id;
+} MessageBoxRunInfo;
+
+typedef struct
+{
+    MessageBoxRunInfo* info;
+    gint id;
+} MessageBoxButtonRunInfo;
+
 /* Static functions */
 
-static void show_message_dialog           (GtkMessageType type,
-                                           const gchar* title,
-                                           const gchar* message_format,
-                                           va_list args);
+static void stop_messagebox_loop            (MessageBoxRunInfo* info,
+                                             gint response);
+static gboolean on_messagebox_key_press     (GtkWidget* widget,
+                                             GdkEventKey* event,
+                                             MessageBoxRunInfo* info);
+static void on_messagebox_button_clicked    (GtkWidget* widget,
+                                             MessageBoxButtonRunInfo* button_info);
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
  * -------------------------------------------------------------------------- */
 
-void show_error(const gchar* title,
-                const gchar* message_format,
-                ...)
+void show_message_dialog(GtkMessageType type,
+                         const gchar* title,
+                         const gchar* message_format,
+                         ...)
 {
+    gchar* message;
     va_list argptr;
     va_start(argptr, message_format);
-    show_message_dialog(GTK_MESSAGE_ERROR, title, message_format, argptr);
+    g_vasprintf(&message, message_format, argptr);
     va_end(argptr);
+
+    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK, "%s", message);
+    g_free(message);
+
+    const gchar* window_name = NULL;
+    switch(type)
+    {
+        case GTK_MESSAGE_INFO: window_name = "dialog_window_info"; break;
+        case GTK_MESSAGE_WARNING: window_name = "dialog_window_warning"; break;
+        case GTK_MESSAGE_QUESTION: window_name = "dialog_window_question"; break;
+        case GTK_MESSAGE_ERROR: window_name = "dialog_window_error"; break;
+        default:
+            window_name = "dialog_window";
+    }
+    gtk_widget_hide(greeter.ui.screen_layout);
+    gtk_widget_set_name(dialog, window_name);
+    gtk_window_set_title(GTK_WINDOW(dialog), title);
+    gtk_widget_show_all(dialog);
+    set_window_position(dialog, &WINDOW_POSITION_CENTER);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    gtk_widget_show(greeter.ui.screen_layout);
+}
+
+gint show_message(const gchar* title,
+                  const gchar* message_format,
+                  const gchar* icon_name,
+                  const gchar* icon_stock,
+                  const MessageButtonOptions* buttons,
+                  gint default_id,
+                  gint cancel_id,
+                  ...)
+{
+    gchar* message;
+    gulong key_press_handler;
+    MessageBoxRunInfo info = (MessageBoxRunInfo)
+    {
+        .loop = g_main_loop_new(NULL, FALSE),
+        .cancel_id = cancel_id
+    };
+    GSList* buttons_info = NULL;
+
+    va_list argptr;
+    va_start(argptr, cancel_id);
+    g_vasprintf(&message, _(message_format), argptr);
+    va_end(argptr);
+
+    clear_container(GTK_CONTAINER(greeter.ui.messagebox_buttons));
+    for(const MessageButtonOptions* button = buttons; button->id != GTK_RESPONSE_NONE; ++button)
+    {
+        GtkWidget* widget;
+        if(button->stock)
+            widget = gtk_button_new_from_stock(button->stock);
+        else
+        {
+            widget = gtk_button_new_with_label(_(button->text));
+            if(button->text_stock_icon)
+                gtk_button_set_image(GTK_BUTTON(widget), gtk_image_new_from_icon_name(button->text_stock_icon, GTK_ICON_SIZE_BUTTON));
+        }
+        gtk_widget_show(widget);
+        gtk_container_add(GTK_CONTAINER(greeter.ui.messagebox_buttons), widget);
+        if(default_id == button->id)
+            gtk_widget_grab_focus(widget);
+
+        MessageBoxButtonRunInfo* button_info = g_malloc(sizeof(MessageBoxButtonRunInfo));
+        buttons_info = g_slist_append(buttons_info, button_info);
+        button_info->info = &info;
+        button_info->id = button->id;
+        g_signal_connect(widget, "clicked", G_CALLBACK(on_messagebox_button_clicked), button_info);
+    }
+
+    set_widget_text(greeter.ui.messagebox_title, _(title));
+    set_widget_text(greeter.ui.messagebox_text, message);
+    if(icon_name)
+        gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.messagebox_icon), icon_name, GTK_ICON_SIZE_DIALOG);
+    else if(icon_stock)
+        gtk_image_set_from_stock(GTK_IMAGE(greeter.ui.messagebox_icon), icon_stock, GTK_ICON_SIZE_DIALOG);
+
+    key_press_handler = g_signal_connect(greeter.ui.messagebox_content, "key-press-event",
+                                         G_CALLBACK(on_messagebox_key_press), &info);
+
+    gtk_widget_hide(greeter.ui.main_layout);
+    gtk_widget_show(greeter.ui.messagebox_layout);
+    gtk_widget_set_sensitive(greeter.ui.panel_layout, FALSE);
+
+    g_main_loop_run(info.loop);
+
+    g_signal_handler_disconnect(greeter.ui.messagebox_content, key_press_handler);
+    g_main_loop_unref(info.loop);
+    g_slist_free_full(buttons_info, g_free);
+
+    gtk_widget_hide(greeter.ui.messagebox_layout);
+    gtk_widget_show(greeter.ui.main_layout);
+    gtk_widget_set_sensitive(greeter.ui.panel_layout, TRUE);
+    return info.response;
 }
 
 void rearrange_grid_child(GtkGrid* grid,
@@ -291,6 +405,15 @@ void set_widget_toggled(GtkWidget* widget,
         g_signal_handlers_unblock_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
 }
 
+void clear_container(GtkContainer* container)
+{
+
+    GList *children = gtk_container_get_children(container);
+    for(GList* iter = children; iter != NULL; iter = g_list_next(iter))
+      gtk_widget_destroy(GTK_WIDGET(iter->data));
+    g_list_free(children);
+}
+
 void update_main_window_layout(void)
 {
     if(greeter.ui.main_layout == greeter.ui.main_content ||
@@ -333,29 +456,29 @@ void update_main_window_layout(void)
  * Definitions: static
  * -------------------------------------------------------------------------- */
 
-static void show_message_dialog(GtkMessageType type,
-                                const gchar* title,
-                                const gchar* message_format,
-                                va_list args)
+static void stop_messagebox_loop(MessageBoxRunInfo* info,
+                                 gint response)
 {
-    gchar* message = g_strdup_vprintf(message_format, args);
-    GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, type, GTK_BUTTONS_OK, "%s", message);
-    g_free(message);
+    if(g_main_loop_is_running(info->loop))
+        g_main_loop_quit(info->loop);
+    info->response = response;
+}
 
-    const gchar* window_name = NULL;
-    switch(type)
+static gboolean on_messagebox_key_press(GtkWidget* widget,
+                                        GdkEventKey* event,
+                                        MessageBoxRunInfo* info)
+{
+    if(event->keyval == GDK_KEY_Escape)
     {
-        case GTK_MESSAGE_INFO: window_name = "dialog_window_info"; break;
-        case GTK_MESSAGE_WARNING: window_name = "dialog_window_warning"; break;
-        case GTK_MESSAGE_QUESTION: window_name = "dialog_window_question"; break;
-        case GTK_MESSAGE_ERROR: window_name = "dialog_window_error"; break;
-        default:
-            window_name = "dialog_window";
+        gdk_window_beep(gtk_widget_get_window(greeter.ui.screen_window));
+        stop_messagebox_loop(info, info->cancel_id);
+        return TRUE;
     }
-    gtk_widget_set_name(dialog, window_name);
-    gtk_window_set_title(GTK_WINDOW(dialog), title);
-    gtk_widget_show_all(dialog);
-    set_window_position(dialog, &WINDOW_POSITION_CENTER);
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
+    return FALSE;
+}
+
+static void on_messagebox_button_clicked(GtkWidget* widget,
+                                         MessageBoxButtonRunInfo* button_info)
+{
+    stop_messagebox_loop(button_info->info, button_info->id);
 }

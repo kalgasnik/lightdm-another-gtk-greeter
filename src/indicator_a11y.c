@@ -331,7 +331,8 @@ static void osk_open_custom(void)
         a11y.onscreen_keyboard = NULL;
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
         g_warning("On-screen keyboard command error: %s", error->message);
-        show_error(_("On-screen keyboard"), _("Failed to start keyboard command:\n%s"), error->message);
+        show_message_dialog(GTK_MESSAGE_ERROR, _("On-screen keyboard"),
+                            _("Failed to start keyboard command:\n%s"), error->message);
         g_clear_error(&error);
     }
 }
@@ -456,7 +457,8 @@ static void osk_open_onboard(void)
 {
     if(!keyboard_onboard.socket && !spawn_onboard())
     {
-        show_error(_("Onboard"), _("Failed to start 'onboard', see logs for details."));
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Onboard"),
+                            _("Failed to start 'onboard', see logs for details."));
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(greeter.ui.a11y.osk_widget), FALSE);
         a11y.onscreen_keyboard = NULL;
         return;

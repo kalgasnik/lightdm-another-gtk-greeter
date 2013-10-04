@@ -29,7 +29,7 @@
 #ifdef _DEBUG_
 gboolean lightdm_suspend(GError** error)   { g_message("lightdm_suspend()"); return TRUE; }
 gboolean lightdm_hibernate(GError** error) { g_message("lightdm_hibernate()"); return TRUE; }
-gboolean lightdm_restart(GError** error)   { g_message("lightdm_restart()"); return TRUE; }
+gboolean lightdm_restart(GError** error)   { g_message("lightdm_restart()"); exit(EXIT_SUCCESS); }
 gboolean lightdm_shutdown(GError** error)  { g_message("lightdm_shutdown()"); exit(EXIT_SUCCESS); }
 #endif
 
@@ -137,32 +137,16 @@ void power_shutdown(void)
 static void power_action(const PowerActionData* action)
 {
     g_return_if_fail(config.power.enabled && action->get_allow());
-
     if(*action->show_prompt_ptr)
     {
-        gboolean result;
-        GtkWidget* dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL,
-                                                   GTK_MESSAGE_QUESTION, GTK_BUTTONS_NONE,
-                                                   "%s", _(action->prompt));
-        gtk_dialog_add_buttons(GTK_DIALOG(dialog),
-                               _("Return to Login"), GTK_RESPONSE_CANCEL,
-                               _(action->name), GTK_RESPONSE_OK, NULL);
-        gtk_widget_set_name(dialog, "power_dialog");
-        gtk_window_set_title(GTK_WINDOW(dialog), action->name);
-        if(action->icon && gtk_icon_theme_has_icon(gtk_icon_theme_get_default(), action->icon))
+        const MessageButtonOptions buttons[] =
         {
-            GtkWidget* image = gtk_image_new_from_icon_name(action->icon, GTK_ICON_SIZE_DIALOG);
-            gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog), image);
-        }
-        gtk_widget_hide(greeter.ui.screen_layout);
-        gtk_widget_show_all(dialog);
-        set_window_position(dialog, &WINDOW_POSITION_CENTER);
-        result = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK;
-        gtk_widget_destroy(dialog);
-        gtk_widget_show(greeter.ui.screen_layout);
-        gtk_widget_grab_focus(greeter.ui.prompt_entry);
-
-        if(!result)
+            {.id = GTK_RESPONSE_CANCEL, .text = _("Return to Login"), .text_stock_icon = "gtk-cancel"},
+            {.id = GTK_RESPONSE_YES,    .stock = "gtk-yes"},
+            {.id = GTK_RESPONSE_NONE}
+        };
+        if(show_message(_(action->name), _(action->prompt), action->icon, NULL, buttons,
+                        GTK_RESPONSE_CANCEL, GTK_RESPONSE_CANCEL) != GTK_RESPONSE_YES)
             return;
     }
 
@@ -170,7 +154,8 @@ static void power_action(const PowerActionData* action)
     if(!action->do_action(&error) && error)
     {
         g_warning("Action \"%s\" failed with error: %s.", action->name, error->message);
-        show_error(_(action->name), _("Action \"%s\" failed with error: %s."), _(action->name), error->message);
+        show_message_dialog(GTK_MESSAGE_ERROR, _(action->name),
+                            _("Action \"%s\" failed with error: %s."), _(action->name), error->message);
         g_clear_error(&error);
     }
 }

@@ -624,22 +624,29 @@
             <property name="valign">center</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
+            <signal name="key-press-event" handler="on_messagebox_key_press" swapped="no"/>
             <child>
               <object class="GtkViewport" id="messagebox_border">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
                 <child>
                   <object class="GtkGrid" id="grid4">
+                    <property name="width_request">400</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">12</property>
                     <property name="margin_right">12</property>
                     <property name="margin_top">12</property>
                     <property name="margin_bottom">12</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
                     <child>
                       <object class="GtkLabel" id="messagebox_title">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="hexpand">True</property>
                         <property name="xalign">0</property>
                         <property name="label">[title]</property>
                         <attributes>
@@ -654,23 +661,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkSeparator" id="separator1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">1</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkImage" id="messagebox_icon">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="valign">start</property>
                         <property name="margin_right">12</property>
-                        <property name="stock">gtk-about</property>
+                        <property name="stock">gtk-dialog-error</property>
                         <property name="icon-size">6</property>
                       </object>
                       <packing>
@@ -684,22 +681,27 @@
                       <object class="GtkLabel" id="messagebox_text">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="margin_top">8</property>
+                        <property name="margin_bottom">8</property>
+                        <property name="hexpand">True</property>
                         <property name="xalign">0</property>
                         <property name="label">[text]</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
+                        <property name="top_attach">1</property>
                         <property name="width">1</property>
                         <property name="height">1</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButtonBox" id="mesagebox_buttons">
+                      <object class="GtkButtonBox" id="messagebox_buttons">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="halign">end</property>
                         <property name="margin_top">8</property>
+                        <property name="hexpand">True</property>
+                        <property name="spacing">8</property>
                         <property name="layout_style">start</property>
                         <child>
                           <placeholder/>
@@ -713,13 +715,10 @@
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
-                        <property name="top_attach">3</property>
+                        <property name="top_attach">2</property>
                         <property name="width">1</property>
                         <property name="height">1</property>
                       </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
                 </child>

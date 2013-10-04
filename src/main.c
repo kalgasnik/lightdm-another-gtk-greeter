@@ -133,7 +133,6 @@ void on_screen_changed                      (GtkWidget* widget,
                                              GdkScreen* previous_screen,
                                              gboolean update_layout);
 
-
 /* ------------------------------------------------------------------------- *
  * Definition: main
  * ------------------------------------------------------------------------- */
@@ -194,7 +193,8 @@ static gboolean connect_to_lightdm(void)
     if(!lightdm_greeter_connect_sync(greeter.greeter, &error))
     {
         g_critical("Connection to LightDM failed: %s", error ? error->message : "unknown error");
-        show_error(_("Error"), _("Connection to LightDM failed: %s"), error ? error->message : _("unknown error"));
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Error"), _("Connection to LightDM failed: %s"),
+                            error ? error->message : _("unknown error"));
         g_clear_error(&error);
         return FALSE;
     }
@@ -242,7 +242,8 @@ static gboolean init_gui(void)
     if(!gtk_builder_add_from_file(builder, config.appearance.ui_file, &error))
     {
         g_critical("Error loading UI file: %s", error->message);
-        show_error(_("Error"), _("Error loading UI file:\n\n%s"), error->message);
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Error"),
+                            _("Error loading UI file:\n\n%s"), error->message);
         g_clear_error(&error);
         return FALSE;
     }
@@ -271,6 +272,10 @@ static gboolean init_gui(void)
         {&greeter.ui.onboard_layout,            "onboard_layout",               FALSE, &greeter.ui.onboard_content},
         {&greeter.ui.messagebox_content,        "messagebox_content",           FALSE, NULL},
         {&greeter.ui.messagebox_layout,         "messagebox_layout",            FALSE, &greeter.ui.messagebox_content},
+        {&greeter.ui.messagebox_title,          "messagebox_title",             FALSE, NULL},
+        {&greeter.ui.messagebox_text,           "messagebox_text",              FALSE, NULL},
+        {&greeter.ui.messagebox_buttons,        "messagebox_buttons",           FALSE, NULL},
+        {&greeter.ui.messagebox_icon,           "messagebox_icon",              FALSE, NULL},
 
         {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
         {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
@@ -359,7 +364,8 @@ static gboolean init_gui(void)
             if(w->needed)
             {
                 g_critical("Widget is not found: %s\n", w->name);
-                show_error(_("Loading UI: error"), _("Widget '%s' is not found"), w->name);
+                show_message_dialog(GTK_MESSAGE_ERROR, _("Loading UI: error"),
+                                    _("Widget '%s' is not found"), w->name);
                 return FALSE;
             }
             else
@@ -1009,7 +1015,8 @@ static void take_screenshot(void)
     if(error)
     {
         g_warning("Failed: %s", error->message);
-        show_error(_("Screenshot"), "%s", error->message);
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Screenshot"),
+                            "%s", error->message);
         g_clear_error(&error);
     }
     else
