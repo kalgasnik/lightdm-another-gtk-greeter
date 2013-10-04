@@ -110,6 +110,12 @@ static gchar* read_value_path                      (GKeyFile* key_file,
                                                     const gchar* default_value,
                                                     const gchar* dir);
 
+static GSList* read_value_path_cascade             (GKeyFile* key_file,
+                                                    const gchar* section,
+                                                    const gchar* key,
+                                                    GSList* list,
+                                                    const gchar* dir);
+
 /* Static variables */
 
 static struct
@@ -151,7 +157,7 @@ void load_settings(void)
 
     SECTION = "appearance";
     config.appearance.ui_file                 = "themes/default/greeter.ui";
-    config.appearance.css_file                = "themes/default/style.css";
+    config.appearance.css_files               = NULL;
     config.appearance.background              = NULL;
     config.appearance.user_background         = TRUE;
     config.appearance.x_background            = FALSE;
@@ -322,10 +328,9 @@ static void read_appearance_section(GKeyFile* cfg,
         g_key_file_free(theme_cfg);
         g_free(theme);
     }
-    /* memory leak? */
 
     config.appearance.ui_file                 = read_value_path    (cfg, SECTION, "ui-file", config.appearance.ui_file, path);
-    config.appearance.css_file                = read_value_path    (cfg, SECTION, "css-file", config.appearance.css_file, path);
+    config.appearance.css_files               = read_value_path_cascade(cfg, SECTION, "css-file", config.appearance.css_files, path);
     config.appearance.background              = read_value_path    (cfg, SECTION, "background", config.appearance.background, path);
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
     config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
@@ -547,4 +552,19 @@ static gchar* read_value_path(GKeyFile* key_file,
         value = abs_path;
     }
     return value;
+}
+
+static GSList* read_value_path_cascade(GKeyFile* key_file,
+                                       const gchar* section,
+                                       const gchar* key,
+                                       GSList* list,
+                                       const gchar* dir)
+{
+    gchar* key_reset = g_strconcat(key, "-reset", NULL);
+    if(read_value_bool(key_file, section, key_reset, FALSE))
+        g_slist_free_full(list, g_free);
+    g_free(key_reset);
+
+    gchar* value = read_value_path(key_file, section, key, NULL, dir);
+    return value ? g_slist_append(list, value) : list;
 }

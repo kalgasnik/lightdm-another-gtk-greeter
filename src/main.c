@@ -211,26 +211,31 @@ static gboolean connect_to_lightdm(void)
     return TRUE;
 }
 
-static void init_css(void)
+static void read_css_file(const gchar* path, GdkScreen* screen)
 {
-    if(!config.appearance.css_file)
-    {
-        g_message("No CSS file defined");
-        return;
-    }
-    g_message("Loading CSS file: %s", config.appearance.css_file);
+    g_message("Loading CSS file: %s", path);
 
     GError* error = NULL;
     GtkCssProvider* provider = gtk_css_provider_new();
-    GdkScreen* screen = gdk_display_get_default_screen(gdk_display_get_default());
-
-    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    if(!gtk_css_provider_load_from_path(provider, config.appearance.css_file, &error))
+    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    if(!gtk_css_provider_load_from_path(provider, path, &error))
     {
         g_warning("Error loading CSS: %s", error->message);
         g_clear_error(&error);
     }
     g_object_unref(provider);
+}
+
+static void init_css(void)
+{
+    if(!config.appearance.css_files)
+    {
+        g_message("No CSS files defined");
+        return;
+    }
+    g_slist_foreach(config.appearance.css_files, (GFunc)read_css_file,
+                    gdk_display_get_default_screen(gdk_display_get_default()));
 }
 
 static gboolean init_gui(void)

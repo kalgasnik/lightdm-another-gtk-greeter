@@ -6,8 +6,10 @@
 @define-color greeter_head_color rgba(25, 25, 25, 0.6);
 @define-color greeter_head_label_color shade(@label_font_color, 0.85);
 
-@define-color user_view_font_color grey;
-@define-color user_view_font_color_selected darker(@user_view_font_color);
+@define-color users_font_color grey;
+@define-color users_font_color_selected darker(@users_font_color);
+@define-color users_font_shadow_color darkgrey;
+@define-color users_box_shadow_color alpha(black, 0.4);
 
 @define-color button_border_color rgba(0, 0, 0, 0.35);
 @define-color button_color rgba(0, 0, 0, 0.1);
@@ -15,6 +17,10 @@
 @define-color button_color_active rgba(0, 0, 0, 0.45);
 @define-color button_color_focused rgba(0, 0, 0, 0.65);
 @define-color button_color_insensitive transparent;
+@define-color button_box_shadow_color black;
+@define-color button_font_color_focused shade(@label_font_color, 0.8);
+@define-color button_font_shadow_color darkgrey;
+@define-color button_font_shadow_color_insensitive shade(@button_font_color_insensitive, 0.5);
 
 @define-color combobox_font_color shade(@label_font_color, 0.9);
 @define-color combobox_font_color_insensitive shade(@label_font_color_insensitive, 0.9);
@@ -45,22 +51,22 @@ GtkButton:active
 {
     background: @button_color_active;
     color: shade(@label_font_color, 1.1);
-    box-shadow: 0px 0px 2px black;
-    text-shadow: 0px 0px 1px darkgrey;
+    box-shadow: 0px 0px 2px @button_box_shadow_color;
+    text-shadow: 0px 0px 1px @button_font_shadow_color;
     transition: 100ms easy-in;
 }
 
 GtkButton:focused
 {
     background: @button_color_focused;
-    color: shade(@label_font_color, 0.8);
+    color: @button_font_color_focused;
     transition: 125ms linear;
 }
 
 GtkButton:insensitive
 {
     background: @button_color_insensitive;
-    text-shadow: 1px 1px shade(@button_font_color_insensitive, 0.5);
+    text-shadow: 1px 1px @button_font_shadow_color_insensitive;
     transition: 250ms linear;
 }
 
@@ -129,7 +135,7 @@ GtkSpinner
     -GtkWidget-focus-line-width: 0px;
     -GtkTreeView-vertical-separator: 10px;
     background-color: transparent;
-    color: @user_view_font_color;
+    color: @users_font_color;
     border: None;
     border-radius: 6px;
     transition: 125ms linear;
@@ -138,7 +144,7 @@ GtkSpinner
 #users_widget:selected
 {
     background: @button_color;
-    color: @user_view_font_color_selected;
+    color: @users_font_color_selected;
     border-style: solid;
     border-width: 1px;
     border-color: @button_border_color;
@@ -150,8 +156,8 @@ GtkSpinner
     border-style: solid;
     border-width: 1px;
     border-color: @button_border_color;
-    box-shadow: 0px 0px 1px alpha(black, 0.4);
-    text-shadow: 0px 0px 3px darkgrey;
+    box-shadow: 0px 0px 1px @users_box_shadow_color;
+    text-shadow: 0px 0px 3px @users_font_shadow_color;
 }
 
 #dialog_window, #dialog_window_info, #dialog_window_warning,

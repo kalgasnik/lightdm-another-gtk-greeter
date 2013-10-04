@@ -77,7 +77,7 @@ typedef struct
     struct
     {
         gchar*          ui_file;
-        gchar*          css_file;
+        GSList*         css_files;
         gchar*          gtk_theme;
         gchar*          icon_theme;
         gchar*          background;
