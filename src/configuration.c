@@ -161,7 +161,7 @@ void load_settings(void)
     config.appearance.list_image.enabled      = TRUE;
     config.appearance.list_image.fit          = USER_IMAGE_FIT_BIGGER;
     config.appearance.list_image.size         = 48;
-    config.appearance.theme                   = NULL;
+    config.appearance.gtk_theme               = NULL;
     config.appearance.icon_theme              = NULL;
     config.appearance.font                    = NULL;
     config.appearance.fixed_login_button_width= FALSE;
@@ -197,10 +197,10 @@ void load_settings(void)
     config.a11y.enabled                       = read_value_bool    (cfg, SECTION, "enabled", TRUE);
 
     SECTION = "a11y.contrast";
-    config.a11y.contrast.theme                = read_value_str     (cfg, SECTION, "theme", "HighContrast");
+    config.a11y.contrast.gtk_theme            = read_value_str     (cfg, SECTION, "gtk-theme", "HighContrast");
     config.a11y.contrast.icon_theme           = read_value_str     (cfg, SECTION, "icon-theme", "HighContrast");
     config.a11y.contrast.initial_state        = read_value_bool    (cfg, SECTION, "initial-state", FALSE);
-    config.a11y.contrast.enabled              = config.a11y.contrast.theme && (strlen(config.a11y.contrast.theme) > 0);
+    config.a11y.contrast.enabled              = config.a11y.contrast.gtk_theme && (strlen(config.a11y.contrast.gtk_theme) > 0);
 
     SECTION = "a11y.font";
     config.a11y.font.increment                = read_value_percents(cfg, SECTION, "increment",
@@ -339,7 +339,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.list_image.fit);
     config.appearance.list_image.size         = read_value_int     (cfg, SECTION, "list-image-size", config.appearance.list_image.size);
 
-    config.appearance.theme                   = read_value_str_gtk (cfg, SECTION, "theme", settings, "gtk-theme-name", config.appearance.theme, FALSE);
+    config.appearance.gtk_theme               = read_value_str_gtk (cfg, SECTION, "gtk-theme", settings, "gtk-theme-name", config.appearance.gtk_theme, FALSE);
     config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", config.appearance.icon_theme, FALSE);
     config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", config.appearance.font, FALSE);
     config.appearance.fixed_login_button_width= read_value_bool    (cfg, SECTION, "fixed-login-button-width", config.appearance.fixed_login_button_width);

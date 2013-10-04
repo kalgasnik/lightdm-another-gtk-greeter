@@ -78,7 +78,7 @@ typedef struct
     {
         gchar*          ui_file;
         gchar*          css_file;
-        gchar*          theme;
+        gchar*          gtk_theme;
         gchar*          icon_theme;
         gchar*          background;
         gboolean        user_background;
@@ -132,7 +132,7 @@ typedef struct
         struct
         {
             gboolean    enabled;
-            gchar*      theme;
+            gchar*      gtk_theme;
             gchar*      icon_theme;
             gboolean    initial_state;
         } contrast;
