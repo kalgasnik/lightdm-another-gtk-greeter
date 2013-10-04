@@ -76,7 +76,7 @@ AC_CONFIG_FILES([
     data/themes/Makefile
     data/themes/default/Makefile
     data/themes/classic/Makefile
-    data/themes/sample.composite/Makefile
+    data/themes/sample.css.dark/Makefile
     src/Makefile
     po/Makefile.in])
 AC_OUTPUT

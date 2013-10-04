@@ -1,1 +1,1 @@
-SUBDIRS = default classic sample.composite
+SUBDIRS = default classic sample.css.dark

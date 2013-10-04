@@ -194,6 +194,7 @@ gint show_message(const gchar* title,
     gtk_widget_hide(greeter.ui.messagebox_layout);
     gtk_widget_show(greeter.ui.main_layout);
     gtk_widget_set_sensitive(greeter.ui.panel_layout, TRUE);
+    focus_main_window();
     return info.response;
 }
 
@@ -450,6 +451,18 @@ void update_main_window_layout(void)
     else if(y + size.height > size_layout.height)
         y = size_layout.height - size.height - 1;
     gtk_fixed_move(GTK_FIXED(greeter.ui.main_layout), greeter.ui.main_content, x, y);
+}
+
+void focus_main_window(void)
+{
+    GtkWidget* widget = greeter.ui.main_content;
+    if(gtk_widget_is_visible(greeter.ui.prompt_entry))
+        widget = greeter.ui.prompt_entry;
+    else if(gtk_widget_is_visible(greeter.ui.users_widget))
+        widget = greeter.ui.users_widget;
+    else if(gtk_widget_is_visible(greeter.ui.login_widget))
+        widget = greeter.ui.login_widget;
+    gtk_widget_grab_focus(widget);
 }
 
 /* ---------------------------------------------------------------------------*

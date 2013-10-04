@@ -309,5 +309,6 @@ void set_widget_toggled                (GtkWidget* widget,
 void clear_container                   (GtkContainer* container);
 /* Set positions of main window according to settings and current program state */
 void update_main_window_layout         (void);
+void focus_main_window                 (void);
 
 #endif // _SHARES_H_INCLUDED_

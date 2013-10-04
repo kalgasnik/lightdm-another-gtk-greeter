@@ -458,8 +458,8 @@ static void run_gui(void)
 
     on_screen_changed(greeter.ui.screen_window, NULL, FALSE);
     gtk_widget_show(greeter.ui.screen_window);
-    gtk_widget_grab_focus(greeter.ui.main_content);
     update_main_window_layout();
+    focus_main_window();
     gtk_main();
 }
 
@@ -1461,7 +1461,7 @@ gboolean on_panel_window_key_press(GtkWidget* widget,
         case GDK_KEY_F10: case GDK_KEY_Escape:
             if(greeter.ui.panel_menubar)
                 gtk_menu_shell_cancel(GTK_MENU_SHELL(greeter.ui.panel_menubar));
-            gtk_widget_grab_focus(greeter.ui.main_content);
+            focus_main_window();
             break;
         default:
             return FALSE;
