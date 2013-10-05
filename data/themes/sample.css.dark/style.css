@@ -1,4 +1,4 @@
-@define-color window_color rgba(25, 25, 25, 0.45);
+@define-color window_color rgba(25, 25, 25, 0.55);
 
 @define-color label_font_color lightgrey;
 @define-color label_font_color_insensitive shade(@label_font_color, 0.75);
@@ -12,7 +12,7 @@
 @define-color users_box_shadow_color alpha(black, 0.4);
 
 @define-color button_border_color rgba(0, 0, 0, 0.35);
-@define-color button_color rgba(0, 0, 0, 0.1);
+@define-color button_color rgba(20, 20, 20, 0.1);
 @define-color button_color_hover rgba(0, 0, 0, 0.25);
 @define-color button_color_active rgba(0, 0, 0, 0.45);
 @define-color button_color_focused rgba(0, 0, 0, 0.65);
@@ -23,7 +23,48 @@
 @define-color button_font_shadow_color_insensitive shade(@button_font_color_insensitive, 0.5);
 
 @define-color combobox_font_color shade(@label_font_color, 0.9);
-@define-color combobox_font_color_insensitive shade(@label_font_color_insensitive, 0.9);
+@define-color combobox_font_color_insensitive shade(@label_font_color_insensitive, 0.8);
+
+@define-color entry_box_shadow_color lightgrey;
+@define-color entry_border_color grey;
+
+@define-color menu_color rgba(55, 55, 55, 0.8);
+@define-color menu_text_color @label_font_color;
+@define-color menu_text_color_active shade(@menu_text_color, 1.7);
+
+.menu
+{
+	background: @menu_color;
+	border: 1px solid @button_border_color;
+}
+
+.menu .menuitem
+{
+	padding: 4px;
+}
+
+.menu .menuitem:active,
+.menu .menuitem:hover
+{
+	background-color: @theme_selected_bg_color;
+	background-image: linear-gradient(to bottom,
+		shade (@theme_selected_bg_color, 1.0),
+		shade (@theme_selected_bg_color, 0.85));
+}
+
+.menu .menuitem:insensitive
+{
+	background-color: @menu_color;
+}
+
+.menu .menuitem:active,
+.menu .menuitem *:active,
+.menu .menuitem:hover,
+.menu .menuitem *:hover
+{
+	color: @menu_text_color_active;
+	text-shadow: 0px 0px 3px @button_font_shadow_color;
+}
 
 GtkLabel
 {
@@ -63,16 +104,18 @@ GtkButton:focused
     transition: 125ms linear;
 }
 
-GtkButton:insensitive
+GtkButton *:insensitive
 {
     background: @button_color_insensitive;
-    text-shadow: 1px 1px @button_font_shadow_color_insensitive;
-    transition: 250ms linear;
+    color: @combobox_font_color_insensitive;
+    text-shadow: 1px 1px shade(@combobox_font_color_insensitive, 0.5);
 }
 
-GtkComboBox
+GtkComboBox .separator
 {
-	-GtkComboBox-shadow-type: none;
+	-GtkWidget-wide-separators: true;
+	-GtkWidget-horizontal-separator: 0;
+	-GtkWidget-vertical-separator: 0;
 }
 
 GtkComboBox *
@@ -82,9 +125,36 @@ GtkComboBox *
 
 GtkComboBox *:insensitive
 {
+    background: @button_color_insensitive;
     color: @combobox_font_color_insensitive;
     text-shadow: 1px 1px shade(@combobox_font_color_insensitive, 0.5);
     -GtkArrow-arrow-scaling: 0;
+}
+
+.entry
+{
+    box-shadow: inset 1px 1px alpha(@entry_box_shadow_color, 0.1);
+    padding: 3px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: @entry_border_color;
+    border-radius: 3px;
+    background-image: -gtk-gradient(linear, left top, left bottom,
+                                    from (shade(#ddd, 0.9)),
+                                    to (#ddd));
+}
+
+.entry:active,
+.entry:focus
+{
+    border-color: shade(@entry_border_color, 0.6);
+}
+
+.entry:selected,
+.entry:selected:focus
+{
+    background-color: lightgrey;
+    color: black;
 }
 
 GtkSpinner
@@ -96,6 +166,7 @@ GtkSpinner
 {
     border-radius: 20px;
     border: 2px solid alpha(shade(@greeter_head_color, 0.75), 0.5);
+    padding: 0px;
 }
 
 #greeter_center, #messagebox_content
@@ -157,7 +228,13 @@ GtkSpinner
     border-width: 1px;
     border-color: @button_border_color;
     box-shadow: 0px 0px 1px @users_box_shadow_color;
-    text-shadow: 0px 0px 3px @users_font_shadow_color;
+    text-shadow: 0px 0px 1px @users_font_shadow_color;
+}
+
+#users_widget:hover:selected
+{
+    box-shadow: 0px 0px 3px @users_box_shadow_color;
+    text-shadow: none;
 }
 
 #dialog_window, #dialog_window_info, #dialog_window_warning,

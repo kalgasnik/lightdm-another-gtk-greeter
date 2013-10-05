@@ -15,7 +15,7 @@
     border: 1px solid shade(@bg_color, 0.75);
 }
 
-#main_content, #messagebox_content
+#main_content, #messagebox_content, #panel_content
 {
     background: @bg_color;
 }

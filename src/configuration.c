@@ -43,7 +43,8 @@ static void save_key_file                          (GKeyFile* key_file,
 static void read_appearance_section                (GKeyFile* key_file,
                                                     const gchar* section,
                                                     const gchar* path,
-                                                    GtkSettings* settings);
+                                                    GtkSettings* settings,
+                                                    const gchar* default_theme);
 
 static gboolean read_value_bool                    (GKeyFile* key_file,
                                                     const gchar* section,
@@ -156,7 +157,7 @@ void load_settings(void)
     config.greeter.allow_password_toggle      = read_value_bool    (cfg, SECTION, "allow-password-toggle",  FALSE);
 
     SECTION = "appearance";
-    config.appearance.ui_file                 = "themes/default/greeter.ui";
+    config.appearance.ui_file                 = NULL;
     config.appearance.css_files               = NULL;
     config.appearance.background              = NULL;
     config.appearance.user_background         = TRUE;
@@ -180,7 +181,7 @@ void load_settings(void)
     config.appearance.position                = WINDOW_POSITION_CENTER;
     config.appearance.position_is_relative    = FALSE;
 
-    read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings);
+    read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
 
     SECTION = "panel";
     config.panel.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -305,9 +306,10 @@ static void save_key_file(GKeyFile* key_file,
 static void read_appearance_section(GKeyFile* cfg,
                                     const gchar* SECTION,
                                     const gchar* path,
-                                    GtkSettings* settings)
+                                    GtkSettings* settings,
+                                    const gchar* default_theme)
 {
-    gchar* theme = read_value_str(cfg, SECTION, "greeter-theme", NULL);
+    gchar* theme = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
     if(theme)
     {
         GError* error = NULL;
@@ -316,7 +318,7 @@ static void read_appearance_section(GKeyFile* cfg,
         if(g_key_file_load_from_file(theme_cfg, theme_filename, G_KEY_FILE_NONE, &error))
         {
             gchar* theme_path = g_build_filename(GREETER_DATA_DIR, "themes", theme, NULL);
-            read_appearance_section(theme_cfg, SECTION, theme_path, settings);
+            read_appearance_section(theme_cfg, SECTION, theme_path, settings, NULL);
             g_free(theme_path);
         }
         else

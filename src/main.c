@@ -240,20 +240,27 @@ static void init_css(void)
 
 static gboolean init_gui(void)
 {
+    if(!config.appearance.ui_file)
+    {
+        const gchar* message = "No UI file defined";
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Error"),
+                            _("Error loading UI file:\n\n%s"), _(message));
+        g_critical("Error loading UI file: %s", message);
+        return FALSE;
+    }
+
     g_message("Loading UI file: %s", config.appearance.ui_file);
 
     GError* error = NULL;
     GtkBuilder* builder = gtk_builder_new();
     if(!gtk_builder_add_from_file(builder, config.appearance.ui_file, &error))
     {
-        g_critical("Error loading UI file: %s", error->message);
         show_message_dialog(GTK_MESSAGE_ERROR, _("Error"),
                             _("Error loading UI file:\n\n%s"), error->message);
+        g_critical("Error loading UI file: %s", error->message);
         g_clear_error(&error);
         return FALSE;
     }
-
-    gdk_window_set_cursor(gdk_get_default_root_window(), gdk_cursor_new(GDK_LEFT_PTR));
 
     struct BuilderWidget
     {
@@ -412,6 +419,7 @@ static gboolean init_gui(void)
     load_sessions_list();
     load_users_list();
 
+    gdk_window_set_cursor(gdk_get_default_root_window(), gdk_cursor_new(GDK_LEFT_PTR));
     set_logo_image();
     set_widget_text(greeter.ui.host_widget, lightdm_get_hostname());
 
@@ -446,9 +454,6 @@ static void run_gui(void)
         }
     }
 
-    if(config.appearance.background && !config.appearance.user_background)
-        set_background(config.appearance.background);
-
     if(config.appearance.fixed_login_button_width)
         set_login_button_width();
 
@@ -465,6 +470,8 @@ static void run_gui(void)
     gtk_widget_show(greeter.ui.screen_window);
     update_main_window_layout();
     focus_main_window();
+    if(config.appearance.background && !config.appearance.user_background)
+        set_background(config.appearance.background);
     gtk_main();
 }
 
@@ -854,13 +861,24 @@ static gboolean on_draw_screen_background(GtkWidget* widget,
 }
 
 static void set_window_background(GdkWindow* window,
+                                  GdkScreen* screen,
                                   GdkPixbuf* image,
                                   GdkRGBA* color)
 {
     static gulong draw_handler_id = 0;
     if(image)
     {
-        greeter.state.window_background = GDK_PIXBUF(g_object_ref(image));
+        GdkPixbuf* pixbuf = gdk_pixbuf_scale_simple(image,
+                                                    gdk_screen_get_width(screen),
+                                                    gdk_screen_get_height(screen),
+                                                    GDK_INTERP_BILINEAR);
+        if(!gdk_pixbuf_get_has_alpha(pixbuf))
+        {
+            GdkPixbuf* p = gdk_pixbuf_add_alpha(pixbuf, FALSE, 255, 255, 255);
+            g_object_unref(pixbuf);
+            pixbuf = p;
+        }
+        greeter.state.window_background = pixbuf;
         draw_handler_id = g_signal_connect(greeter.ui.screen_window, "draw",
                                            G_CALLBACK(on_draw_screen_background), NULL);
     }
@@ -890,7 +908,6 @@ static void set_background(const gchar* value)
 
         GError* error = NULL;
         background_pixbuf = gdk_pixbuf_new_from_file(value, &error);
-
         if(error)
         {
             g_warning("Failed to load background: %s", error->message);
@@ -903,7 +920,7 @@ static void set_background(const gchar* value)
     {
         GdkScreen* screen = gdk_display_get_screen(gdk_display_get_default(), i);
         if(screen == gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window)))
-            set_window_background(gtk_widget_get_window(greeter.ui.screen_window),
+            set_window_background(gtk_widget_get_window(greeter.ui.screen_window), screen,
                                   background_pixbuf, &background_color);
         else
             set_screen_background(screen,
