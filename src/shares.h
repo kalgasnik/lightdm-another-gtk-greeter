@@ -26,7 +26,7 @@
 
 /* Types */
 
-struct _WindowPosition
+typedef struct
 {
     gboolean x_is_absolute;
     gboolean y_is_absolute;
@@ -39,9 +39,7 @@ struct _WindowPosition
     } anchor;
     int x;
     int y;
-};
-
-typedef struct _WindowPosition WindowPosition;
+} WindowPosition;
 
 typedef enum
 {

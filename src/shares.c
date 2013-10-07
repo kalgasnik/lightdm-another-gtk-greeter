@@ -117,11 +117,13 @@ void show_message_dialog(GtkMessageType type,
     gtk_widget_hide(greeter.ui.screen_layout);
     gtk_widget_set_name(dialog, window_name);
     gtk_window_set_title(GTK_WINDOW(dialog), title);
-    gtk_widget_show_all(dialog);
     set_window_position(dialog, &WINDOW_POSITION_CENTER);
+    gtk_widget_show_all(dialog);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     gtk_widget_show(greeter.ui.screen_layout);
+    gtk_container_check_resize(greeter.ui.screen_layout);
+    focus_main_window();
 }
 
 gint show_message(const gchar* title,
