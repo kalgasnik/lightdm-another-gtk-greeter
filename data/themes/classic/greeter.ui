@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">preferences-desktop-accessibility</property>
-  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="icon_name">system-shutdown</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">preferences-desktop-accessibility</property>
   </object>
   <object class="GtkListStore" id="language_liststore">
     <columns>
@@ -17,6 +17,16 @@
       <column type="gchararray"/>
       <!-- column-name display_name -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="session_liststore">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name display_name -->
+      <column type="gchararray"/>
+      <!-- column-name image -->
+      <column type="GdkPixbuf"/>
     </columns>
   </object>
   <object class="GtkWindow" id="screen_window">
@@ -199,6 +209,7 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
+                <signal name="size-allocate" handler="on_main_content_size_allocate" swapped="no"/>
                 <child>
                   <object class="GtkViewport" id="main_border">
                     <property name="visible">True</property>
@@ -575,16 +586,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="session_liststore">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name image -->
-      <column type="GdkPixbuf"/>
-    </columns>
   </object>
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>

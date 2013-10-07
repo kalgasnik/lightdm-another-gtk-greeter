@@ -173,15 +173,15 @@ void a11y_toggle_osk()
     g_return_if_fail(a11y.onscreen_keyboard != NULL);
 
     a11y.state.osk = !a11y.state.osk;
+    gtk_widget_hide(greeter.ui.main_content);
     if(greeter.ui.a11y.osk_widget);
         set_widget_toggled(greeter.ui.a11y.osk_widget, a11y.state.osk, G_CALLBACK(on_a11y_osk_toggled));
-
     if(a11y.state.osk)
         a11y.onscreen_keyboard->open();
     else
         a11y.onscreen_keyboard->close();
     update_main_window_layout();
-//    update_windows_idle();
+    gtk_widget_show(greeter.ui.main_content);
 }
 
 void a11y_toggle_font(void)
@@ -247,7 +247,6 @@ void a11y_toggle_dpi(void)
     }
     g_object_set(settings, "gtk-xft-dpi", value*1024, NULL);
     set_state_value_int("a11y", "dpi", a11y.state.dpi);
-    update_main_window_layout();
 }
 
 void a11y_toggle_contrast()
@@ -264,7 +263,6 @@ void a11y_toggle_contrast()
     g_object_set(settings, "gtk-icon-theme-name",
                  a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
     set_state_value_int("a11y", "contrast", a11y.state.contrast);
-    update_main_window_layout();
 }
 
 /* ------------------------------------------------------------------------- *
@@ -404,9 +402,7 @@ static gboolean spawn_onboard(void)
         else
         {
             g_message("\"Onboard\" socket: %d", id);
-
             gboolean at_top;
-
             switch(config.a11y.osk.onboard_position)
             {
             case ONBOARD_POS_TOP: at_top = TRUE; break;
@@ -414,6 +410,9 @@ static gboolean spawn_onboard(void)
             case ONBOARD_POS_PANEL: at_top = config.panel.position == PANEL_POS_TOP; break;
             case ONBOARD_POS_PANEL_OPPOSITE: at_top = config.panel.position != PANEL_POS_TOP;
             };
+
+            rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.onboard_layout,
+                                 at_top ? UI_LAYOUT_ROW_ONBOARD_TOP : UI_LAYOUT_ROW_ONBOARD_BOTTOM);
 
             if(config.a11y.osk.onboard_height_is_percent)
             {
@@ -425,9 +424,6 @@ static gboolean spawn_onboard(void)
             }
             else
                 gtk_widget_set_size_request(greeter.ui.onboard_content, -1, config.a11y.osk.onboard_height);
-
-            rearrange_grid_child(GTK_GRID(greeter.ui.screen_layout), greeter.ui.onboard_layout,
-                                 at_top ? UI_LAYOUT_ROW_ONBOARD_TOP : UI_LAYOUT_ROW_ONBOARD_BOTTOM);
             gtk_container_add(GTK_CONTAINER(greeter.ui.onboard_content), GTK_WIDGET(socket));
             gtk_socket_add_id(socket, atol(text));
             gtk_widget_show(GTK_WIDGET(socket));

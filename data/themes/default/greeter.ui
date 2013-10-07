@@ -199,6 +199,7 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <signal name="key-press-event" handler="on_login_window_key_press" swapped="no"/>
+                <signal name="size-allocate" handler="on_main_content_size_allocate" swapped="no"/>
                 <child>
                   <object class="GtkViewport" id="main_border">
                     <property name="visible">True</property>

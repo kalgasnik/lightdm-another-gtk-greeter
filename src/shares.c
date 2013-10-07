@@ -422,18 +422,15 @@ void update_main_window_layout(void)
         return;
     const WindowPosition* p = &config.appearance.position;
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
-    GtkRequisition size;
-    GtkAllocation size_layout;
+    GtkAllocation size, size_layout;
     GdkRectangle geometry;
     gint x, y;
 
     gtk_container_check_resize(GTK_CONTAINER(greeter.ui.screen_layout));
-
-    gtk_widget_get_preferred_size(greeter.ui.main_content, NULL, &size);
+    gtk_widget_get_allocation(greeter.ui.main_content, &size);
     gtk_widget_get_allocation(greeter.ui.main_layout, &size_layout);
     if(config.appearance.position_is_relative)
-        geometry = (GtkAllocation){.x = 0, .y = 0,
-                                   .width = size_layout.width, .height = size_layout.height};
+        geometry = (GtkAllocation){.x = 0, .y = 0, .width = size_layout.width, .height = size_layout.height};
     else
         gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
 
@@ -446,10 +443,11 @@ void update_main_window_layout(void)
     if(!config.appearance.position_is_relative)
         gtk_widget_translate_coordinates(greeter.ui.screen_window, greeter.ui.main_layout,
                                          x, y, &x, &y);
-    if(y < 0)
-        y = 1;
-    else if(y + size.height > size_layout.height)
+
+    if(y + size.height > size_layout.height)
         y = size_layout.height - size.height - 1;
+    if(y < 0)
+        y = 0;
     gtk_fixed_move(GTK_FIXED(greeter.ui.main_layout), greeter.ui.main_content, x, y);
 }
 

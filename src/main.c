@@ -132,6 +132,9 @@ gboolean on_password_mouse_clicked          (GtkWidget* widget,
 void on_screen_changed                      (GtkWidget* widget,
                                              GdkScreen* previous_screen,
                                              gboolean update_layout);
+void on_main_content_size_allocate          (GtkWidget *widget,
+                                             GdkRectangle *allocation,
+                                             gpointer data);
 
 /* ------------------------------------------------------------------------- *
  * Definition: main
@@ -1551,7 +1554,20 @@ void on_screen_changed(GtkWidget* widget,
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
-    /* Call it separately at application start */
     if(update_layout)
         update_main_window_layout();
+}
+
+void on_main_content_size_allocate(GtkWidget *widget,
+                                   GdkRectangle *allocation,
+                                   gpointer data)
+{
+
+    static GdkRectangle old_allocation;
+    if(allocation->width != old_allocation.width || allocation->height != old_allocation.height ||
+       allocation->x != old_allocation.x || allocation->y != old_allocation.y)
+    {
+        old_allocation = *allocation;
+        update_main_window_layout();
+    }
 }
