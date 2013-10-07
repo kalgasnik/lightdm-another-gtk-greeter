@@ -122,7 +122,6 @@ void show_message_dialog(GtkMessageType type,
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     gtk_widget_show(greeter.ui.screen_layout);
-    gtk_container_check_resize(greeter.ui.screen_layout);
     focus_main_window();
 }
 
