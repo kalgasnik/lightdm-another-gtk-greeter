@@ -76,8 +76,8 @@ typedef struct
 
     struct
     {
+        GSList*         themes_stack;
         gchar*          ui_file;
-        GSList*         css_files;
         gchar*          gtk_theme;
         gchar*          icon_theme;
         gchar*          background;
@@ -192,5 +192,9 @@ gint get_state_value_int         (const gchar* section,
 void set_state_value_int         (const gchar* section,
                                   const gchar* key,
                                   gint value);
+
+/* Apply Gtk theme and load all CSS fixes for it from greeter themes */
+void apply_gtk_theme             (GtkSettings* settings,
+                                  const gchar* gtk_theme);
 
 #endif // _CONFIGURAION_H_INCLUDED_

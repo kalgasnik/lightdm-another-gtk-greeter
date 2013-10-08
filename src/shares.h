@@ -73,6 +73,7 @@ typedef struct
         gboolean        password_required;
         gboolean        show_password;
         GdkPixbuf*      window_background;
+        gboolean        gtk_theme_applied;
     } state;
 
     struct
