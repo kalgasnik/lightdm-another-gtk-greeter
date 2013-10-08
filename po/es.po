@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: 1.0.4.9\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-08-14 14:40+0300\n"
-"PO-Revision-Date: 2013-08-14 14:47+0300\n"
-"Last-Translator: PAblo Lezaeta Reyes <prflr88@gmail.com>\n"
+"PO-Revision-Date: 2013-10-08 03:19-0400\n"
+"Last-Translator: Pablo Roberto Francisco Lezaeta Reyes <prflr99@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -84,26 +84,25 @@ msgstr ""
 
 #: ../src/indicator_a11y.c:473
 msgid "Onboard"
-msgstr "Abordo (Onboard)"
+msgstr "OnBoard"
 
 #: ../src/indicator_a11y.c:473
 msgid "Failed to start 'onboard', see logs for details."
 msgstr ""
-"Error al iniciar 'abordo' (Onboard), Vea los registros (Logs) para más "
-"detalles."
+"Error al iniciar 'Onboard', Vea los registros (Logs) para más detalles."
 
 #: ../src/indicator_power.c:57
 msgid "Suspend the computer?"
-msgstr "Suspender equipo"
+msgstr "¿Suspender equipo?"
 
 #: ../src/indicator_power.c:65
 msgid "Hibernate the computer?"
-msgstr "Hibernar equipo"
+msgstr "¿Hibernar equipo?"
 
 #: ../src/indicator_power.c:73
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr ""
-"¿Está seguro que desea cerrar todos los programas para reiniciar el euipo?"
+"¿Está seguro que desea cerrar todos los programas para reiniciar el equipo?"
 
 #: ../src/indicator_power.c:81
 msgid "Are you sure you want to close all programs and shutdown the computer?"
@@ -113,7 +112,7 @@ msgstr ""
 
 #: ../src/indicator_power.c:147
 msgid "Return to Login"
-msgstr "Regresar a la entrada"
+msgstr "Regresar a la pantalla de entrada"
 
 #: ../src/indicator_power.c:175 ../src/indicator_power.c:176
 #, c-format
