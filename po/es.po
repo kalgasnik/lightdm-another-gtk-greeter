@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: 1.0.4.9\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-08-14 14:40+0300\n"
-"PO-Revision-Date: 2013-10-08 03:19-0400\n"
+"PO-Revision-Date: 2013-10-08 03:24-0400\n"
 "Last-Translator: Pablo Roberto Francisco Lezaeta Reyes <prflr99@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: es\n"
@@ -89,7 +89,7 @@ msgstr "OnBoard"
 #: ../src/indicator_a11y.c:473
 msgid "Failed to start 'onboard', see logs for details."
 msgstr ""
-"Error al iniciar 'Onboard', Vea los registros (Logs) para más detalles."
+"Error al iniciar 'OnBoard', Vea los registros (Logs) para más detalles."
 
 #: ../src/indicator_power.c:57
 msgid "Suspend the computer?"
