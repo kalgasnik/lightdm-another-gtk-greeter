@@ -168,7 +168,7 @@ void load_settings(void)
 
     SECTION = "appearance";
     config.appearance.themes_stack            = NULL;
-    config.appearance.ui_file                 = NULL;
+    config.appearance.ui_file                 = "themes/default/greeter.ui";
     config.appearance.background              = NULL;
     config.appearance.user_background         = TRUE;
     config.appearance.x_background            = FALSE;
