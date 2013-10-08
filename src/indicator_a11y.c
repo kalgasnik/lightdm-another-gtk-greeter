@@ -258,8 +258,7 @@ void a11y_toggle_contrast()
         set_widget_toggled(greeter.ui.a11y.contrast_widget, a11y.state.contrast, G_CALLBACK(on_a11y_contrast_toggled));
 
     GtkSettings* settings = gtk_settings_get_default();
-    g_object_set(settings, "gtk-theme-name",
-                 a11y.state.contrast ? config.a11y.contrast.gtk_theme : config.appearance.gtk_theme, NULL);
+    apply_gtk_theme(settings, a11y.state.contrast ? config.a11y.contrast.gtk_theme : config.appearance.gtk_theme);
     g_object_set(settings, "gtk-icon-theme-name",
                  a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
     set_state_value_int("a11y", "contrast", a11y.state.contrast);

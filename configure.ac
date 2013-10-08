@@ -75,6 +75,7 @@ AC_CONFIG_FILES([
     data/Makefile
     data/themes/Makefile
     data/themes/default/Makefile
+    data/themes/default/gtk-themes-fixes/Makefile
     data/themes/classic/Makefile
     data/themes/sample.css.dark/Makefile
     src/Makefile

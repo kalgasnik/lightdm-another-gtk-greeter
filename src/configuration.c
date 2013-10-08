@@ -35,6 +35,19 @@ GreeterConfig config =
     }
 };
 
+/* Types */
+
+/* Catched theme data */
+typedef struct
+{
+    /* Greeter theme name */
+    /* gchar* name; */
+    /* Path to theme directory */
+    gchar* path;
+    /* Path to theme .css file */
+    gchar* css_path;
+} LoadedGreeterTheme;
+
 /* Static functions */
 
 static void save_key_file                          (GKeyFile* key_file,
@@ -111,11 +124,8 @@ static gchar* read_value_path                      (GKeyFile* key_file,
                                                     const gchar* default_value,
                                                     const gchar* dir);
 
-static GSList* read_value_path_cascade             (GKeyFile* key_file,
-                                                    const gchar* section,
-                                                    const gchar* key,
-                                                    GSList* list,
-                                                    const gchar* dir);
+static void read_css_file                          (const gchar* path,
+                                                    GdkScreen* screen);
 
 /* Static variables */
 
@@ -157,8 +167,8 @@ void load_settings(void)
     config.greeter.allow_password_toggle      = read_value_bool    (cfg, SECTION, "allow-password-toggle",  FALSE);
 
     SECTION = "appearance";
+    config.appearance.themes_stack            = NULL;
     config.appearance.ui_file                 = NULL;
-    config.appearance.css_files               = NULL;
     config.appearance.background              = NULL;
     config.appearance.user_background         = TRUE;
     config.appearance.x_background            = FALSE;
@@ -182,6 +192,7 @@ void load_settings(void)
     config.appearance.position_is_relative    = FALSE;
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
+    config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
 
     SECTION = "panel";
     config.panel.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -282,6 +293,26 @@ void set_state_value_int(const gchar* section,
     save_key_file(state_data.config, state_data.path);
 }
 
+void apply_gtk_theme(GtkSettings* settings,
+                     const gchar* gtk_theme)
+{
+    GdkScreen* screen = gdk_screen_get_default();
+    for(GSList* item = config.appearance.themes_stack; item != NULL; item = g_slist_next(item))
+    {
+        LoadedGreeterTheme* theme = item->data;
+        gchar* fix_css_path_wo_ext = g_build_filename(theme->path, "gtk-themes-fixes", gtk_theme, NULL);
+        gchar* fix_css_path = g_strconcat(fix_css_path_wo_ext, ".css", NULL);
+        if(theme->css_path)
+            read_css_file(theme->css_path, screen);
+        if(g_file_test(fix_css_path, G_FILE_TEST_IS_REGULAR))
+            read_css_file(fix_css_path, screen);
+        g_free(fix_css_path);
+        g_free(fix_css_path_wo_ext);
+    }
+    g_object_set(settings, "gtk-theme-name", gtk_theme, NULL);
+    greeter.state.gtk_theme_applied = TRUE;
+}
+
 /* ---------------------------------------------------------------------------*
  * Definitions: static
  * -------------------------------------------------------------------------- */
@@ -309,17 +340,18 @@ static void read_appearance_section(GKeyFile* cfg,
                                     GtkSettings* settings,
                                     const gchar* default_theme)
 {
-    gchar* theme = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
-    if(theme)
+    LoadedGreeterTheme* theme = g_malloc(sizeof(LoadedGreeterTheme));
+    gchar* base_theme_name = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
+    if(base_theme_name)
     {
         GError* error = NULL;
         GKeyFile* theme_cfg = g_key_file_new();
-        gchar* theme_filename = g_build_filename(GREETER_DATA_DIR, "themes", theme, "theme.conf", NULL);
+        gchar* theme_filename = g_build_filename(GREETER_DATA_DIR, "themes", base_theme_name, "theme.conf", NULL);
         if(g_key_file_load_from_file(theme_cfg, theme_filename, G_KEY_FILE_NONE, &error))
         {
-            gchar* theme_path = g_build_filename(GREETER_DATA_DIR, "themes", theme, NULL);
-            read_appearance_section(theme_cfg, SECTION, theme_path, settings, NULL);
-            g_free(theme_path);
+            gchar* path = g_build_filename(GREETER_DATA_DIR, "themes", base_theme_name, NULL);
+            read_appearance_section(theme_cfg, SECTION, path, settings, NULL);
+            g_free(path);
         }
         else
         {
@@ -328,16 +360,17 @@ static void read_appearance_section(GKeyFile* cfg,
         }
         g_free(theme_filename);
         g_key_file_free(theme_cfg);
-        g_free(theme);
+        g_free(base_theme_name);
     }
 
+    theme->path = g_strdup(path);
+    theme->css_path                           = read_value_path    (cfg, SECTION, "css-file", NULL, path);
+    config.appearance.themes_stack            = g_slist_prepend    (config.appearance.themes_stack, theme);
     config.appearance.ui_file                 = read_value_path    (cfg, SECTION, "ui-file", config.appearance.ui_file, path);
-    config.appearance.css_files               = read_value_path_cascade(cfg, SECTION, "css-file", config.appearance.css_files, path);
     config.appearance.background              = read_value_path    (cfg, SECTION, "background", config.appearance.background, path);
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
     config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
     config.appearance.logo                    = read_value_path    (cfg, SECTION, "logo", config.appearance.logo, path);
-
     config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_image.enabled);
     config.appearance.user_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.user_image.fit);
@@ -346,7 +379,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.list_image.fit);
     config.appearance.list_image.size         = read_value_int     (cfg, SECTION, "list-image-size", config.appearance.list_image.size);
 
-    config.appearance.gtk_theme               = read_value_str_gtk (cfg, SECTION, "gtk-theme", settings, "gtk-theme-name", config.appearance.gtk_theme, FALSE);
+    config.appearance.gtk_theme               = read_value_str     (cfg, SECTION, "gtk-theme", config.appearance.gtk_theme);
     config.appearance.icon_theme              = read_value_str_gtk (cfg, SECTION, "icon-theme", settings, "gtk-icon-theme-name", config.appearance.icon_theme, FALSE);
     config.appearance.font                    = read_value_str_gtk (cfg, SECTION, "font-name", settings, "gtk-font-name", config.appearance.font, FALSE);
     config.appearance.fixed_login_button_width= read_value_bool    (cfg, SECTION, "fixed-login-button-width", config.appearance.fixed_login_button_width);
@@ -556,17 +589,19 @@ static gchar* read_value_path(GKeyFile* key_file,
     return value;
 }
 
-static GSList* read_value_path_cascade(GKeyFile* key_file,
-                                       const gchar* section,
-                                       const gchar* key,
-                                       GSList* list,
-                                       const gchar* dir)
+static void read_css_file(const gchar* path,
+                          GdkScreen* screen)
 {
-    gchar* key_reset = g_strconcat(key, "-reset", NULL);
-    if(read_value_bool(key_file, section, key_reset, FALSE))
-        g_slist_free_full(list, g_free);
-    g_free(key_reset);
+    g_message("Loading CSS file: %s", path);
 
-    gchar* value = read_value_path(key_file, section, key, NULL, dir);
-    return value ? g_slist_append(list, value) : list;
+    GError* error = NULL;
+    GtkCssProvider* provider = gtk_css_provider_new();
+    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    if(!gtk_css_provider_load_from_path(provider, path, &error))
+    {
+        g_warning("Error loading CSS: %s", error->message);
+        g_clear_error(&error);
+    }
+    g_object_unref(provider);
 }
