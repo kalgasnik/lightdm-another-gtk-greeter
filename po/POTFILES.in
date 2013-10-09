@@ -3,7 +3,7 @@
 [encoding: UTF-8]
 [type: gettext/glade]data/themes/classic/greeter.ui
 [type: gettext/glade]data/themes/default/greeter.ui
-[type: gettext/glade]data/themes/sample.composite/greeter.ui
+[type: gettext/glade]data/themes/sample.css.dark/greeter.ui
 src/configuration.c
 src/indicator_a11y.c
 src/indicator_clock.c
