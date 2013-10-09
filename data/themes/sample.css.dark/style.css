@@ -32,6 +32,7 @@
 @define-color menu_text_color @label_font_color;
 @define-color menu_text_color_active shade(@menu_text_color, 1.7);
 
+
 .menu
 {
 	background: @menu_color;
@@ -46,15 +47,10 @@
 .menu .menuitem:active,
 .menu .menuitem:hover
 {
-	background-color: @theme_selected_bg_color;
-	background-image: linear-gradient(to bottom,
-		shade (@theme_selected_bg_color, 1.0),
-		shade (@theme_selected_bg_color, 0.85));
-}
-
-.menu .menuitem:insensitive
-{
-	background-color: @menu_color;
+	background: @menu_color;
+	border: 1px solid @button_border_color;
+	border-left: none;
+	border-right: none;
 }
 
 .menu .menuitem:active,
@@ -64,6 +60,26 @@
 {
 	color: @menu_text_color_active;
 	text-shadow: 0px 0px 3px @button_font_shadow_color;
+}
+
+.menu .menuitem:insensitive,
+.menu .menuitem *:insensitive
+{
+    background: transparent;
+    color: shade(@menu_text_color_active, 0.3);
+	text-shadow: 0px 0px 1px shade(@menu_text_color_active, 0.3);
+}
+
+.separator
+{
+    border-style: none;
+    color: shade(@menu_color, 0.9);
+}
+
+.menuitem.separator
+{
+    border-style: none;
+    color: shade(@button_border_color, 0.9);
 }
 
 GtkLabel
@@ -235,6 +251,12 @@ GtkSpinner
 {
     box-shadow: 0px 0px 3px @users_box_shadow_color;
     text-shadow: none;
+}
+
+#authentication_widget
+{
+    text-shadow: 0px 0px 4px shade(@combobox_font_color_insensitive, 0.9);
+    color: @combobox_font_color_insensitive;
 }
 
 #dialog_window, #dialog_window_info, #dialog_window_warning,
