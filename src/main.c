@@ -1068,6 +1068,7 @@ static void cancel_authentication(void)
         start_authentication(user_name);
         g_free(user_name);
     }
+    focus_main_window();
 }
 
 static void start_session(void)
@@ -1430,12 +1431,12 @@ gboolean on_login_window_key_press(GtkWidget* widget,
             break;
         case GDK_KEY_Escape:
             if(escape_time && event->time - escape_time <= config.greeter.double_escape_time)
-            {
+            {   /* Double <Esc> */
                 escape_time = 0;
                 init_user_selection();
             }
             else
-            {
+            {   /* Escape */
                 escape_time = event->time;
                 cancel_authentication();
             }
