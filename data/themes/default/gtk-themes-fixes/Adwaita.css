@@ -1,0 +1,10 @@
+#main_content, #messagebox_content, #panel_content
+{
+    background: @theme_bg_color;
+}
+
+#main_border, #messagebox_border
+{
+    border-color: alpha(shade(@theme_bg_color, 0.6), 0.75);
+}
+

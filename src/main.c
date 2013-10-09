@@ -40,7 +40,6 @@
 /* Static functions */
 
 static gboolean connect_to_lightdm          (void);
-static void init_css                        (void);
 static gboolean init_gui                    (void);
 static void run_gui                         (void);
 static void close_gui                       (void);
@@ -160,8 +159,6 @@ int main(int argc, char** argv)
     read_state();
 
     gboolean inited = connect_to_lightdm();
-    if(inited)
-        init_css();
     inited &= init_gui();
 
     if(inited)
@@ -171,6 +168,8 @@ int main(int argc, char** argv)
         init_clock_indicator();
         init_layout_indicator();
         init_user_selection();
+        if(!greeter.state.gtk_theme_applied)
+            apply_gtk_theme(gtk_settings_get_default(), config.appearance.gtk_theme);
         run_gui();
         close_gui();
     }
@@ -212,33 +211,6 @@ static gboolean connect_to_lightdm(void)
     g_signal_connect(lightdm_user_list_get_instance(), "user-removed", G_CALLBACK(on_user_removed), NULL);
 
     return TRUE;
-}
-
-static void read_css_file(const gchar* path, GdkScreen* screen)
-{
-    g_message("Loading CSS file: %s", path);
-
-    GError* error = NULL;
-    GtkCssProvider* provider = gtk_css_provider_new();
-    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider),
-                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    if(!gtk_css_provider_load_from_path(provider, path, &error))
-    {
-        g_warning("Error loading CSS: %s", error->message);
-        g_clear_error(&error);
-    }
-    g_object_unref(provider);
-}
-
-static void init_css(void)
-{
-    if(!config.appearance.css_files)
-    {
-        g_message("No CSS files defined");
-        return;
-    }
-    g_slist_foreach(config.appearance.css_files, (GFunc)read_css_file,
-                    gdk_display_get_default_screen(gdk_display_get_default()));
 }
 
 static gboolean init_gui(void)
@@ -1096,6 +1068,7 @@ static void cancel_authentication(void)
         start_authentication(user_name);
         g_free(user_name);
     }
+    focus_main_window();
 }
 
 static void start_session(void)
@@ -1458,12 +1431,12 @@ gboolean on_login_window_key_press(GtkWidget* widget,
             break;
         case GDK_KEY_Escape:
             if(escape_time && event->time - escape_time <= config.greeter.double_escape_time)
-            {
+            {   /* Double <Esc> */
                 escape_time = 0;
                 init_user_selection();
             }
             else
-            {
+            {   /* Escape */
                 escape_time = event->time;
                 cancel_authentication();
             }

@@ -450,6 +450,7 @@ void update_main_window_layout(void)
     if(y < 0)
         y = 0;
     gtk_fixed_move(GTK_FIXED(greeter.ui.main_layout), greeter.ui.main_content, x, y);
+    gtk_container_check_resize(GTK_CONTAINER(greeter.ui.screen_layout));
 }
 
 void focus_main_window(void)
