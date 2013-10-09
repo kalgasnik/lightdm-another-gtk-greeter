@@ -832,7 +832,7 @@ static gboolean on_draw_screen_background(GtkWidget* widget,
 {
     gdk_cairo_set_source_pixbuf(cr, greeter.state.window_background, 0, 0);
     cairo_paint(cr);
-    return TRUE;
+    return FALSE;
 }
 
 static void set_window_background(GdkWindow* window,
@@ -854,13 +854,17 @@ static void set_window_background(GdkWindow* window,
             pixbuf = p;
         }
         greeter.state.window_background = pixbuf;
+        gtk_widget_set_app_paintable(greeter.ui.screen_window, TRUE);
         draw_handler_id = g_signal_connect(greeter.ui.screen_window, "draw",
                                            G_CALLBACK(on_draw_screen_background), NULL);
     }
     else
     {
         if(draw_handler_id)
+        {
+            gtk_widget_set_app_paintable(greeter.ui.screen_window, FALSE);
             g_signal_handler_disconnect(greeter.ui.screen_window, draw_handler_id);
+        }
         gtk_widget_override_background_color(greeter.ui.screen_window, GTK_STATE_FLAG_NORMAL, color);
     }
 }
