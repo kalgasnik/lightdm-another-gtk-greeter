@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.0 on Thu Oct 10 01:43:09 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkImage" id="image1">
@@ -32,8 +33,8 @@
   <object class="GtkWindow" id="screen_window">
     <property name="can_focus">False</property>
     <property name="decorated">False</property>
-    <signal name="screen-changed" handler="on_screen_changed" swapped="no"/>
     <signal name="key-press-event" handler="on_special_key_press" swapped="no"/>
+    <signal name="screen-changed" handler="on_screen_changed" swapped="no"/>
     <child>
       <object class="GtkGrid" id="screen_layout">
         <property name="visible">True</property>
@@ -58,6 +59,7 @@
                     <property name="can_focus">False</property>
                     <property name="image">image1</property>
                     <property name="use_stock">False</property>
+                    <property name="always_show_image">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="power_menu">
                         <property name="visible">True</property>
@@ -104,6 +106,7 @@
                     <property name="can_focus">False</property>
                     <property name="image">image2</property>
                     <property name="use_stock">False</property>
+                    <property name="always_show_image">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="a11y_menu">
                         <property name="visible">True</property>
@@ -120,7 +123,7 @@
                           <object class="GtkCheckMenuItem" id="a11y_contrast_widget">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Hight contrast</property>
+                            <property name="label" translatable="yes">High contrast</property>
                             <signal name="toggled" handler="on_a11y_contrast_toggled" swapped="no"/>
                           </object>
                         </child>
@@ -136,7 +139,7 @@
                           <object class="GtkCheckMenuItem" id="a11y_dpi_widget">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Large DPI</property>
+                            <property name="label" translatable="yes">Large dpi</property>
                             <signal name="toggled" handler="on_a11y_dpi_toggled" swapped="no"/>
                           </object>
                         </child>
@@ -301,7 +304,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">•</property>
-                                <property name="invisible_char_set">True</property>
                                 <signal name="activate" handler="on_prompt_activate" swapped="no"/>
                                 <signal name="key-press-event" handler="on_prompt_key_press" swapped="no"/>
                               </object>
@@ -520,7 +522,7 @@
                         <property name="valign">start</property>
                         <property name="margin_right">12</property>
                         <property name="stock">gtk-dialog-error</property>
-                        <property name="icon-size">6</property>
+                        <property name="icon_size">6</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
