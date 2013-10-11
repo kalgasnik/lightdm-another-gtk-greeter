@@ -55,7 +55,8 @@ static void set_screen_background           (GdkScreen* screen,
                                              gboolean set_props);
 static void set_background                  (const gchar* value);
 static void set_logo_image                  (void);
-static void set_message_label               (const gchar* text);
+static void set_message_text                (const gchar* text);
+static void set_prompt_text                 (const gchar* text);
 static void set_login_button_state          (gboolean logged);
 static gboolean update_date_label           (gpointer dummy);
 static void set_login_button_width          (void);
@@ -263,8 +264,12 @@ static gboolean init_gui(void)
         {&greeter.ui.messagebox_icon,           "messagebox_icon",              FALSE, NULL},
 
         {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
-        {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
+        {&greeter.ui.login_label,               "login_label",                  FALSE, &greeter.ui.login_widget},
         {&greeter.ui.login_box,                 "login_box",                    FALSE, &greeter.ui.login_widget},
+
+        {&greeter.ui.no_prompt_login_widget,    "no_prompt_login_widget",       FALSE, NULL},
+        {&greeter.ui.no_prompt_login_label,     "no_prompt_login_label",        FALSE, &greeter.ui.no_prompt_login_widget},
+        {&greeter.ui.no_prompt_login_box,       "no_prompt_login_box",          FALSE, &greeter.ui.no_prompt_login_widget},
 
         {&greeter.ui.cancel_widget,             "cancel_widget",                FALSE, NULL},
         {&greeter.ui.cancel_box,                "cancel_box",                   FALSE, &greeter.ui.cancel_widget},
@@ -923,16 +928,11 @@ static void set_background(const gchar* value)
         g_object_unref(background_pixbuf);
 }
 
-static void set_message_label(const gchar* text)
-{
-    gtk_widget_set_visible(greeter.ui.message_box, text != NULL && strlen(text) > 0);
-    set_widget_text(greeter.ui.message_widget, text);
-}
-
 static void set_login_button_state(gboolean logged)
 {
-    set_widget_text(greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget,
-                    logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_LOGIN));
+    const gchar* text = logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_LOGIN);
+    set_widget_text(greeter.ui.login_label, text);
+    set_widget_text(greeter.ui.no_prompt_login_label, text);
 }
 
 static void set_logo_image(void)
@@ -972,6 +972,24 @@ static void set_logo_image(void)
             g_warning("Failed to load logo: %s", error->message);
         g_object_unref(pixbuf);
         g_clear_error(&error);
+    }
+}
+
+static void set_message_text(const gchar* text)
+{
+    gtk_widget_set_visible(greeter.ui.message_box, text != NULL && strlen(text) > 0);
+    set_widget_text(greeter.ui.message_widget, text);
+}
+
+static void set_prompt_text(const gchar* text)
+{
+    gtk_widget_set_visible(greeter.ui.prompt_box, text != NULL);
+    if(text)
+        set_widget_text(greeter.ui.prompt_text, text);
+    if(greeter.ui.no_prompt_login_box)
+    {
+        gtk_widget_set_visible(greeter.ui.login_box, text != NULL);
+        gtk_widget_set_visible(greeter.ui.no_prompt_login_box, text == NULL);
     }
 }
 
@@ -1072,7 +1090,7 @@ static void cancel_authentication(void)
     {
         greeter.state.cancelling = TRUE;
         lightdm_greeter_cancel_authentication(greeter.greeter);
-        set_message_label(NULL);
+        set_message_text(NULL);
     }
 
     if(greeter.state.no_users_list)
@@ -1110,7 +1128,7 @@ static void start_session(void)
     }
     else
     {
-        set_message_label(_("Failed to start session"));
+        set_message_text(_("Failed to start session"));
         start_authentication(lightdm_greeter_get_authentication_user(greeter.greeter));
     }
     g_free(session);
@@ -1217,7 +1235,7 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
 
     greeter.state.password_required = (type == LIGHTDM_PROMPT_TYPE_SECRET);
     greeter.state.prompted = TRUE;
-    set_widget_text(greeter.ui.prompt_text, dgettext("Linux-PAM", text));
+    set_prompt_text(dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
     gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry),
                              !greeter.state.password_required || greeter.state.show_password);
@@ -1226,8 +1244,6 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
     set_widget_toggled(greeter.ui.password_toggle_widget,
                        config.appearance.invert_password_state ? !greeter.state.show_password : greeter.state.show_password,
                        G_CALLBACK(on_password_toggled));
-    gtk_widget_show(greeter.ui.prompt_box);
-    gtk_widget_show(greeter.ui.login_box);
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
     gtk_widget_set_sensitive(greeter.ui.login_widget, TRUE);
     gtk_widget_grab_focus(greeter.ui.prompt_entry);
@@ -1238,7 +1254,7 @@ static void on_show_message(LightDMGreeter* greeter_ptr,
                             LightDMMessageType type)
 {
     g_debug("LightDM signal: show-message(%d: %s)", type, text);
-    set_message_label(text);
+    set_message_text(text);
 }
 
 static void on_authentication_complete(LightDMGreeter* greeter_ptr)
@@ -1252,9 +1268,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
         return;
     }
 
-    gtk_widget_hide(greeter.ui.prompt_box);
-    gtk_widget_hide(greeter.ui.password_toggle_box);
-    gtk_widget_show(greeter.ui.login_box);
+    set_prompt_text(NULL);
 
     #ifdef _DEBUG_
     return;
@@ -1269,12 +1283,12 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
     {
         if(greeter.state.prompted)
         {
-            set_message_label(_("Incorrect password, please try again"));
+            set_message_text(_("Incorrect password, please try again"));
             lightdm_greeter_authenticate(greeter.greeter, lightdm_greeter_get_authentication_user(greeter.greeter));
         }
         else
         {
-            set_message_label(_("Failed to authenticate"));
+            set_message_text(_("Failed to authenticate"));
             gchar* user_name = get_user_name();
             start_authentication(user_name);
             g_free(user_name);
@@ -1355,7 +1369,7 @@ void on_login_clicked(GtkWidget* widget,
     }
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, FALSE);
     gtk_widget_set_sensitive(greeter.ui.login_widget, FALSE);
-    set_message_label(NULL);
+    set_message_text(NULL);
 }
 
 void on_cancel_clicked(GtkWidget* widget,
@@ -1384,7 +1398,7 @@ void on_user_selection_changed(GtkWidget* widget,
                                         gdk_pixbuf_get_width(image), gdk_pixbuf_get_height(image));
         gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), image);
     }
-    set_message_label(NULL);
+    set_message_text(NULL);
     start_authentication(user_name);
     gtk_widget_grab_focus(greeter.ui.users_widget);
     #ifdef _DEBUG_

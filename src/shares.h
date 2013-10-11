@@ -101,6 +101,10 @@ typedef struct
         GtkWidget*      login_label;
         GtkWidget*      login_box;
 
+        GtkWidget*      no_prompt_login_widget;
+        GtkWidget*      no_prompt_login_label;
+        GtkWidget*      no_prompt_login_box;
+
         GtkWidget*      cancel_widget;
         GtkWidget*      cancel_box;
 
