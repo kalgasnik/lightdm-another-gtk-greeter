@@ -74,6 +74,7 @@ typedef struct
         gboolean        show_password;
         GdkPixbuf*      window_background;
         gboolean        gtk_theme_applied;
+        gboolean        no_users_list;
     } state;
 
     struct
@@ -112,12 +113,15 @@ typedef struct
 
         GtkWidget*      users_widget;
         GtkWidget*      users_box;
+        GtkListStore*   users_model;
 
         GtkWidget*      sessions_widget;
         GtkWidget*      sessions_box;
+        GtkListStore*   sessions_model;
 
         GtkWidget*      languages_widget;
         GtkWidget*      languages_box;
+        GtkListStore*   languages_model;
 
         GtkWidget*      authentication_widget;
         GtkWidget*      authentication_box;
@@ -276,7 +280,7 @@ void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
                                         const gchar* text);
-GtkTreeModel* get_widget_model         (GtkWidget* widget);
+GtkListStore* get_widget_model         (GtkWidget* widget);
 gchar* get_widget_selection_str        (GtkWidget* widget,
                                         gint column,
                                         const gchar* default_value);
@@ -292,11 +296,11 @@ void set_widget_active_iter            (GtkWidget* widget,
                                         GtkTreeIter* iter);
 void set_widget_active_first           (GtkWidget* widget);
 
-gboolean get_model_iter_match          (GtkTreeModel* model,
+gboolean get_model_iter_match          (GtkListStore* model,
                                         int column,
                                         gboolean f(const gpointer),
                                         GtkTreeIter* iter);
-gboolean get_model_iter_str            (GtkTreeModel* model,
+gboolean get_model_iter_str            (GtkListStore* model,
                                         int column,
                                         const gchar* value,
                                         GtkTreeIter* iter);
