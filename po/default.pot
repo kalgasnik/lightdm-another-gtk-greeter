@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-10-10 01:43+0300\n"
+"POT-Creation-Date: 2013-10-13 02:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,121 +17,135 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../data/themes/classic/greeter.ui.h:1 ../data/themes/default/greeter.ui.h:1
-#: ../src/indicator_power.c:56
+#: ../data/themes/default/greeter.ui.h:1
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:1
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:5 ../src/indicator_power.c:57
 msgid "Suspend"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:2 ../data/themes/default/greeter.ui.h:2
-#: ../src/indicator_power.c:64
+#: ../data/themes/default/greeter.ui.h:2
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:2
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:6 ../src/indicator_power.c:66
 msgid "Hibernate"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:3 ../data/themes/default/greeter.ui.h:3
-#: ../src/indicator_power.c:72
+#: ../data/themes/default/greeter.ui.h:3
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:3
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:7 ../src/indicator_power.c:75
 msgid "Restart"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:4 ../data/themes/default/greeter.ui.h:4
-#: ../src/indicator_power.c:80
+#: ../data/themes/default/greeter.ui.h:4
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:4
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:8 ../src/indicator_power.c:84
 msgid "Shutdown"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:5 ../data/themes/default/greeter.ui.h:5
+#: ../data/themes/default/greeter.ui.h:5
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:5
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:1
 msgid "Large font"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:6 ../data/themes/default/greeter.ui.h:6
+#: ../data/themes/default/greeter.ui.h:6
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:6
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:2
 msgid "High contrast"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:7 ../data/themes/default/greeter.ui.h:7
-#: ../src/indicator_a11y.c:331
+#: ../data/themes/default/greeter.ui.h:7
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:7
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:3 ../src/indicator_a11y.c:328
 msgid "On-screen keyboard"
 msgstr ""
 
-#: ../data/themes/classic/greeter.ui.h:8 ../data/themes/default/greeter.ui.h:8
+#: ../data/themes/default/greeter.ui.h:8
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:8
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:4
 msgid "Large dpi"
-msgstr ""
-
-#: ../data/themes/classic/greeter.ui.h:9
-#: ../data/themes/default/greeter.ui.h:10
-msgid "Show password"
-msgstr ""
-
-#: ../data/themes/classic/greeter.ui.h:10
-#: ../data/themes/default/greeter.ui.h:12
-msgid "Cancel"
-msgstr ""
-
-#: ../data/themes/classic/greeter.ui.h:11
-#: ../data/themes/default/greeter.ui.h:11
-#: ../data/themes/sample.css.dark/greeter.ui.h:2 ../src/shares.c:34
-msgid "Login"
 msgstr ""
 
 #: ../data/themes/default/greeter.ui.h:9
 msgid "Login options"
 msgstr ""
 
+#: ../data/themes/default/greeter.ui.h:10
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:9
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:11
+msgid "Show password"
+msgstr ""
+
+#: ../data/themes/default/greeter.ui.h:11
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:11
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:10
+#: ../data/themes/sample.css.dark/greeter.ui.h:2 ../src/shares.c:34
+msgid "Login"
+msgstr ""
+
+#: ../data/themes/default/greeter.ui.h:12
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:10
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:9
+msgid "Cancel"
+msgstr ""
+
 #: ../data/themes/sample.css.dark/greeter.ui.h:1
 msgid "Authentication, press <Escape> to cancel..."
 msgstr ""
 
-#: ../src/indicator_a11y.c:332
+#: ../src/indicator_a11y.c:329
 #, c-format
 msgid ""
 "Failed to start keyboard command:\n"
 "%s"
 msgstr ""
 
-#: ../src/indicator_a11y.c:455
+#: ../src/indicator_a11y.c:452
 msgid "Onboard"
 msgstr ""
 
-#: ../src/indicator_a11y.c:456
+#: ../src/indicator_a11y.c:453
 msgid "Failed to start 'onboard', see logs for details."
 msgstr ""
 
-#: ../src/indicator_power.c:57
+#: ../src/indicator_power.c:58
 msgid "Suspend the computer?"
 msgstr ""
 
-#: ../src/indicator_power.c:65
+#: ../src/indicator_power.c:67
 msgid "Hibernate the computer?"
 msgstr ""
 
-#: ../src/indicator_power.c:73
+#: ../src/indicator_power.c:76
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr ""
 
-#: ../src/indicator_power.c:81
+#: ../src/indicator_power.c:85
 msgid "Are you sure you want to close all programs and shutdown the computer?"
 msgstr ""
 
-#: ../src/indicator_power.c:144
+#: ../src/indicator_power.c:145
 msgid "Return to Login"
 msgstr ""
 
-#: ../src/indicator_power.c:158
+#: ../src/indicator_power.c:159
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
 msgstr ""
 
-#: ../src/main.c:198 ../src/main.c:221 ../src/main.c:233
+#: ../src/main.c:197 ../src/main.c:220 ../src/main.c:232
 msgid "Error"
 msgstr ""
 
-#: ../src/main.c:198
+#: ../src/main.c:197
 #, c-format
 msgid "Connection to LightDM failed: %s"
 msgstr ""
 
-#: ../src/main.c:199
+#: ../src/main.c:198
 msgid "unknown error"
 msgstr ""
 
-#: ../src/main.c:222 ../src/main.c:234
+#: ../src/main.c:221 ../src/main.c:233
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -139,36 +153,36 @@ msgid ""
 "%s"
 msgstr ""
 
-#: ../src/main.c:354
+#: ../src/main.c:366
 msgid "Loading UI: error"
 msgstr ""
 
-#: ../src/main.c:355
+#: ../src/main.c:367
 #, c-format
 msgid "Widget '%s' is not found"
 msgstr ""
 
-#: ../src/main.c:580
+#: ../src/main.c:613
 msgid "Guest Account"
 msgstr ""
 
-#: ../src/main.c:583
+#: ../src/main.c:616
 msgid "Other..."
 msgstr ""
 
-#: ../src/main.c:1019
+#: ../src/main.c:1068
 msgid "Screenshot"
 msgstr ""
 
-#: ../src/main.c:1102
+#: ../src/main.c:1163
 msgid "Failed to start session"
 msgstr ""
 
-#: ../src/main.c:1259
+#: ../src/main.c:1318
 msgid "Incorrect password, please try again"
 msgstr ""
 
-#: ../src/main.c:1264
+#: ../src/main.c:1323
 msgid "Failed to authenticate"
 msgstr ""
 
