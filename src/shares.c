@@ -265,7 +265,12 @@ void set_widget_text(GtkWidget* widget,
                      const gchar* text)
 {
     if(GTK_IS_MENU_ITEM(widget))
-        gtk_menu_item_set_label(GTK_MENU_ITEM(widget), text);
+    {
+        if(GTK_IS_LABEL(gtk_bin_get_child(GTK_BIN(widget))))
+            gtk_menu_item_set_label(GTK_MENU_ITEM(widget), text);
+        else
+            gtk_widget_set_tooltip_text(widget, text);
+    }
     else if(GTK_IS_BUTTON(widget))
         gtk_button_set_label(GTK_BUTTON(widget), text);
     else if(GTK_IS_LABEL(widget))

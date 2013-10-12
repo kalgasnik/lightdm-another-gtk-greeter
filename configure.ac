@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 
-define(_PACKAGE_VERSION, 1.0.6.0)
+define(_PACKAGE_VERSION, 1.0.6.1)
 
 AC_INIT(lightdm-another-gtk-greeter, _PACKAGE_VERSION, pan.pav.7c5@gmail.com)
 AC_CONFIG_MACRO_DIR([m4])
@@ -76,8 +76,8 @@ AC_CONFIG_FILES([
     data/themes/Makefile
     data/themes/default/Makefile
     data/themes/default/gtk-themes-fixes/Makefile
-    data/themes/classic/Makefile
     data/themes/sample.css.dark/Makefile
+    data/themes/gtk-greeter-150/Makefile
     data/themes/gtk-greeter-160/Makefile
     data/themes/gtk-greeter-160/gtk-themes-fixes/Makefile
     src/Makefile

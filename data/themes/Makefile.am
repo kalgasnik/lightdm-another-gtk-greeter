@@ -1,1 +1,4 @@
-SUBDIRS = default classic sample.css.dark gtk-greeter-160
+SUBDIRS = default \
+          sample.css.dark \
+          gtk-greeter-150 \
+          gtk-greeter-160
