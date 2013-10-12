@@ -96,6 +96,7 @@ typedef struct
         WindowPosition  position;
         /* True: position is relative to main_layout, False: is absolute */
         gboolean        position_is_relative;
+        gboolean        hide_prompt_text;
         struct
         {
             gboolean     enabled;

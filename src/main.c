@@ -1002,6 +1002,8 @@ static void set_message_text(const gchar* text)
 static void set_prompt_text(const gchar* text)
 {
     gtk_widget_set_visible(greeter.ui.prompt_box, text != NULL);
+    gtk_widget_set_visible(greeter.ui.prompt_text, (text != NULL && !greeter.state.password_required) ||
+                           !config.appearance.hide_prompt_text && greeter.state.password_required);
     if(text)
         set_widget_text(greeter.ui.prompt_text, text);
     if(greeter.ui.no_prompt_login_box)

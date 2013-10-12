@@ -190,6 +190,7 @@ void load_settings(void)
     config.appearance.date_format             = "%A, %e %B";
     config.appearance.position                = WINDOW_POSITION_CENTER;
     config.appearance.position_is_relative    = FALSE;
+    config.appearance.hide_prompt_text        = FALSE;
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
     config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
@@ -392,6 +393,7 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
     config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
     config.appearance.position_is_relative    = read_value_bool    (cfg, SECTION, "position-is-relative", config.appearance.position_is_relative);
+    config.appearance.hide_prompt_text        = read_value_bool    (cfg, SECTION, "hide-prompt-text", config.appearance.hide_prompt_text);
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,
