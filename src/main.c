@@ -370,6 +370,10 @@ static gboolean init_gui(void)
             else
                 g_warning("Widget is not found: %s\n", w->name);
         }
+        else
+            if(GTK_IS_IMAGE_MENU_ITEM(*w->pwidget) &&
+               gtk_image_menu_item_get_image(GTK_IMAGE_MENU_ITEM(*w->pwidget)))
+                fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(*w->pwidget));
     }
 
     void update_widget_name(GObject* object,
@@ -396,8 +400,8 @@ static gboolean init_gui(void)
     if(IS_MENU_WIDGET(greeter.ui.languages_widget))
         bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
                                LANGUAGE_COLUMN_DISPLAY_NAME, NULL);
-    if(IS_MENU_WIDGET(greeter.ui.languages_widget))
-        bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
+    if(IS_MENU_WIDGET(greeter.ui.sessions_widget))
+        bind_menu_widget_model(greeter.ui.sessions_widget, greeter.ui.sessions_text, greeter.ui.sessions_model,
                                SESSION_COLUMN_DISPLAY_NAME, NULL);
 
     if(config.appearance.user_image.enabled)
@@ -1134,6 +1138,18 @@ static void start_session(void)
     g_free(user_name);
 
     gchar* session = get_session();
+    if(!session)
+    {
+        GtkTreeIter iter;
+        if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(greeter.ui.sessions_model), &iter))
+        {
+            gtk_tree_model_get(GTK_TREE_MODEL(greeter.ui.sessions_model), &iter,
+                               SESSION_COLUMN_NAME, &session, -1);
+            show_message_dialog(0, "", "No session selected and no default session: using first in the list (%s)", session);
+        }
+        else
+            show_message_dialog(0, "", "No session selected and no default session");
+    }
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
         gtk_widget_hide(greeter.ui.main_layout);

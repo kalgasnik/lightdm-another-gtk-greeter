@@ -195,6 +195,7 @@ typedef struct
 
 typedef struct
 {
+    const gchar* name;
     const gchar* text;
     const gchar* text_stock_icon;
     const gchar* stock;

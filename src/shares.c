@@ -193,6 +193,7 @@ gint show_message(const gchar* title,
             if(button->text_stock_icon)
                 gtk_button_set_image(GTK_BUTTON(widget), gtk_image_new_from_icon_name(button->text_stock_icon, GTK_ICON_SIZE_BUTTON));
         }
+        gtk_widget_set_name(widget, button->name);
         gtk_widget_show(widget);
         gtk_container_add(GTK_CONTAINER(greeter.ui.messagebox_buttons), widget);
         if(default_id == button->id)
@@ -347,7 +348,7 @@ gboolean get_widget_active_iter(GtkWidget* widget,
         gtk_tree_path_free(path);
         return ok;
     }
-    g_return_val_if_reached(NULL);
+    g_return_val_if_reached(FALSE);
 }
 
 void set_widget_active_iter(GtkWidget* widget,
@@ -534,10 +535,10 @@ void bind_menu_widget_model(GtkWidget* widget,
     binding->model_column = model_column;
     binding->on_changed   = on_changed;
     binding->menu_group   = NULL;
-    binding->menu = GTK_IS_MENU_ITEM(widget) ? GTK_MENU_SHELL(widget)
+    binding->menu = GTK_IS_MENU_ITEM(widget) ? GTK_MENU_SHELL(gtk_menu_item_get_submenu(GTK_MENU_ITEM(widget)))
                                              : GTK_MENU_SHELL(gtk_menu_button_get_popup(GTK_MENU_BUTTON(widget)));
-    gtk_tree_model_foreach(GTK_TREE_MODEL(model), (GtkTreeModelForeachFunc)on_menu_widget_row_inserted, binding);
     g_object_set_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP, binding);
+    gtk_tree_model_foreach(GTK_TREE_MODEL(model), (GtkTreeModelForeachFunc)on_menu_widget_row_inserted, binding);
     g_signal_connect(model, "row-changed", G_CALLBACK(on_menu_widget_row_changed), binding);
     g_signal_connect(model, "row-deleted", G_CALLBACK(on_menu_widget_row_deleted), binding);
     g_signal_connect(model, "row-inserted", G_CALLBACK(on_menu_widget_row_inserted), binding);
@@ -550,7 +551,13 @@ void set_menu_widget_active_path(GtkWidget* widget,
     GList* items = gtk_container_get_children(GTK_CONTAINER(binding->menu));
     GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
     if(item)
-        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->data), TRUE);
+    {
+        GtkCheckMenuItem* widget = GTK_CHECK_MENU_ITEM(item->data);
+        if(gtk_check_menu_item_get_active(widget))
+            gtk_check_menu_item_toggled(widget);
+        else
+            gtk_check_menu_item_set_active(widget, TRUE);
+    }
     g_list_free(items);
 }
 
