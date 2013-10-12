@@ -371,11 +371,11 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
     config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
     config.appearance.logo                    = read_value_path    (cfg, SECTION, "logo", config.appearance.logo, path);
-    config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_image.enabled);
+    config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-image", config.appearance.user_image.enabled);
     config.appearance.user_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.user_image.fit);
-    config.appearance.list_image.enabled      = read_value_bool    (cfg, SECTION, "list-background", config.appearance.list_image.enabled);
-    config.appearance.list_image.fit          = read_value_enum    (cfg, SECTION, "list-image-fit",
+    config.appearance.list_image.enabled      = read_value_bool    (cfg, SECTION, "list-image", config.appearance.list_image.enabled);
+    config.appearance.list_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.list_image.fit);
     config.appearance.list_image.size         = read_value_int     (cfg, SECTION, "list-image-size", config.appearance.list_image.size);
 
