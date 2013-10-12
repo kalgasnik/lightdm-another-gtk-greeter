@@ -238,10 +238,13 @@ static gboolean init_gui(void)
 
     struct BuilderWidget
     {
+        /* Place to store widget reference */
         GtkWidget**  pwidget;
+        /* Widget ID in .ui file */
         const gchar* name;
+        /* If widget is missing and needed is true then program terminates with error message */
         gboolean     needed;
-        GtkWidget**  child;
+        GtkWidget**  default_widget;
     };
 
     const struct BuilderWidget WIDGETS[] =
@@ -285,13 +288,19 @@ static gboolean init_gui(void)
         {&greeter.ui.authentication_box,        "authentication_box",           FALSE, &greeter.ui.authentication_widget},
 
         {&greeter.ui.users_widget,              "users_widget",                 FALSE, NULL},
+        {&greeter.ui.users_text,                "users_text",                   FALSE, &greeter.ui.users_widget},
         {&greeter.ui.users_box,                 "users_box",                    FALSE, &greeter.ui.users_widget},
+        {(GtkWidget**)(&greeter.ui.users_model),"users_model",                 FALSE, NULL},
 
         {&greeter.ui.sessions_widget,           "sessions_widget",              FALSE, NULL},
+        {&greeter.ui.sessions_text,             "sessions_text",                FALSE, &greeter.ui.sessions_widget},
         {&greeter.ui.sessions_box,              "sessions_box",                 FALSE, &greeter.ui.sessions_widget},
+        {(GtkWidget**)(&greeter.ui.sessions_model), "sessions_model",           FALSE, NULL},
 
         {&greeter.ui.languages_widget,          "languages_widget",             FALSE, NULL},
+        {&greeter.ui.languages_text,            "languages_text",               FALSE, &greeter.ui.languages_widget},
         {&greeter.ui.languages_box,             "languages_box",                FALSE, &greeter.ui.languages_widget},
+        {(GtkWidget**)(&greeter.ui.languages_model), "languages_model",         FALSE, NULL},
 
         {&greeter.ui.user_image_widget,         "user_image_widget",            FALSE, NULL},
         {&greeter.ui.user_image_box,            "user_image_box",               FALSE, &greeter.ui.user_image_widget},
@@ -341,18 +350,14 @@ static gboolean init_gui(void)
 
         {&greeter.ui.password_toggle_widget,    "password_toggle_widget",       FALSE, NULL},
         {&greeter.ui.password_toggle_box,       "password_toggle_box",          FALSE, &greeter.ui.password_toggle_widget},
-
-        {(GtkWidget**)(&greeter.ui.users_model),     "users_model",             FALSE, NULL},
-        {(GtkWidget**)(&greeter.ui.languages_model), "languages_model",         FALSE, NULL},
-        {(GtkWidget**)(&greeter.ui.sessions_model),  "sessions_model",          FALSE, NULL},
         {NULL, NULL, FALSE}
     };
 
     for(const struct BuilderWidget* w = WIDGETS; w->pwidget != NULL; ++w)
     {
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
-        if(!*w->pwidget && w->child)
-            *w->pwidget = *w->child;
+        if(!*w->pwidget && w->default_widget)
+            *w->pwidget = *w->default_widget;
         if(!*w->pwidget)
         {
             if(w->needed)
@@ -384,6 +389,16 @@ static gboolean init_gui(void)
         greeter.ui.languages_model = GTK_LIST_STORE(get_widget_model(greeter.ui.languages_widget));
     if(!greeter.ui.sessions_model)
         greeter.ui.sessions_model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
+
+    if(IS_MENU_WIDGET(greeter.ui.users_widget))
+        bind_menu_widget_model(greeter.ui.users_widget, greeter.ui.users_text, greeter.ui.users_model,
+                               USER_COLUMN_DISPLAY_NAME, G_CALLBACK(on_user_selection_changed));
+    if(IS_MENU_WIDGET(greeter.ui.languages_widget))
+        bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
+                               LANGUAGE_COLUMN_DISPLAY_NAME, NULL);
+    if(IS_MENU_WIDGET(greeter.ui.languages_widget))
+        bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
+                               SESSION_COLUMN_DISPLAY_NAME, NULL);
 
     if(config.appearance.user_image.enabled)
     {
@@ -670,7 +685,6 @@ static gboolean load_languages_list(void)
         g_warning("lightdm_get_languages() return NULL");
         return FALSE;
     }
-
     GtkTreeIter iter;
     for(const GList* item = items; item != NULL; item = item->next)
     {

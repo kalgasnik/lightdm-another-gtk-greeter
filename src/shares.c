@@ -76,6 +76,19 @@ typedef struct
     gint id;
 } MessageBoxButtonRunInfo;
 
+typedef struct
+{
+    GtkWidget* owner;
+    GtkWidget* label;
+    GtkWidget* active;
+    gint model_column;
+    GtkTreeModel* model;
+    GtkMenuShell* menu;
+    GSList* menu_group;
+    SetWidgetLabelFunc set_owner_label;
+    GCallback on_changed;
+} MenuBinding;
+
 /* Static functions */
 
 static void stop_messagebox_loop            (MessageBoxRunInfo* info,
@@ -85,6 +98,26 @@ static gboolean on_messagebox_key_press     (GtkWidget* widget,
                                              MessageBoxRunInfo* info);
 static void on_messagebox_button_clicked    (GtkWidget* widget,
                                              MessageBoxButtonRunInfo* button_info);
+
+/* For g_slist_find_custom */
+static gint compare_menu_widget_item_path   (GObject* obj,
+                                             GtkTreePath* path);
+static void on_menu_widget_row_changed      (GtkTreeModel* model,
+                                             GtkTreePath* path,
+                                             GtkTreeIter* iter,
+                                             MenuBinding* binding);
+static void on_menu_widget_row_deleted      (GtkTreeModel* model,
+                                             GtkTreePath* path,
+                                             MenuBinding* binding);
+static gboolean on_menu_widget_row_inserted (GtkTreeModel* model,
+                                             GtkTreePath* path,
+                                             GtkTreeIter* iter,
+                                             MenuBinding* binding);
+static void on_menu_widget_item_toggled     (GtkWidget* widget,
+                                             MenuBinding* binding);
+
+static const gchar* MENU_WIDGET_BINDING_PROP = "model-binding";
+static const gchar* MENU_ITEM_PATH_PROP      = "model-path";
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -249,6 +282,8 @@ GtkListStore* get_widget_model(GtkWidget* widget)
         return GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(widget)));
     if(GTK_IS_ICON_VIEW(widget))
         return GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)));
+    if(IS_MENU_WIDGET(widget))
+        return GTK_LIST_STORE(get_menu_widget_model(widget));
     g_return_val_if_reached(NULL);
 }
 
@@ -305,6 +340,13 @@ gboolean get_widget_active_iter(GtkWidget* widget,
         g_list_free_full(selection, (GDestroyNotify)gtk_tree_path_free);
         return ok;
     }
+    if(IS_MENU_WIDGET(widget))
+    {
+        GtkTreePath* path = get_menu_widget_active_path(widget);
+        gboolean ok = gtk_tree_model_get_iter(get_menu_widget_model(widget), iter, path);
+        gtk_tree_path_free(path);
+        return ok;
+    }
     g_return_val_if_reached(NULL);
 }
 
@@ -323,6 +365,12 @@ void set_widget_active_iter(GtkWidget* widget,
     {
         GtkTreePath* path = gtk_tree_model_get_path(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)), iter);
         gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
+        gtk_tree_path_free(path);
+    }
+    else if(IS_MENU_WIDGET(widget))
+    {
+        GtkTreePath* path = gtk_tree_model_get_path(get_menu_widget_model(widget), iter);
+        set_menu_widget_active_path(widget, path);
         gtk_tree_path_free(path);
     }
     else
@@ -465,6 +513,54 @@ void focus_main_window(void)
     gtk_widget_grab_focus(widget);
 }
 
+GtkTreeModel* get_menu_widget_model(GtkWidget* widget)
+{
+    MenuBinding* binding = g_object_get_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP);
+    return binding ? binding->model : NULL;
+}
+
+void bind_menu_widget_model(GtkWidget* widget,
+                            GtkWidget* label,
+                            GtkListStore* model,
+                            gint model_column,
+                            GCallback on_changed)
+{
+    g_return_if_fail(IS_MENU_WIDGET(widget));
+    MenuBinding* binding  = g_malloc(sizeof(MenuBinding));
+    binding->owner        = GTK_WIDGET(widget);
+    binding->label        = label;
+    binding->active       = NULL;
+    binding->model        = GTK_TREE_MODEL(model);
+    binding->model_column = model_column;
+    binding->on_changed   = on_changed;
+    binding->menu_group   = NULL;
+    binding->menu = GTK_IS_MENU_ITEM(widget) ? GTK_MENU_SHELL(widget)
+                                             : GTK_MENU_SHELL(gtk_menu_button_get_popup(GTK_MENU_BUTTON(widget)));
+    gtk_tree_model_foreach(GTK_TREE_MODEL(model), (GtkTreeModelForeachFunc)on_menu_widget_row_inserted, binding);
+    g_object_set_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP, binding);
+    g_signal_connect(model, "row-changed", G_CALLBACK(on_menu_widget_row_changed), binding);
+    g_signal_connect(model, "row-deleted", G_CALLBACK(on_menu_widget_row_deleted), binding);
+    g_signal_connect(model, "row-inserted", G_CALLBACK(on_menu_widget_row_inserted), binding);
+}
+
+void set_menu_widget_active_path(GtkWidget* widget,
+                                 GtkTreePath* path)
+{
+    MenuBinding* binding = g_object_get_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP);
+    GList* items = gtk_container_get_children(GTK_CONTAINER(binding->menu));
+    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
+    if(item)
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->data), TRUE);
+    g_list_free(items);
+}
+
+GtkTreePath* get_menu_widget_active_path(GtkWidget* widget)
+{
+    MenuBinding* binding = g_object_get_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP);
+    GtkTreePath* path = g_object_get_data(G_OBJECT(binding->active), MENU_ITEM_PATH_PROP);
+    return gtk_tree_path_copy(path);
+}
+
 /* ---------------------------------------------------------------------------*
  * Definitions: static
  * -------------------------------------------------------------------------- */
@@ -494,4 +590,72 @@ static void on_messagebox_button_clicked(GtkWidget* widget,
                                          MessageBoxButtonRunInfo* button_info)
 {
     stop_messagebox_loop(button_info->info, button_info->id);
+}
+
+static gint compare_menu_widget_item_path(GObject* obj,
+                                          GtkTreePath* path)
+{
+    return gtk_tree_path_compare(path, g_object_get_data(obj, MENU_ITEM_PATH_PROP));
+}
+
+static void on_menu_widget_row_deleted(GtkTreeModel* tree_model,
+                                       GtkTreePath* path,
+                                       MenuBinding* binding)
+{
+    GList* items = gtk_container_get_children(GTK_CONTAINER(binding->menu));
+    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
+    if(item)
+        /* TODO: update menu_group */
+        gtk_widget_destroy(GTK_WIDGET(item->data));
+    g_list_free(items);
+}
+
+static void on_menu_widget_row_changed(GtkTreeModel* model,
+                                       GtkTreePath* path,
+                                       GtkTreeIter* iter,
+                                       MenuBinding* binding)
+{
+    GList* items = gtk_container_get_children(GTK_CONTAINER(binding->menu));
+    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
+    if(item)
+    {
+        gchar* label;
+        gtk_tree_model_get(GTK_TREE_MODEL(model), iter, binding->model_column, &label);
+        gtk_menu_item_set_label(GTK_MENU_ITEM(item->data), label);
+        if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->data)))
+            set_widget_text(binding->label, label);
+        g_free(label);
+    }
+    g_list_free(items);
+}
+
+static gboolean on_menu_widget_row_inserted(GtkTreeModel* model,
+                                            GtkTreePath* path,
+                                            GtkTreeIter* iter,
+                                            MenuBinding* binding)
+{
+    const gint* indices = gtk_tree_path_get_indices(path);
+    gchar* label;
+    GtkWidget* item;
+    gtk_tree_model_get(GTK_TREE_MODEL(model), iter, binding->model_column, &label, -1);
+    item = gtk_radio_menu_item_new_with_label(binding->menu_group, label);
+    binding->menu_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
+    g_object_set_data(G_OBJECT(item), MENU_ITEM_PATH_PROP, gtk_tree_model_get_path(model, iter));
+    g_signal_connect(item, "toggled", G_CALLBACK(on_menu_widget_item_toggled), binding);
+    gtk_widget_show(item);
+    gtk_menu_shell_insert(binding->menu, item, indices[0]);
+    g_free(label);
+    return FALSE;
+}
+
+static void on_menu_widget_item_toggled(GtkWidget* widget,
+                                        MenuBinding* binding)
+{
+    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
+    {
+        binding->active = widget;
+        set_widget_text(binding->label, gtk_menu_item_get_label(GTK_MENU_ITEM(widget)));
+        if(binding->on_changed)
+            ((GtkCallback)binding->on_changed)(binding->owner, NULL);
+    }
 }

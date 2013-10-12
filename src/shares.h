@@ -116,14 +116,17 @@ typedef struct
         GtkWidget*      prompt_box;
 
         GtkWidget*      users_widget;
+        GtkWidget*      users_text;
         GtkWidget*      users_box;
         GtkListStore*   users_model;
 
         GtkWidget*      sessions_widget;
+        GtkWidget*      sessions_text;
         GtkWidget*      sessions_box;
         GtkListStore*   sessions_model;
 
         GtkWidget*      languages_widget;
+        GtkWidget*      languages_text;
         GtkWidget*      languages_box;
         GtkListStore*   languages_model;
 
@@ -241,6 +244,8 @@ enum
     UI_LAYOUT_ROW_PANEL_BOTTOM,
 };
 
+typedef void (*SetWidgetLabelFunc)(GtkWidget*, const gchar* label);
+
 /* Variables */
 
 extern GreeterData greeter;
@@ -299,7 +304,6 @@ gboolean get_widget_active_iter        (GtkWidget* widget,
 void set_widget_active_iter            (GtkWidget* widget,
                                         GtkTreeIter* iter);
 void set_widget_active_first           (GtkWidget* widget);
-
 gboolean get_model_iter_match          (GtkListStore* model,
                                         int column,
                                         gboolean f(const gpointer),
@@ -317,5 +321,17 @@ void clear_container                   (GtkContainer* container);
 /* Set positions of main window according to settings and current program state */
 void update_main_window_layout         (void);
 void focus_main_window                 (void);
+
+#define IS_MENU_WIDGET(widget) (GTK_IS_MENU_BUTTON(widget) || GTK_IS_MENU_ITEM(widget))
+
+GtkTreeModel* get_menu_widget_model    (GtkWidget* widget);
+void bind_menu_widget_model            (GtkWidget* widget,
+                                        GtkWidget* label,
+                                        GtkListStore* model,
+                                        gint model_column,
+                                        GCallback on_changed);
+void set_menu_widget_active_path       (GtkWidget* widget,
+                                        GtkTreePath* path);
+GtkTreePath* get_menu_widget_active_path(GtkWidget* widget);
 
 #endif // _SHARES_H_INCLUDED_
