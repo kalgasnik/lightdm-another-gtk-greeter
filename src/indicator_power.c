@@ -43,6 +43,7 @@ typedef struct
     const gchar* name;
     const gchar* prompt;
     const gchar* icon;
+    const gchar* button_name;
 } PowerActionData;
 
 /* Static variables */
@@ -55,7 +56,8 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
         .show_prompt_ptr = &config.power.prompts[POWER_SUSPEND],
         .name            = N_("Suspend"),
         .prompt          = N_("Suspend the computer?"),
-        .icon            = "gnome-session-suspend"
+        .icon            = "gnome-session-suspend",
+        .button_name     = "power_dialog_suspend"
     },
     {
         .get_allow       = lightdm_get_can_hibernate,
@@ -63,7 +65,8 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
         .show_prompt_ptr = &config.power.prompts[POWER_HIBERNATE],
         .name            = N_("Hibernate"),
         .prompt          = N_("Hibernate the computer?"),
-        .icon            = "gnome-session-hibernate"
+        .icon            = "gnome-session-hibernate",
+        .button_name     = "power_dialog_hibernate"
     },
     {
         .get_allow       = lightdm_get_can_restart,
@@ -71,7 +74,8 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
         .show_prompt_ptr = &config.power.prompts[POWER_RESTART],
         .name            = N_("Restart"),
         .prompt          = N_("Are you sure you want to close all programs and restart the computer?"),
-        .icon            = "system-reboot"
+        .icon            = "system-reboot",
+        .button_name     = "power_dialog_restart"
     },
     {
         .get_allow       = lightdm_get_can_shutdown,
@@ -79,7 +83,8 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
         .show_prompt_ptr = &config.power.prompts[POWER_SHUTDOWN],
         .name            = N_("Shutdown"),
         .prompt          = N_("Are you sure you want to close all programs and shutdown the computer?"),
-        .icon            = "system-shutdown"
+        .icon            = "system-shutdown",
+        .button_name     = "power_dialog_shutdown"
     }
 };
 
@@ -119,10 +124,6 @@ void init_power_indicator(void)
             g_warning("Power menu: no actions allowed, hiding widget");
         gtk_widget_hide(greeter.ui.power.box);
     }
-    else if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.power.widget))
-    {
-        fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.power.widget));
-    }
 }
 
 void power_shutdown(void)
@@ -142,7 +143,7 @@ static void power_action(const PowerActionData* action)
         const MessageButtonOptions buttons[] =
         {
             {.id = GTK_RESPONSE_CANCEL, .text = _("Return to Login"), .text_stock_icon = "gtk-cancel"},
-            {.id = GTK_RESPONSE_YES,    .stock = "gtk-yes"},
+            {.id = GTK_RESPONSE_YES,    .stock = "gtk-yes", .name = action->button_name},
             {.id = GTK_RESPONSE_NONE}
         };
         if(show_message(_(action->name), _(action->prompt), action->icon, NULL, buttons,
