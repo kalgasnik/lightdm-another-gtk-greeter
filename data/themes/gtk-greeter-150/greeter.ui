@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.0 on Thu Oct 10 01:43:09 2013 -->
+<!-- Generated with glade 3.16.0 on Sun Oct 13 03:12:59 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkImage" id="image1">
@@ -323,7 +323,6 @@
                         </child>
                         <child>
                           <object class="GtkBox" id="password_toggle_box">
-                            <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkCheckButton" id="password_toggle_widget">
