@@ -1435,7 +1435,7 @@ void on_user_selection_changed(GtkWidget* widget,
     gtk_widget_grab_focus(greeter.ui.users_widget);
     #ifdef _DEBUG_
     on_authentication_complete(greeter.greeter);
-    if(get_user_type() != USER_TYPE_OTHER &&
+    if(get_user_type() == USER_TYPE_OTHER ||
        !lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
         on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
     #endif
