@@ -37,16 +37,14 @@ GreeterConfig config =
 
 /* Types */
 
-/* Catched theme data */
+/* Catched config data */
 typedef struct
 {
-    /* Greeter theme name */
-    /* gchar* name; */
-    /* Path to theme directory */
+    /* Path to config directory */
     gchar* path;
-    /* Path to theme .css file */
+    /* Path to config .css file */
     gchar* css_path;
-} LoadedGreeterTheme;
+} LoadedGreeterConfig;
 
 /* Static functions */
 
@@ -139,6 +137,7 @@ static const gchar* USER_NAME_FORMAT_STRINGS[] = {"name", "display-name", "both"
 static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
+static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -201,10 +200,12 @@ void load_settings(void)
                                                                     PANEL_POSITION_STRINGS, PANEL_POS_TOP);
     SECTION = "power";
     config.power.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
-    config.power.prompts[POWER_SUSPEND]       = read_value_bool    (cfg, SECTION, "suspend-prompt",   FALSE);
-    config.power.prompts[POWER_HIBERNATE]     = read_value_bool    (cfg, SECTION, "hibernate-prompt", FALSE);
-    config.power.prompts[POWER_RESTART]       = read_value_bool    (cfg, SECTION, "restart-prompt",   TRUE);
-    config.power.prompts[POWER_SHUTDOWN]      = read_value_bool    (cfg, SECTION, "shutdown-prompt",  TRUE);
+    config.power.button_press_action          = read_value_enum    (cfg, SECTION, "button-press-action",
+                                                                    POWER_ACTION_STRINGS, POWER_ACTION_SHUTDOWN + 1) - 1;
+    config.power.prompts[POWER_ACTION_SUSPEND]   = read_value_bool    (cfg, SECTION, "suspend-prompt",   FALSE);
+    config.power.prompts[POWER_ACTION_HIBERNATE] = read_value_bool    (cfg, SECTION, "hibernate-prompt", FALSE);
+    config.power.prompts[POWER_ACTION_RESTART]   = read_value_bool    (cfg, SECTION, "restart-prompt",   TRUE);
+    config.power.prompts[POWER_ACTION_SHUTDOWN]  = read_value_bool    (cfg, SECTION, "shutdown-prompt",  TRUE);
 
     SECTION = "clock";
     config.clock.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -300,7 +301,7 @@ void apply_gtk_theme(GtkSettings* settings,
     GdkScreen* screen = gdk_screen_get_default();
     for(GSList* item = config.appearance.themes_stack; item != NULL; item = g_slist_next(item))
     {
-        LoadedGreeterTheme* theme = item->data;
+        LoadedGreeterConfig* theme = item->data;
         gchar* fix_css_path_wo_ext = g_build_filename(theme->path, "gtk-themes-fixes", gtk_theme, NULL);
         gchar* fix_css_path = g_strconcat(fix_css_path_wo_ext, ".css", NULL);
         if(theme->css_path)
@@ -341,7 +342,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                     GtkSettings* settings,
                                     const gchar* default_theme)
 {
-    LoadedGreeterTheme* theme = g_malloc(sizeof(LoadedGreeterTheme));
+    LoadedGreeterConfig* theme = g_malloc(sizeof(LoadedGreeterConfig));
     gchar* base_theme_name = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
     if(base_theme_name)
     {

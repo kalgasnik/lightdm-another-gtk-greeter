@@ -53,7 +53,7 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     {
         .get_allow       = lightdm_get_can_suspend,
         .do_action       = lightdm_suspend,
-        .show_prompt_ptr = &config.power.prompts[POWER_SUSPEND],
+        .show_prompt_ptr = &config.power.prompts[POWER_ACTION_SUSPEND],
         .name            = N_("Suspend"),
         .prompt          = N_("Suspend the computer?"),
         .icon            = "gnome-session-suspend",
@@ -62,7 +62,7 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     {
         .get_allow       = lightdm_get_can_hibernate,
         .do_action       = lightdm_hibernate,
-        .show_prompt_ptr = &config.power.prompts[POWER_HIBERNATE],
+        .show_prompt_ptr = &config.power.prompts[POWER_ACTION_HIBERNATE],
         .name            = N_("Hibernate"),
         .prompt          = N_("Hibernate the computer?"),
         .icon            = "gnome-session-hibernate",
@@ -71,7 +71,7 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     {
         .get_allow       = lightdm_get_can_restart,
         .do_action       = lightdm_restart,
-        .show_prompt_ptr = &config.power.prompts[POWER_RESTART],
+        .show_prompt_ptr = &config.power.prompts[POWER_ACTION_RESTART],
         .name            = N_("Restart"),
         .prompt          = N_("Are you sure you want to close all programs and restart the computer?"),
         .icon            = "system-reboot",
@@ -80,7 +80,7 @@ static PowerActionData POWER_ACTIONS[POWER_ACTIONS_COUNT] =
     {
         .get_allow       = lightdm_get_can_shutdown,
         .do_action       = lightdm_shutdown,
-        .show_prompt_ptr = &config.power.prompts[POWER_SHUTDOWN],
+        .show_prompt_ptr = &config.power.prompts[POWER_ACTION_SHUTDOWN],
         .name            = N_("Shutdown"),
         .prompt          = N_("Are you sure you want to close all programs and shutdown the computer?"),
         .icon            = "system-shutdown",
@@ -126,9 +126,10 @@ void init_power_indicator(void)
     }
 }
 
-void power_shutdown(void)
+void do_power_action(PowerAction action)
 {
-    on_power_shutdown_activate(NULL, NULL);
+    if(action != POWER_ACTION_NONE)
+        power_action(&POWER_ACTIONS[action]);
 }
 
 /* ------------------------------------------------------------------------- *
@@ -168,23 +169,23 @@ static void power_action(const PowerActionData* action)
 void on_power_suspend_activate(GtkWidget* widget,
                                gpointer* data)
 {
-    power_action(&POWER_ACTIONS[POWER_SUSPEND]);
+    power_action(&POWER_ACTIONS[POWER_ACTION_SUSPEND]);
 }
 
 void on_power_hibernate_activate(GtkWidget* widget,
                                  gpointer* data)
 {
-    power_action(&POWER_ACTIONS[POWER_HIBERNATE]);
+    power_action(&POWER_ACTIONS[POWER_ACTION_HIBERNATE]);
 }
 
 void on_power_restart_activate(GtkWidget* widget,
                                gpointer* data)
 {
-    power_action(&POWER_ACTIONS[POWER_RESTART]);
+    power_action(&POWER_ACTIONS[POWER_ACTION_RESTART]);
 }
 
 void on_power_shutdown_activate(GtkWidget* widget,
                                 gpointer* data)
 {
-    power_action(&POWER_ACTIONS[POWER_SHUTDOWN]);
+    power_action(&POWER_ACTIONS[POWER_ACTION_SHUTDOWN]);
 }

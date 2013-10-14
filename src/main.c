@@ -317,14 +317,14 @@ static gboolean init_gui(void)
         {&greeter.ui.power.widget,              "power_widget",                 FALSE, NULL},
         {&greeter.ui.power.box,                 "power_box",                    FALSE, &greeter.ui.power.widget},
         {&greeter.ui.power.menu,                "power_menu",                   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_RESTART],  "power_restart_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
-        {&greeter.ui.power.actions_box[POWER_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_SUSPEND]},
-        {&greeter.ui.power.actions_box[POWER_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_HIBERNATE]},
-        {&greeter.ui.power.actions_box[POWER_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_RESTART]},
-        {&greeter.ui.power.actions_box[POWER_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_SHUTDOWN]},
+        {&greeter.ui.power.actions[POWER_ACTION_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_RESTART],  "power_restart_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_SUSPEND]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_ACTION_HIBERNATE]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_RESTART]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_ACTION_SHUTDOWN]},
 
         {&greeter.ui.a11y.widget,               "a11y_widget",                  FALSE, NULL},
         {&greeter.ui.a11y.box,                  "a11y_box",                     FALSE, &greeter.ui.a11y.widget},
@@ -1552,7 +1552,7 @@ gboolean on_special_key_press(GtkWidget* widget,
             take_screenshot();
             break;
         case GDK_KEY_PowerOff:
-            power_shutdown();
+            do_power_action(config.power.button_press_action);
             break;
         default:
             return FALSE;

@@ -115,6 +115,7 @@ typedef struct
     struct
     {
         gboolean        enabled;
+        PowerAction     button_press_action;
         gboolean        prompts[POWER_ACTIONS_COUNT];
     } power;
 
