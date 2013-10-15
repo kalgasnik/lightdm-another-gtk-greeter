@@ -662,19 +662,17 @@ static GdkPixbuf* get_session_image(const gchar* session,
 static void load_sessions_list(void)
 {
     g_message("Reading sessions list");
-
     GtkTreeIter iter;
     for(const GList* item = lightdm_get_sessions(); item != NULL; item = item->next)
     {
         LightDMSession* session = item->data;
         const gchar* name = lightdm_session_get_key(session);
-
         gtk_list_store_append(greeter.ui.sessions_model, &iter);
         gtk_list_store_set(greeter.ui.sessions_model, &iter,
                            SESSION_COLUMN_NAME, name,
                            SESSION_COLUMN_DISPLAY_NAME, lightdm_session_get_name(session),
-                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
                            SESSION_COLUMN_IMAGE, get_session_image(name, TRUE),
+                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
                            -1);
     }
 }

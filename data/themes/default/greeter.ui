@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.0 on Fri Oct 11 14:34:44 2013 -->
+<!-- Generated with glade 3.16.0 on Tue Oct 15 11:54:58 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkImage" id="image1">
@@ -12,7 +12,7 @@
     <property name="can_focus">False</property>
     <property name="icon_name">preferences-desktop-accessibility</property>
   </object>
-  <object class="GtkListStore" id="language_liststore">
+  <object class="GtkListStore" id="languages_model">
     <columns>
       <!-- column-name code -->
       <column type="gchararray"/>
@@ -20,13 +20,31 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="session_liststore">
+  <object class="GtkListStore" id="sessions_model">
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>
       <!-- column-name display_name -->
       <column type="gchararray"/>
       <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name comment -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="users_model">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name type -->
+      <column type="gint"/>
+      <!-- column-name display_name -->
+      <column type="gchararray"/>
+      <!-- column-name weight -->
+      <column type="gint"/>
+      <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name image_scaled -->
       <column type="GdkPixbuf"/>
     </columns>
   </object>
@@ -309,7 +327,7 @@
                                 <property name="height_request">175</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="model">user_liststore</property>
+                                <property name="model">users_model</property>
                                 <property name="headers_visible">False</property>
                                 <property name="headers_clickable">False</property>
                                 <property name="search_column">0</property>
@@ -428,7 +446,7 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="valign">center</property>
-                                        <property name="model">language_liststore</property>
+                                        <property name="model">languages_model</property>
                                         <child>
                                           <object class="GtkCellRendererText" id="language_renderer_name"/>
                                           <attributes>
@@ -446,7 +464,7 @@
                                       <object class="GtkComboBox" id="sessions_widget">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="model">session_liststore</property>
+                                        <property name="model">sessions_model</property>
                                         <child>
                                           <object class="GtkCellRendererText" id="session_renderer_name"/>
                                           <attributes>
@@ -751,21 +769,5 @@
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-  </object>
-  <object class="GtkListStore" id="user_liststore">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-      <!-- column-name type -->
-      <column type="gint"/>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name weight -->
-      <column type="gint"/>
-      <!-- column-name image -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name image_scaled -->
-      <column type="GdkPixbuf"/>
-    </columns>
   </object>
 </interface>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.0 on Sun Oct 13 02:14:47 2013 -->
+<!-- Generated with glade 3.16.0 on Tue Oct 15 11:56:32 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.6 -->
   <object class="GtkImage" id="image1">
@@ -286,7 +286,7 @@
                             <property name="can_focus">False</property>
                             <property name="valign">start</property>
                             <property name="hexpand">True</property>
-                            <property name="model">user_liststore</property>
+                            <property name="model">users_model</property>
                             <signal name="changed" handler="on_user_selection_changed" swapped="no"/>
                             <signal name="key-press-event" handler="on_user_selection_key_press" swapped="no"/>
                             <child>
@@ -631,13 +631,15 @@
       <column type="gchararray"/>
       <!-- column-name image -->
       <column type="GdkPixbuf"/>
+      <!-- column-name comment -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
   </object>
-  <object class="GtkListStore" id="user_liststore">
+  <object class="GtkListStore" id="users_model">
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>

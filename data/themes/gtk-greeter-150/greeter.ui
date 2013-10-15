@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.0 on Sun Oct 13 03:12:59 2013 -->
+<!-- Generated with glade 3.16.0 on Tue Oct 15 11:55:54 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkImage" id="image1">
@@ -12,7 +12,7 @@
     <property name="can_focus">False</property>
     <property name="icon_name">preferences-desktop-accessibility</property>
   </object>
-  <object class="GtkListStore" id="language_liststore">
+  <object class="GtkListStore" id="languages_model">
     <columns>
       <!-- column-name code -->
       <column type="gchararray"/>
@@ -20,13 +20,31 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="session_liststore">
+  <object class="GtkListStore" id="sessions_model">
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>
       <!-- column-name display_name -->
       <column type="gchararray"/>
       <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name comment -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="users_model">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name type -->
+      <column type="gint"/>
+      <!-- column-name display_name -->
+      <column type="gchararray"/>
+      <!-- column-name weight -->
+      <column type="gint"/>
+      <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name image_scaled -->
       <column type="GdkPixbuf"/>
     </columns>
   </object>
@@ -263,7 +281,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="hexpand">True</property>
-                            <property name="model">user_liststore</property>
+                            <property name="model">users_model</property>
                             <signal name="changed" handler="on_user_selection_changed" swapped="no"/>
                             <signal name="key-press-event" handler="on_user_selection_key_press" swapped="no"/>
                             <child>
@@ -382,7 +400,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="hexpand">True</property>
-                            <property name="model">session_liststore</property>
+                            <property name="model">sessions_model</property>
                             <child>
                               <object class="GtkCellRendererText" id="session_renderer_name"/>
                               <attributes>
@@ -410,7 +428,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="hexpand">True</property>
-                            <property name="model">language_liststore</property>
+                            <property name="model">languages_model</property>
                             <child>
                               <object class="GtkCellRendererText" id="language_renderer_name"/>
                               <attributes>
@@ -591,21 +609,5 @@
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-  </object>
-  <object class="GtkListStore" id="user_liststore">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-      <!-- column-name type -->
-      <column type="gint"/>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name weight -->
-      <column type="gint"/>
-      <!-- column-name image -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name image_scaled -->
-      <column type="GdkPixbuf"/>
-    </columns>
   </object>
 </interface>
