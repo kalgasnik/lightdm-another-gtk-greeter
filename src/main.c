@@ -1004,6 +1004,7 @@ static void set_prompt_text(const gchar* text)
                            !config.appearance.hide_prompt_text && greeter.state.password_required);
     if(text)
         set_widget_text(greeter.ui.prompt_text, text);
+
     if(greeter.ui.no_prompt_login_box)
     {
         gtk_widget_set_visible(greeter.ui.login_box, text != NULL);
@@ -1276,7 +1277,7 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
                        G_CALLBACK(on_password_toggled));
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
     gtk_widget_set_sensitive(greeter.ui.login_widget, TRUE);
-    gtk_widget_grab_focus(greeter.ui.prompt_entry);
+    focus_main_window();
 }
 
 static void on_show_message(LightDMGreeter* greeter_ptr,
@@ -1299,6 +1300,7 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
     }
 
     set_prompt_text(NULL);
+    focus_main_window();
 
     #ifdef _DEBUG_
     return;
@@ -1430,12 +1432,19 @@ void on_user_selection_changed(GtkWidget* widget,
     }
     set_message_text(NULL);
     start_authentication(user_name);
-    gtk_widget_grab_focus(greeter.ui.users_widget);
     #ifdef _DEBUG_
-    on_authentication_complete(greeter.greeter);
     if(get_user_type() == USER_TYPE_OTHER ||
        !lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
-        on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
+    {
+        gboolean prompt(gpointer data)
+        {
+            on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
+            return FALSE;
+        }
+        g_timeout_add(75, prompt, NULL);
+    }
+    else
+        on_authentication_complete(greeter.greeter);
     #endif
     g_free(user_name);
 }
