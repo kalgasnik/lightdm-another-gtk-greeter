@@ -769,8 +769,8 @@ static void load_user_options(LightDMUser* user)
 {
     const gboolean logged_in = user && lightdm_user_get_logged_in(user);
 
-    gtk_widget_set_sensitive(greeter.ui.sessions_widget, !logged_in);
-    gtk_widget_set_sensitive(greeter.ui.languages_widget, !logged_in);
+    set_widget_sensitive(greeter.ui.sessions_box, !logged_in);
+    set_widget_sensitive(greeter.ui.languages_box, !logged_in);
 
     set_session(user ? lightdm_user_get_session(user) : NULL);
     set_language(user ? lightdm_user_get_language(user) : NULL);

@@ -291,6 +291,8 @@ void set_window_position               (GtkWidget* window,
                                         const WindowPosition* p);
 void set_widget_text                   (GtkWidget* widget,
                                         const gchar* text);
+void set_widget_sensitive              (GtkWidget* widget,
+                                        gboolean value);
 GtkListStore* get_widget_model         (GtkWidget* widget);
 gchar* get_widget_selection_str        (GtkWidget* widget,
                                         gint column,

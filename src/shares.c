@@ -285,6 +285,15 @@ void set_widget_text(GtkWidget* widget,
     else g_return_if_reached();
 }
 
+void set_widget_sensitive(GtkWidget* widget,
+                          gboolean value)
+{
+    if(GTK_IS_MENU(widget))
+        gtk_container_foreach(GTK_CONTAINER(widget), gtk_widget_set_sensitive, value);
+    else
+        gtk_widget_set_sensitive(widget, value);
+}
+
 GtkListStore* get_widget_model(GtkWidget* widget)
 {
     if(GTK_IS_COMBO_BOX(widget))
