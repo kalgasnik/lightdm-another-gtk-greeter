@@ -802,10 +802,13 @@ static void set_screen_background(GdkScreen* screen,
             set_props = FALSE;
     }
 
-    pixmap = XCreatePixmap(GDK_SCREEN_XDISPLAY(screen), root_window,
+    Display* pixmap_display = XOpenDisplay(gdk_display_get_name(gdk_screen_get_display(screen)));
+    XSetCloseDownMode(pixmap_display, RetainPermanent);
+    pixmap = XCreatePixmap(pixmap_display, root_window,
                            DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
                            DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
                            DefaultDepth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
+    XCloseDisplay(pixmap_display);
 
     surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen), pixmap,
                                         DefaultVisual(GDK_SCREEN_XDISPLAY(screen), 0),
@@ -813,10 +816,6 @@ static void set_screen_background(GdkScreen* screen,
                                         DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
 
     cairo = cairo_create(surface);
-
-    #ifndef _DEBUG_
-    XSetCloseDownMode(GDK_SCREEN_XDISPLAY(screen), RetainPermanent);
-    #endif
     XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
                                root_window, cairo_xlib_surface_get_drawable(surface));
 
@@ -929,14 +928,14 @@ static void set_background(const gchar* value)
 
     for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
     {
+        /* One screen, Gtk3 ? */
         GdkScreen* screen = gdk_display_get_screen(gdk_display_get_default(), i);
         if(screen == gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window)))
             set_window_background(gtk_widget_get_window(greeter.ui.screen_window), screen,
                                   background_pixbuf, &background_color);
-        else
-            set_screen_background(screen,
-                                  background_pixbuf, background_color,
-                                  config.appearance.x_background);
+        set_screen_background(screen,
+                              background_pixbuf, background_color,
+                              config.appearance.x_background);
     }
 
     greeter.state.last_background = value;
@@ -1001,7 +1000,7 @@ static void set_prompt_text(const gchar* text)
 {
     gtk_widget_set_visible(greeter.ui.prompt_box, text != NULL);
     gtk_widget_set_visible(greeter.ui.prompt_text, (text != NULL && !greeter.state.password_required) ||
-                           !config.appearance.hide_prompt_text && greeter.state.password_required);
+                           (!config.appearance.hide_prompt_text && greeter.state.password_required));
     if(text)
         set_widget_text(greeter.ui.prompt_text, text);
 
@@ -1597,6 +1596,8 @@ void on_screen_changed(GtkWidget* widget,
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
+    gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
+
     if(update_layout)
         update_main_window_layout();
 }
@@ -1605,7 +1606,6 @@ void on_main_content_size_allocate(GtkWidget *widget,
                                    GdkRectangle *allocation,
                                    gpointer data)
 {
-
     static GdkRectangle old_allocation;
     if(allocation->width != old_allocation.width || allocation->height != old_allocation.height ||
        allocation->x != old_allocation.x || allocation->y != old_allocation.y)

@@ -512,9 +512,9 @@ void update_main_window_layout(void)
     if(!config.appearance.position_is_relative)
         gtk_widget_translate_coordinates(greeter.ui.screen_window, greeter.ui.main_layout,
                                          x, y, &x, &y);
-
+    /* TODO: creepy moving fix (F1) */
     if(y + size.height > size_layout.height)
-        y = size_layout.height - size.height - 1;
+        y = size_layout.height - size.height - 2;
     if(y < 0)
         y = 0;
     gtk_fixed_move(GTK_FIXED(greeter.ui.main_layout), greeter.ui.main_content, x, y);
