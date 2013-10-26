@@ -1531,6 +1531,7 @@ void on_screen_changed(GtkWidget* widget,
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
+    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), geometry.x, geometry.y);
     if(update_layout)
         update_main_window_layout();
 }
