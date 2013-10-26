@@ -122,7 +122,7 @@ static gchar* read_value_path                      (GKeyFile* key_file,
                                                     const gchar* default_value,
                                                     const gchar* dir);
 
-static void read_css_file                          (const gchar* path,
+static GtkStyleProvider* read_css_file             (const gchar* path,
                                                     GdkScreen* screen);
 
 /* Static variables */
@@ -299,20 +299,31 @@ void apply_gtk_theme(GtkSettings* settings,
                      const gchar* gtk_theme)
 {
     GdkScreen* screen = gdk_screen_get_default();
+
+    for(GSList* item = greeter.state.theming.style_providers; item != NULL; item = item->next)
+    {
+        gtk_style_context_remove_provider_for_screen(screen, GTK_STYLE_PROVIDER(item->data));
+        g_object_unref(item->data);
+    }
+    g_slist_free(greeter.state.theming.style_providers);
+    greeter.state.theming.style_providers = NULL;
+
     for(GSList* item = config.appearance.themes_stack; item != NULL; item = g_slist_next(item))
     {
         LoadedGreeterConfig* theme = item->data;
         gchar* fix_css_path_wo_ext = g_build_filename(theme->path, "gtk-themes-fixes", gtk_theme, NULL);
         gchar* fix_css_path = g_strconcat(fix_css_path_wo_ext, ".css", NULL);
         if(theme->css_path)
-            read_css_file(theme->css_path, screen);
+            greeter.state.theming.style_providers = g_slist_prepend(greeter.state.theming.style_providers,
+                                                                    read_css_file(theme->css_path, screen));
         if(g_file_test(fix_css_path, G_FILE_TEST_IS_REGULAR))
-            read_css_file(fix_css_path, screen);
+            greeter.state.theming.style_providers = g_slist_prepend(greeter.state.theming.style_providers,
+                                                                    read_css_file(fix_css_path, screen));
         g_free(fix_css_path);
         g_free(fix_css_path_wo_ext);
     }
     g_object_set(settings, "gtk-theme-name", gtk_theme, NULL);
-    greeter.state.gtk_theme_applied = TRUE;
+    greeter.state.theming.gtk_theme_applied = TRUE;
 }
 
 /* ---------------------------------------------------------------------------*
@@ -592,8 +603,8 @@ static gchar* read_value_path(GKeyFile* key_file,
     return value;
 }
 
-static void read_css_file(const gchar* path,
-                          GdkScreen* screen)
+static GtkStyleProvider* read_css_file(const gchar* path,
+                                       GdkScreen* screen)
 {
     g_message("Loading CSS file: %s", path);
 
@@ -606,5 +617,5 @@ static void read_css_file(const gchar* path,
         g_warning("Error loading CSS: %s", error->message);
         g_clear_error(&error);
     }
-    g_object_unref(provider);
+    return GTK_STYLE_PROVIDER(provider);
 }

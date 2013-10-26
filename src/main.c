@@ -167,7 +167,7 @@ int main(int argc, char** argv)
         init_a11y_indicator();
         init_clock_indicator();
         init_layout_indicator();
-        if(!greeter.state.gtk_theme_applied)
+        if(!greeter.state.theming.gtk_theme_applied)
             apply_gtk_theme(gtk_settings_get_default(), config.appearance.gtk_theme);
         run_gui();
         close_gui();

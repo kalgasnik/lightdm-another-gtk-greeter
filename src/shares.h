@@ -74,8 +74,14 @@ typedef struct
         gboolean        password_required;
         gboolean        show_password;
         GdkPixbuf*      window_background;
-        gboolean        gtk_theme_applied;
         gboolean        no_users_list;
+
+        struct
+        {
+            gboolean    gtk_theme_applied;
+            /* Style providers applied in apply_gtk_theme */
+            GSList*     style_providers;
+        } theming;
     } state;
 
     struct

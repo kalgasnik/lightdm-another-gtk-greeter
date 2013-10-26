@@ -9,8 +9,8 @@
     color: @lightdm_fg_color;
 }
 
-#panel_menubar,
-#panel_menubar > .menuitem
+GtkMenuBar,
+GtkMenuBar > .menuitem
 {
     background: transparent;
     color: @lightdm_fg_color;

@@ -289,7 +289,7 @@ void set_widget_sensitive(GtkWidget* widget,
                           gboolean value)
 {
     if(GTK_IS_MENU(widget))
-        gtk_container_foreach(GTK_CONTAINER(widget), gtk_widget_set_sensitive, value);
+        gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_set_sensitive, GINT_TO_POINTER(value));
     else
         gtk_widget_set_sensitive(widget, value);
 }
@@ -313,7 +313,7 @@ gchar* get_widget_selection_str(GtkWidget* widget,
 {
     GtkTreeIter iter;
     if(!get_widget_active_iter(widget, &iter))
-        return default_value ? g_strdup(default_value) : NULL;
+        return g_strdup(default_value);
     gchar* value;
     gtk_tree_model_get(GTK_TREE_MODEL(get_widget_model(widget)), &iter, column, &value, -1);
     return value;
