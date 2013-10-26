@@ -451,7 +451,6 @@ static gboolean init_gui(void)
     gtk_widget_hide(greeter.ui.onboard_layout);
     gtk_widget_hide(greeter.ui.messagebox_layout);
 
-    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), 0, 0);
     gtk_builder_connect_signals(builder, greeter.greeter);
     return TRUE;
 }
@@ -1597,7 +1596,7 @@ void on_screen_changed(GtkWidget* widget,
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
     gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
-
+    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), geometry.x, geometry.y);
     if(update_layout)
         update_main_window_layout();
 }
