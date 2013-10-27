@@ -94,8 +94,9 @@ typedef struct
         gint            dpi;
         gboolean        transparency;
         WindowPosition  position;
-        /* True: position is relative main_layout, False: is absolute */
+        /* True: position is relative to main_layout, False: is absolute */
         gboolean        position_is_relative;
+        gboolean        hide_prompt_text;
         struct
         {
             gboolean     enabled;
@@ -114,6 +115,7 @@ typedef struct
     struct
     {
         gboolean        enabled;
+        PowerAction     button_press_action;
         gboolean        prompts[POWER_ACTIONS_COUNT];
     } power;
 

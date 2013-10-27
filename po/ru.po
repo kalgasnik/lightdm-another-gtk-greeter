@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lightdm-another-gtk-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-14 14:40+0300\n"
-"PO-Revision-Date: 2013-08-14 15:01+0300\n"
+"POT-Creation-Date: 2013-10-13 02:14+0300\n"
+"PO-Revision-Date: 2013-10-13 02:15+0300\n"
 "Last-Translator: andrew.p <pan.pav.7c5@gmail.com>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -14,116 +14,136 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Generator: Poedit 1.5.7\n"
 
-#: ../data/themes/classic/greeter.ui.h:1 ../data/themes/default/greeter.ui.h:2
-#: ../data/themes/sample.composite/greeter.ui.h:1 ../src/shares.c:33
-msgid "Login"
-msgstr "Войти"
-
-#: ../data/themes/classic/greeter.ui.h:2 ../data/themes/default/greeter.ui.h:1
-msgid "Cancel"
-msgstr "Отмена"
-
-#: ../data/themes/classic/greeter.ui.h:3 ../data/themes/default/greeter.ui.h:4
-#: ../src/indicator_power.c:56
+#: ../data/themes/default/greeter.ui.h:1
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:1
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:5 ../src/indicator_power.c:57
 msgid "Suspend"
 msgstr "Ждущий режим"
 
-#: ../data/themes/classic/greeter.ui.h:4 ../data/themes/default/greeter.ui.h:5
-#: ../src/indicator_power.c:64
+#: ../data/themes/default/greeter.ui.h:2
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:2
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:6 ../src/indicator_power.c:66
 msgid "Hibernate"
 msgstr "Спящий режим"
 
-#: ../data/themes/classic/greeter.ui.h:5 ../data/themes/default/greeter.ui.h:6
-#: ../src/indicator_power.c:72
+#: ../data/themes/default/greeter.ui.h:3
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:3
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:7 ../src/indicator_power.c:75
 msgid "Restart"
 msgstr "Перезагрузка"
 
-#: ../data/themes/classic/greeter.ui.h:6 ../data/themes/default/greeter.ui.h:7
-#: ../src/indicator_power.c:80
+#: ../data/themes/default/greeter.ui.h:4
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:4
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:8 ../src/indicator_power.c:84
 msgid "Shutdown"
 msgstr "Выключение"
 
-#: ../data/themes/classic/greeter.ui.h:7 ../data/themes/default/greeter.ui.h:8
+#: ../data/themes/default/greeter.ui.h:5
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:5
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:1
 msgid "Large font"
 msgstr "Крупный шрифт"
 
-#: ../data/themes/classic/greeter.ui.h:8
-#: ../data/themes/default/greeter.ui.h:11
-msgid "Large dpi"
-msgstr "Высокий DPI"
-
-#: ../data/themes/classic/greeter.ui.h:9 ../data/themes/default/greeter.ui.h:9
+#: ../data/themes/default/greeter.ui.h:6
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:6
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:2
 msgid "High contrast"
 msgstr "Высокая контрастность"
 
-#: ../data/themes/classic/greeter.ui.h:10
-#: ../data/themes/default/greeter.ui.h:10 ../src/indicator_a11y.c:346
+#: ../data/themes/default/greeter.ui.h:7
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:7
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:3 ../src/indicator_a11y.c:328
 msgid "On-screen keyboard"
 msgstr "Экранная клавиатура"
 
-#: ../data/themes/default/greeter.ui.h:3
+#: ../data/themes/default/greeter.ui.h:8
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:8
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:4
+msgid "Large dpi"
+msgstr "Высокий DPI"
+
+#: ../data/themes/default/greeter.ui.h:9
 msgid "Login options"
 msgstr "Опции входа в систему"
 
-#: ../data/themes/sample.composite/greeter.ui.h:2
+#: ../data/themes/default/greeter.ui.h:10
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:9
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:11
+msgid "Show password"
+msgstr "Показать пароль"
+
+#: ../data/themes/default/greeter.ui.h:11
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:11
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:10
+#: ../data/themes/sample.css.dark/greeter.ui.h:2 ../src/shares.c:34
+msgid "Login"
+msgstr "Войти"
+
+#: ../data/themes/default/greeter.ui.h:12
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:10
+#: ../data/themes/gtk-greeter-160/greeter.ui.h:9
+msgid "Cancel"
+msgstr "Отмена"
+
+#: ../data/themes/sample.css.dark/greeter.ui.h:1
 msgid "Authentication, press <Escape> to cancel..."
 msgstr "Выполняется вход, нажмите <Escape> для отмены..."
 
-#: ../src/indicator_a11y.c:346
+#: ../src/indicator_a11y.c:329
 #, c-format
 msgid ""
 "Failed to start keyboard command:\n"
 "%s"
 msgstr "Не удалось запустить экранную клавиатуру:%s"
 
-#: ../src/indicator_a11y.c:473
+#: ../src/indicator_a11y.c:452
 msgid "Onboard"
 msgstr "Onboard"
 
-#: ../src/indicator_a11y.c:473
+#: ../src/indicator_a11y.c:453
 msgid "Failed to start 'onboard', see logs for details."
 msgstr "Не удалось запустить 'onboard'"
 
-#: ../src/indicator_power.c:57
+#: ../src/indicator_power.c:58
 msgid "Suspend the computer?"
 msgstr "Перевести компьютер в ждущий режим?"
 
-#: ../src/indicator_power.c:65
+#: ../src/indicator_power.c:67
 msgid "Hibernate the computer?"
 msgstr "Перевести компьютер в спящий режим?"
 
-#: ../src/indicator_power.c:73
+#: ../src/indicator_power.c:76
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr ""
 "Вы действительно хотите закрыть все приложения и перезагрузить компьютер?"
 
-#: ../src/indicator_power.c:81
+#: ../src/indicator_power.c:85
 msgid "Are you sure you want to close all programs and shutdown the computer?"
 msgstr "Вы действительно хотите закрыть все приложения и выключить компьютер?"
 
-#: ../src/indicator_power.c:147
+#: ../src/indicator_power.c:145
 msgid "Return to Login"
 msgstr "Вернутся к выбору пользователя"
 
-#: ../src/indicator_power.c:175 ../src/indicator_power.c:176
+#: ../src/indicator_power.c:159
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
 msgstr "Не удалось выполнить действие \"%s\": %s"
 
-#: ../src/main.c:189 ../src/main.c:237
+#: ../src/main.c:197 ../src/main.c:220 ../src/main.c:232
 msgid "Error"
 msgstr "Ошибка"
 
-#: ../src/main.c:189
+#: ../src/main.c:197
 #, c-format
 msgid "Connection to LightDM failed: %s"
 msgstr "Не удалось соединиться с LightDM: %s"
 
-#: ../src/main.c:189
+#: ../src/main.c:198
 msgid "unknown error"
 msgstr "неизвестная ошибка"
 
-#: ../src/main.c:237
+#: ../src/main.c:221 ../src/main.c:233
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -131,40 +151,40 @@ msgid ""
 "%s"
 msgstr "Ошибка загрузки .ui файла: %s"
 
-#: ../src/main.c:342
+#: ../src/main.c:366
 msgid "Loading UI: error"
 msgstr "Ошибка загрузки GUI"
 
-#: ../src/main.c:342
+#: ../src/main.c:367
 #, c-format
 msgid "Widget '%s' is not found"
 msgstr "Виджет \"%s\" не найден"
 
-#: ../src/main.c:559
+#: ../src/main.c:613
 msgid "Guest Account"
 msgstr "Гостевой аккаунт"
 
-#: ../src/main.c:562
+#: ../src/main.c:616
 msgid "Other..."
 msgstr "Другой пользователь..."
 
-#: ../src/main.c:952
+#: ../src/main.c:1068
 msgid "Screenshot"
 msgstr "Снимок экрана"
 
-#: ../src/main.c:1035
+#: ../src/main.c:1163
 msgid "Failed to start session"
 msgstr "Не удалось запустить сеанс"
 
-#: ../src/main.c:1185
+#: ../src/main.c:1318
 msgid "Incorrect password, please try again"
 msgstr "Неверный пароль, попробуйте ещё раз"
 
-#: ../src/main.c:1190
+#: ../src/main.c:1323
 msgid "Failed to authenticate"
 msgstr "Не удалось выполнить вход"
 
-#: ../src/shares.c:34
+#: ../src/shares.c:35
 msgid "Unlock"
 msgstr "Разблокировать"
 

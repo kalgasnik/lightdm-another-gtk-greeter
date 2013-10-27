@@ -1,0 +1,92 @@
+/* lightdm-gtk-greeter .css from Greybird theme */
+
+#main_content,
+#messagebox_content,
+#panel_content,
+#users_widget .arrow
+{
+    background-color: shade(@lightdm_bg_color, 0.9);
+    color: @lightdm_fg_color;
+}
+
+GtkMenuBar,
+GtkMenuBar > .menuitem
+{
+    background: transparent;
+    color: @lightdm_fg_color;
+}
+
+#main_border, #messagebox_border,
+#main_content, #messagebox_content
+{
+    border-width: 0px;
+    border-style: solid;
+    border-color: @dark_shadow;
+    box-shadow: inset 1px 0px alpha(@light_shadow,0.2),
+                inset -1px 0px alpha(@light_shadow,0.2),
+                inset 0px 1px alpha(@light_shadow,0.2),
+                inset 0px -1px alpha(@light_shadow,0.2);
+    border-radius: 10px;
+}
+
+.button, #user_image_widget
+{
+    background-color: shade(@lightdm_bg_color, 0.9);
+    background-image: none;
+    color: @lightdm_fg_color;
+    border-color: alpha(@dark_shadow, 0.9);
+    border-radius: 4px;
+    text-shadow: 0px 1px alpha(@dark_shadow, 1.0);
+    box-shadow: inset 1px 0px alpha(@light_shadow, 0.2),
+                inset -1px 0px alpha(@light_shadow, 0.2),
+                inset 0px 1px alpha(@light_shadow, 0.3),
+                inset 0px -1px alpha(@light_shadow, 0.1);
+    padding: 4px 16px 4px 16px;
+}
+
+#user_image_widget
+{
+    padding: 4px;
+}
+
+#screen_window .button.default,
+#screen_window .button:focus,
+#login_widget, #login_widget:focus
+{
+    background-color: shade(@lightdm_bg_color, 1.25);
+    box-shadow: inset 1px 0px alpha(@light_shadow, 0.3),
+                inset -1px 0px alpha(@light_shadow, 0.3),
+                inset 0px 1px alpha(@light_shadow, 0.4),
+                inset 0px -1px alpha(@light_shadow, 0.2);
+}
+
+.button:hover
+{
+    background-color: shade(@lightdm_bg_color, 1.35);
+}
+
+#login_widget:hover
+{
+    background-color: shade(@theme_selected_bg_color, 0.6);
+}
+
+#message_box
+{
+    background: alpha(mix(red, white, 0.2), 0.9);
+    border-radius: 2px;
+}
+
+#power_dialog_suspend:hover, #power_dialog_hibernate:hover
+{
+    background-color: shade(@question_bg_color,0.95);
+}
+
+#power_dialog_shutdown:hover
+{
+    background-color: shade(@error_bg_color,0.95);
+}
+
+#power_dialog_restart:hover
+{
+    background-color: shade(@warning_bg_color,0.75);
+}

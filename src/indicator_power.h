@@ -24,9 +24,9 @@
 
 /* Functions */
 
-/* Return FALSE if error occurred or if panel is empty */
+/* Return FALSE if error occurred or if no actions allowed */
 void init_power_indicator              (void);
 
-void power_shutdown                    (void);
+void do_power_action                   (PowerAction action);
 
 #endif // _POWER_MENU_H_INCLUDED_

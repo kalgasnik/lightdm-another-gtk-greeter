@@ -148,9 +148,6 @@ void init_a11y_indicator(void)
 
     if(config.a11y.enabled)
     {
-        if(GTK_IS_IMAGE_MENU_ITEM(greeter.ui.a11y.widget))
-            fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(greeter.ui.a11y.widget));
-
         if(config.a11y.contrast.enabled && get_state_value_int("a11y", "contrast"))
             a11y_toggle_contrast();
         if(config.a11y.font.enabled && get_state_value_int("a11y", "font"))

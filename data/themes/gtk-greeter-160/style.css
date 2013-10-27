@@ -1,0 +1,9 @@
+GtkMenuBar
+{
+    border: none;
+}
+
+#clock_time_widget
+{
+    font-size: 110%;
+}

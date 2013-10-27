@@ -37,16 +37,14 @@ GreeterConfig config =
 
 /* Types */
 
-/* Catched theme data */
+/* Catched config data */
 typedef struct
 {
-    /* Greeter theme name */
-    /* gchar* name; */
-    /* Path to theme directory */
+    /* Path to config directory */
     gchar* path;
-    /* Path to theme .css file */
+    /* Path to config .css file */
     gchar* css_path;
-} LoadedGreeterTheme;
+} LoadedGreeterConfig;
 
 /* Static functions */
 
@@ -124,7 +122,7 @@ static gchar* read_value_path                      (GKeyFile* key_file,
                                                     const gchar* default_value,
                                                     const gchar* dir);
 
-static void read_css_file                          (const gchar* path,
+static GtkStyleProvider* read_css_file             (const gchar* path,
                                                     GdkScreen* screen);
 
 /* Static variables */
@@ -139,6 +137,7 @@ static const gchar* USER_NAME_FORMAT_STRINGS[] = {"name", "display-name", "both"
 static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
+static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -190,6 +189,7 @@ void load_settings(void)
     config.appearance.date_format             = "%A, %e %B";
     config.appearance.position                = WINDOW_POSITION_CENTER;
     config.appearance.position_is_relative    = FALSE;
+    config.appearance.hide_prompt_text        = FALSE;
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
     config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
@@ -200,10 +200,12 @@ void load_settings(void)
                                                                     PANEL_POSITION_STRINGS, PANEL_POS_TOP);
     SECTION = "power";
     config.power.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
-    config.power.prompts[POWER_SUSPEND]       = read_value_bool    (cfg, SECTION, "suspend-prompt",   FALSE);
-    config.power.prompts[POWER_HIBERNATE]     = read_value_bool    (cfg, SECTION, "hibernate-prompt", FALSE);
-    config.power.prompts[POWER_RESTART]       = read_value_bool    (cfg, SECTION, "restart-prompt",   TRUE);
-    config.power.prompts[POWER_SHUTDOWN]      = read_value_bool    (cfg, SECTION, "shutdown-prompt",  TRUE);
+    config.power.button_press_action          = read_value_enum    (cfg, SECTION, "button-press-action",
+                                                                    POWER_ACTION_STRINGS, POWER_ACTION_SHUTDOWN + 1) - 1;
+    config.power.prompts[POWER_ACTION_SUSPEND]   = read_value_bool    (cfg, SECTION, "suspend-prompt",   FALSE);
+    config.power.prompts[POWER_ACTION_HIBERNATE] = read_value_bool    (cfg, SECTION, "hibernate-prompt", FALSE);
+    config.power.prompts[POWER_ACTION_RESTART]   = read_value_bool    (cfg, SECTION, "restart-prompt",   TRUE);
+    config.power.prompts[POWER_ACTION_SHUTDOWN]  = read_value_bool    (cfg, SECTION, "shutdown-prompt",  TRUE);
 
     SECTION = "clock";
     config.clock.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -297,20 +299,31 @@ void apply_gtk_theme(GtkSettings* settings,
                      const gchar* gtk_theme)
 {
     GdkScreen* screen = gdk_screen_get_default();
+
+    for(GSList* item = greeter.state.theming.style_providers; item != NULL; item = item->next)
+    {
+        gtk_style_context_remove_provider_for_screen(screen, GTK_STYLE_PROVIDER(item->data));
+        g_object_unref(item->data);
+    }
+    g_slist_free(greeter.state.theming.style_providers);
+    greeter.state.theming.style_providers = NULL;
+
     for(GSList* item = config.appearance.themes_stack; item != NULL; item = g_slist_next(item))
     {
-        LoadedGreeterTheme* theme = item->data;
+        LoadedGreeterConfig* theme = item->data;
         gchar* fix_css_path_wo_ext = g_build_filename(theme->path, "gtk-themes-fixes", gtk_theme, NULL);
         gchar* fix_css_path = g_strconcat(fix_css_path_wo_ext, ".css", NULL);
         if(theme->css_path)
-            read_css_file(theme->css_path, screen);
+            greeter.state.theming.style_providers = g_slist_prepend(greeter.state.theming.style_providers,
+                                                                    read_css_file(theme->css_path, screen));
         if(g_file_test(fix_css_path, G_FILE_TEST_IS_REGULAR))
-            read_css_file(fix_css_path, screen);
+            greeter.state.theming.style_providers = g_slist_prepend(greeter.state.theming.style_providers,
+                                                                    read_css_file(fix_css_path, screen));
         g_free(fix_css_path);
         g_free(fix_css_path_wo_ext);
     }
     g_object_set(settings, "gtk-theme-name", gtk_theme, NULL);
-    greeter.state.gtk_theme_applied = TRUE;
+    greeter.state.theming.gtk_theme_applied = TRUE;
 }
 
 /* ---------------------------------------------------------------------------*
@@ -340,7 +353,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                     GtkSettings* settings,
                                     const gchar* default_theme)
 {
-    LoadedGreeterTheme* theme = g_malloc(sizeof(LoadedGreeterTheme));
+    LoadedGreeterConfig* theme = g_malloc(sizeof(LoadedGreeterConfig));
     gchar* base_theme_name = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
     if(base_theme_name)
     {
@@ -371,11 +384,11 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.user_background         = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_background);
     config.appearance.x_background            = read_value_bool    (cfg, SECTION, "x-background", config.appearance.x_background);
     config.appearance.logo                    = read_value_path    (cfg, SECTION, "logo", config.appearance.logo, path);
-    config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-background", config.appearance.user_image.enabled);
+    config.appearance.user_image.enabled      = read_value_bool    (cfg, SECTION, "user-image", config.appearance.user_image.enabled);
     config.appearance.user_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.user_image.fit);
-    config.appearance.list_image.enabled      = read_value_bool    (cfg, SECTION, "list-background", config.appearance.list_image.enabled);
-    config.appearance.list_image.fit          = read_value_enum    (cfg, SECTION, "list-image-fit",
+    config.appearance.list_image.enabled      = read_value_bool    (cfg, SECTION, "list-image", config.appearance.list_image.enabled);
+    config.appearance.list_image.fit          = read_value_enum    (cfg, SECTION, "user-image-fit",
                                                                     USER_IMAGE_FIT_STRINGS, config.appearance.list_image.fit);
     config.appearance.list_image.size         = read_value_int     (cfg, SECTION, "list-image-size", config.appearance.list_image.size);
 
@@ -392,6 +405,7 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.date_format             = read_value_str     (cfg, SECTION, "date-format", config.appearance.date_format);
     config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
     config.appearance.position_is_relative    = read_value_bool    (cfg, SECTION, "position-is-relative", config.appearance.position_is_relative);
+    config.appearance.hide_prompt_text        = read_value_bool    (cfg, SECTION, "hide-prompt-text", config.appearance.hide_prompt_text);
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,
@@ -589,8 +603,8 @@ static gchar* read_value_path(GKeyFile* key_file,
     return value;
 }
 
-static void read_css_file(const gchar* path,
-                          GdkScreen* screen)
+static GtkStyleProvider* read_css_file(const gchar* path,
+                                       GdkScreen* screen)
 {
     g_message("Loading CSS file: %s", path);
 
@@ -603,5 +617,5 @@ static void read_css_file(const gchar* path,
         g_warning("Error loading CSS: %s", error->message);
         g_clear_error(&error);
     }
-    g_object_unref(provider);
+    return GTK_STYLE_PROVIDER(provider);
 }

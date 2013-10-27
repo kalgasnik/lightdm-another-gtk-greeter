@@ -36,7 +36,6 @@
 #include "indicator_clock.h"
 #include "indicator_layout.h"
 
-
 /* Static functions */
 
 static gboolean connect_to_lightdm          (void);
@@ -56,7 +55,8 @@ static void set_screen_background           (GdkScreen* screen,
                                              gboolean set_props);
 static void set_background                  (const gchar* value);
 static void set_logo_image                  (void);
-static void set_message_label               (const gchar* text);
+static void set_message_text                (const gchar* text);
+static void set_prompt_text                 (const gchar* text);
 static void set_login_button_state          (gboolean logged);
 static gboolean update_date_label           (gpointer dummy);
 static void set_login_button_width          (void);
@@ -167,8 +167,7 @@ int main(int argc, char** argv)
         init_a11y_indicator();
         init_clock_indicator();
         init_layout_indicator();
-        init_user_selection();
-        if(!greeter.state.gtk_theme_applied)
+        if(!greeter.state.theming.gtk_theme_applied)
             apply_gtk_theme(gtk_settings_get_default(), config.appearance.gtk_theme);
         run_gui();
         close_gui();
@@ -239,10 +238,13 @@ static gboolean init_gui(void)
 
     struct BuilderWidget
     {
+        /* Place to store widget reference */
         GtkWidget**  pwidget;
+        /* Widget ID in .ui file */
         const gchar* name;
+        /* If widget is missing and needed is true then program terminates with error message */
         gboolean     needed;
-        GtkWidget**  child;
+        GtkWidget**  default_widget;
     };
 
     const struct BuilderWidget WIDGETS[] =
@@ -265,8 +267,12 @@ static gboolean init_gui(void)
         {&greeter.ui.messagebox_icon,           "messagebox_icon",              FALSE, NULL},
 
         {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
-        {&greeter.ui.login_label,               "login_label",                  FALSE, NULL},
+        {&greeter.ui.login_label,               "login_label",                  FALSE, &greeter.ui.login_widget},
         {&greeter.ui.login_box,                 "login_box",                    FALSE, &greeter.ui.login_widget},
+
+        {&greeter.ui.no_prompt_login_widget,    "no_prompt_login_widget",       FALSE, NULL},
+        {&greeter.ui.no_prompt_login_label,     "no_prompt_login_label",        FALSE, &greeter.ui.no_prompt_login_widget},
+        {&greeter.ui.no_prompt_login_box,       "no_prompt_login_box",          FALSE, &greeter.ui.no_prompt_login_widget},
 
         {&greeter.ui.cancel_widget,             "cancel_widget",                FALSE, NULL},
         {&greeter.ui.cancel_box,                "cancel_box",                   FALSE, &greeter.ui.cancel_widget},
@@ -282,13 +288,19 @@ static gboolean init_gui(void)
         {&greeter.ui.authentication_box,        "authentication_box",           FALSE, &greeter.ui.authentication_widget},
 
         {&greeter.ui.users_widget,              "users_widget",                 FALSE, NULL},
+        {&greeter.ui.users_text,                "users_text",                   FALSE, &greeter.ui.users_widget},
         {&greeter.ui.users_box,                 "users_box",                    FALSE, &greeter.ui.users_widget},
+        {(GtkWidget**)(&greeter.ui.users_model),"users_model",                 FALSE, NULL},
 
         {&greeter.ui.sessions_widget,           "sessions_widget",              FALSE, NULL},
+        {&greeter.ui.sessions_text,             "sessions_text",                FALSE, &greeter.ui.sessions_widget},
         {&greeter.ui.sessions_box,              "sessions_box",                 FALSE, &greeter.ui.sessions_widget},
+        {(GtkWidget**)(&greeter.ui.sessions_model), "sessions_model",           FALSE, NULL},
 
         {&greeter.ui.languages_widget,          "languages_widget",             FALSE, NULL},
+        {&greeter.ui.languages_text,            "languages_text",               FALSE, &greeter.ui.languages_widget},
         {&greeter.ui.languages_box,             "languages_box",                FALSE, &greeter.ui.languages_widget},
+        {(GtkWidget**)(&greeter.ui.languages_model), "languages_model",         FALSE, NULL},
 
         {&greeter.ui.user_image_widget,         "user_image_widget",            FALSE, NULL},
         {&greeter.ui.user_image_box,            "user_image_box",               FALSE, &greeter.ui.user_image_widget},
@@ -305,14 +317,14 @@ static gboolean init_gui(void)
         {&greeter.ui.power.widget,              "power_widget",                 FALSE, NULL},
         {&greeter.ui.power.box,                 "power_box",                    FALSE, &greeter.ui.power.widget},
         {&greeter.ui.power.menu,                "power_menu",                   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_RESTART],  "power_restart_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
-        {&greeter.ui.power.actions_box[POWER_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_SUSPEND]},
-        {&greeter.ui.power.actions_box[POWER_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_HIBERNATE]},
-        {&greeter.ui.power.actions_box[POWER_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_RESTART]},
-        {&greeter.ui.power.actions_box[POWER_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_SHUTDOWN]},
+        {&greeter.ui.power.actions[POWER_ACTION_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_RESTART],  "power_restart_widget",     FALSE, NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_SUSPEND]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_ACTION_HIBERNATE]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_RESTART]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_ACTION_SHUTDOWN]},
 
         {&greeter.ui.a11y.widget,               "a11y_widget",                  FALSE, NULL},
         {&greeter.ui.a11y.box,                  "a11y_box",                     FALSE, &greeter.ui.a11y.widget},
@@ -344,8 +356,8 @@ static gboolean init_gui(void)
     for(const struct BuilderWidget* w = WIDGETS; w->pwidget != NULL; ++w)
     {
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
-        if(!*w->pwidget && w->child)
-            *w->pwidget = *w->child;
+        if(!*w->pwidget && w->default_widget)
+            *w->pwidget = *w->default_widget;
         if(!*w->pwidget)
         {
             if(w->needed)
@@ -358,6 +370,10 @@ static gboolean init_gui(void)
             else
                 g_warning("Widget is not found: %s\n", w->name);
         }
+        else
+            if(GTK_IS_IMAGE_MENU_ITEM(*w->pwidget) &&
+               gtk_image_menu_item_get_image(GTK_IMAGE_MENU_ITEM(*w->pwidget)))
+                fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(*w->pwidget));
     }
 
     void update_widget_name(GObject* object,
@@ -370,6 +386,23 @@ static gboolean init_gui(void)
     GSList* builder_widgets = gtk_builder_get_objects(builder);
     g_slist_foreach(builder_widgets, (GFunc)update_widget_name, NULL);
     g_slist_free(builder_widgets);
+
+    if(!greeter.ui.users_model)
+        greeter.ui.users_model = GTK_LIST_STORE(get_widget_model(greeter.ui.users_widget));
+    if(!greeter.ui.languages_model)
+        greeter.ui.languages_model = GTK_LIST_STORE(get_widget_model(greeter.ui.languages_widget));
+    if(!greeter.ui.sessions_model)
+        greeter.ui.sessions_model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
+
+    if(IS_MENU_WIDGET(greeter.ui.users_widget))
+        bind_menu_widget_model(greeter.ui.users_widget, greeter.ui.users_text, greeter.ui.users_model,
+                               USER_COLUMN_DISPLAY_NAME, G_CALLBACK(on_user_selection_changed));
+    if(IS_MENU_WIDGET(greeter.ui.languages_widget))
+        bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
+                               LANGUAGE_COLUMN_DISPLAY_NAME, NULL);
+    if(IS_MENU_WIDGET(greeter.ui.sessions_widget))
+        bind_menu_widget_model(greeter.ui.sessions_widget, greeter.ui.sessions_text, greeter.ui.sessions_model,
+                               SESSION_COLUMN_DISPLAY_NAME, NULL);
 
     if(config.appearance.user_image.enabled)
     {
@@ -392,7 +425,13 @@ static gboolean init_gui(void)
         gtk_widget_hide(greeter.ui.languages_box);
 
     load_sessions_list();
-    load_users_list();
+
+    greeter.state.no_users_list = lightdm_greeter_get_hide_users_hint(greeter.greeter) ||
+                                  !greeter.ui.users_widget;
+    if(greeter.state.no_users_list)
+        gtk_widget_hide(greeter.ui.users_box);
+    else
+        load_users_list();
 
     gdk_window_set_cursor(gdk_get_default_root_window(), gdk_cursor_new(GDK_LEFT_PTR));
     set_logo_image();
@@ -412,7 +451,6 @@ static gboolean init_gui(void)
     gtk_widget_hide(greeter.ui.onboard_layout);
     gtk_widget_hide(greeter.ui.messagebox_layout);
 
-    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), 0, 0);
     gtk_builder_connect_signals(builder, greeter.greeter);
     return TRUE;
 }
@@ -438,15 +476,13 @@ static void run_gui(void)
         g_timeout_add_seconds(1, (GSourceFunc)update_date_label, NULL);
     }
 
-    if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
-        gtk_widget_hide(greeter.ui.users_box);
-
     on_screen_changed(greeter.ui.screen_window, NULL, FALSE);
     gtk_widget_show(greeter.ui.screen_window);
     update_main_window_layout();
     focus_main_window();
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
+    init_user_selection();
     gtk_main();
 }
 
@@ -478,8 +514,7 @@ static gint get_same_name_count(const gchar* display_name)
     return value ? *value : 0;
 }
 
-static void append_user(GtkTreeModel* model,
-                        LightDMUser* user,
+static void append_user(LightDMUser* user,
                         gboolean update_hash_table)
 {
     const gchar* base_display_name = lightdm_user_get_display_name(user);
@@ -525,8 +560,8 @@ static void append_user(GtkTreeModel* model,
     }
 
     GtkTreeIter iter;
-    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+    gtk_list_store_append(greeter.ui.users_model, &iter);
+    gtk_list_store_set(greeter.ui.users_model, &iter,
                        USER_COLUMN_NAME, user_name,
                        USER_COLUMN_TYPE, USER_TYPE_REGULAR,
                        USER_COLUMN_DISPLAY_NAME, display_name,
@@ -537,16 +572,15 @@ static void append_user(GtkTreeModel* model,
     g_free(display_name);
 }
 
-static void append_custom_user(GtkTreeModel* model,
-                               gint type,
+static void append_custom_user(gint type,
                                const gchar* name,
                                const gchar* display_name)
 {
     g_debug("Adding not real user: %s (%s)", display_name, name);
 
     GtkTreeIter iter;
-    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+    gtk_list_store_append(greeter.ui.users_model, &iter);
+    gtk_list_store_set(greeter.ui.users_model, &iter,
                        USER_COLUMN_NAME, name,
                        USER_COLUMN_TYPE, type,
                        USER_COLUMN_DISPLAY_NAME, display_name,
@@ -564,25 +598,23 @@ static gboolean load_users_list(void)
 
     const GList* items = lightdm_user_list_get_users(lightdm_user_list_get_instance());
     const GList* item;
+    GtkTreeIter iter;
 
     g_return_val_if_fail(items != NULL, FALSE);
-
-    GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
 
     for(item = items; item != NULL; item = item->next)
         update_users_names_table(lightdm_user_get_display_name(item->data));
 
     for(item = items; item != NULL; item = item->next)
-        append_user(model, item->data, FALSE);
+        append_user(item->data, FALSE);
 
     if(lightdm_greeter_get_has_guest_account_hint(greeter.greeter))
-        append_custom_user(model, USER_TYPE_GUEST, USER_GUEST, _("Guest Account"));
+        append_custom_user(USER_TYPE_GUEST, USER_GUEST, _("Guest Account"));
 
-    if(config.greeter.allow_other_users)
-        append_custom_user(model, USER_TYPE_OTHER, USER_OTHER, _("Other..."));
+    if(config.greeter.allow_other_users || greeter.state.no_users_list)
+        append_custom_user(USER_TYPE_OTHER, USER_OTHER, _("Other..."));
 
-    if(!gtk_tree_model_get_iter_first(model, &iter))
+    if(!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(greeter.ui.users_model), &iter))
     {
         g_warning("No users to display");
         return FALSE;
@@ -629,21 +661,17 @@ static GdkPixbuf* get_session_image(const gchar* session,
 static void load_sessions_list(void)
 {
     g_message("Reading sessions list");
-
     GtkTreeIter iter;
-    GtkListStore* model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
-
     for(const GList* item = lightdm_get_sessions(); item != NULL; item = item->next)
     {
         LightDMSession* session = item->data;
         const gchar* name = lightdm_session_get_key(session);
-
-        gtk_list_store_append(model, &iter);
-        gtk_list_store_set(model, &iter,
+        gtk_list_store_append(greeter.ui.sessions_model, &iter);
+        gtk_list_store_set(greeter.ui.sessions_model, &iter,
                            SESSION_COLUMN_NAME, name,
                            SESSION_COLUMN_DISPLAY_NAME, lightdm_session_get_name(session),
-                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
                            SESSION_COLUMN_IMAGE, get_session_image(name, TRUE),
+                           SESSION_COLUMN_COMMENT, lightdm_session_get_comment(session),
                            -1);
     }
 }
@@ -658,10 +686,7 @@ static gboolean load_languages_list(void)
         g_warning("lightdm_get_languages() return NULL");
         return FALSE;
     }
-
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.languages_widget);
-
     for(const GList* item = items; item != NULL; item = item->next)
     {
         LightDMLanguage* language = item->data;
@@ -679,8 +704,8 @@ static gboolean load_languages_list(void)
             label = label_new;
         }
 
-        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+        gtk_list_store_append(greeter.ui.languages_model, &iter);
+        gtk_list_store_set(greeter.ui.languages_model, &iter,
                            LANGUAGE_COLUMN_CODE, code,
                            LANGUAGE_COLUMN_DISPLAY_NAME, label,
                            -1);
@@ -689,15 +714,14 @@ static gboolean load_languages_list(void)
     return TRUE;
 }
 
-static gboolean get_first_logged_user(GtkTreeModel* model,
-                                      GtkTreeIter* iter)
+static gboolean get_first_logged_user(GtkTreeIter* iter)
 {
-    if(!gtk_tree_model_get_iter_first(model, iter))
+    if(!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(greeter.ui.users_model), iter))
         return FALSE;
     do
     {
         gchar* user_name = NULL;
-        gtk_tree_model_get(model, iter, USER_COLUMN_NAME, &user_name, -1);
+        gtk_tree_model_get(GTK_TREE_MODEL(greeter.ui.users_model), iter, USER_COLUMN_NAME, &user_name, -1);
         LightDMUser* user = user_name ? lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name) : NULL;
         if(user && lightdm_user_get_logged_in(user))
         {
@@ -705,16 +729,24 @@ static gboolean get_first_logged_user(GtkTreeModel* model,
             return TRUE;
         }
         g_free(user_name);
-    } while(gtk_tree_model_iter_next(model, iter));
+    } while(gtk_tree_model_iter_next(GTK_TREE_MODEL(greeter.ui.users_model), iter));
 
     return FALSE;
 }
 
 static void init_user_selection(void)
 {
+    if(greeter.state.no_users_list)
+    {
+        on_user_selection_changed(NULL, NULL);
+        return;
+    }
+
     gchar* last_logged_user = NULL;
     const gchar* selected_user = NULL;
-    if(lightdm_greeter_get_select_user_hint(greeter.greeter))
+    if(greeter.state.no_users_list)
+        selected_user = USER_OTHER;
+    else if(lightdm_greeter_get_select_user_hint(greeter.greeter))
         selected_user = lightdm_greeter_get_select_user_hint(greeter.greeter);
     else if(lightdm_greeter_get_select_guest_hint(greeter.greeter))
         selected_user = USER_GUEST;
@@ -722,11 +754,10 @@ static void init_user_selection(void)
         selected_user = last_logged_user = get_state_value_str("greeter", "last-user");
 
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
-
-    if(selected_user && get_model_iter_str(model, USER_COLUMN_NAME, selected_user, &iter))
+    if(selected_user && get_model_iter_str(greeter.ui.users_model,
+                                           USER_COLUMN_NAME, selected_user, &iter))
         set_widget_active_iter(greeter.ui.users_widget, &iter);
-    else if(get_first_logged_user(model, &iter))
+    else if(get_first_logged_user(&iter))
         set_widget_active_iter(greeter.ui.users_widget, &iter);
     else
         set_widget_active_first(greeter.ui.users_widget);
@@ -737,8 +768,8 @@ static void load_user_options(LightDMUser* user)
 {
     const gboolean logged_in = user && lightdm_user_get_logged_in(user);
 
-    gtk_widget_set_sensitive(greeter.ui.sessions_widget, !logged_in);
-    gtk_widget_set_sensitive(greeter.ui.languages_widget, !logged_in);
+    set_widget_sensitive(greeter.ui.sessions_box, !logged_in);
+    set_widget_sensitive(greeter.ui.languages_box, !logged_in);
 
     set_session(user ? lightdm_user_get_session(user) : NULL);
     set_language(user ? lightdm_user_get_language(user) : NULL);
@@ -770,10 +801,13 @@ static void set_screen_background(GdkScreen* screen,
             set_props = FALSE;
     }
 
-    pixmap = XCreatePixmap(GDK_SCREEN_XDISPLAY(screen), root_window,
+    Display* pixmap_display = XOpenDisplay(gdk_display_get_name(gdk_screen_get_display(screen)));
+    XSetCloseDownMode(pixmap_display, RetainPermanent);
+    pixmap = XCreatePixmap(pixmap_display, root_window,
                            DisplayWidth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
                            DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)),
                            DefaultDepth(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
+    XCloseDisplay(pixmap_display);
 
     surface = cairo_xlib_surface_create(GDK_SCREEN_XDISPLAY(screen), pixmap,
                                         DefaultVisual(GDK_SCREEN_XDISPLAY(screen), 0),
@@ -781,10 +815,6 @@ static void set_screen_background(GdkScreen* screen,
                                         DisplayHeight(GDK_SCREEN_XDISPLAY(screen), GDK_SCREEN_XNUMBER(screen)));
 
     cairo = cairo_create(surface);
-
-    #ifndef _DEBUG_
-    XSetCloseDownMode(GDK_SCREEN_XDISPLAY(screen), RetainPermanent);
-    #endif
     XSetWindowBackgroundPixmap(GDK_SCREEN_XDISPLAY(screen),
                                root_window, cairo_xlib_surface_get_drawable(surface));
 
@@ -897,14 +927,14 @@ static void set_background(const gchar* value)
 
     for(int i = 0; i < gdk_display_get_n_screens(gdk_display_get_default()); ++i)
     {
+        /* One screen, Gtk3 ? */
         GdkScreen* screen = gdk_display_get_screen(gdk_display_get_default(), i);
         if(screen == gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window)))
             set_window_background(gtk_widget_get_window(greeter.ui.screen_window), screen,
                                   background_pixbuf, &background_color);
-        else
-            set_screen_background(screen,
-                                  background_pixbuf, background_color,
-                                  config.appearance.x_background);
+        set_screen_background(screen,
+                              background_pixbuf, background_color,
+                              config.appearance.x_background);
     }
 
     greeter.state.last_background = value;
@@ -912,16 +942,11 @@ static void set_background(const gchar* value)
         g_object_unref(background_pixbuf);
 }
 
-static void set_message_label(const gchar* text)
-{
-    gtk_widget_set_visible(greeter.ui.message_box, text != NULL && strlen(text) > 0);
-    set_widget_text(greeter.ui.message_widget, text);
-}
-
 static void set_login_button_state(gboolean logged)
 {
-    set_widget_text(greeter.ui.login_label ? greeter.ui.login_label : greeter.ui.login_widget,
-                    logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_LOGIN));
+    const gchar* text = logged ? _(ACTION_TEXT_UNLOCK) : _(ACTION_TEXT_LOGIN);
+    set_widget_text(greeter.ui.login_label, text);
+    set_widget_text(greeter.ui.no_prompt_login_label, text);
 }
 
 static void set_logo_image(void)
@@ -961,6 +986,27 @@ static void set_logo_image(void)
             g_warning("Failed to load logo: %s", error->message);
         g_object_unref(pixbuf);
         g_clear_error(&error);
+    }
+}
+
+static void set_message_text(const gchar* text)
+{
+    gtk_widget_set_visible(greeter.ui.message_box, text != NULL && strlen(text) > 0);
+    set_widget_text(greeter.ui.message_widget, text);
+}
+
+static void set_prompt_text(const gchar* text)
+{
+    gtk_widget_set_visible(greeter.ui.prompt_box, text != NULL);
+    gtk_widget_set_visible(greeter.ui.prompt_text, (text != NULL && !greeter.state.password_required) ||
+                           (!config.appearance.hide_prompt_text && greeter.state.password_required));
+    if(text)
+        set_widget_text(greeter.ui.prompt_text, text);
+
+    if(greeter.ui.no_prompt_login_box)
+    {
+        gtk_widget_set_visible(greeter.ui.login_box, text != NULL);
+        gtk_widget_set_visible(greeter.ui.no_prompt_login_box, text == NULL);
     }
 }
 
@@ -1061,10 +1107,10 @@ static void cancel_authentication(void)
     {
         greeter.state.cancelling = TRUE;
         lightdm_greeter_cancel_authentication(greeter.greeter);
-        set_message_label(NULL);
+        set_message_text(NULL);
     }
 
-    if(lightdm_greeter_get_hide_users_hint(greeter.greeter))
+    if(greeter.state.no_users_list)
         start_authentication(USER_OTHER);
     else
     {
@@ -1091,6 +1137,18 @@ static void start_session(void)
     g_free(user_name);
 
     gchar* session = get_session();
+    if(!session)
+    {
+        GtkTreeIter iter;
+        if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(greeter.ui.sessions_model), &iter))
+        {
+            gtk_tree_model_get(GTK_TREE_MODEL(greeter.ui.sessions_model), &iter,
+                               SESSION_COLUMN_NAME, &session, -1);
+            show_message_dialog(0, "", "No session selected and no default session: using first in the list (%s)", session);
+        }
+        else
+            show_message_dialog(0, "", "No session selected and no default session");
+    }
     if(lightdm_greeter_start_session_sync(greeter.greeter, session, NULL))
     {
         gtk_widget_hide(greeter.ui.main_layout);
@@ -1099,7 +1157,7 @@ static void start_session(void)
     }
     else
     {
-        set_message_label(_("Failed to start session"));
+        set_message_text(_("Failed to start session"));
         start_authentication(lightdm_greeter_get_authentication_user(greeter.greeter));
     }
     g_free(session);
@@ -1107,12 +1165,16 @@ static void start_session(void)
 
 static gchar* get_user_name(void)
 {
-    return get_widget_selection_str(greeter.ui.users_widget, USER_COLUMN_NAME, NULL);
+    return greeter.state.no_users_list ? g_strdup(USER_OTHER)
+                                       : get_widget_selection_str(greeter.ui.users_widget,
+                                                                  USER_COLUMN_NAME, NULL);
 }
 
 static UserType get_user_type(void)
 {
-    return get_widget_selection_int(greeter.ui.users_widget, USER_COLUMN_TYPE, USER_TYPE_REGULAR);
+    return greeter.state.no_users_list ? USER_TYPE_OTHER
+                                       : get_widget_selection_int(greeter.ui.users_widget,
+                                                                  USER_COLUMN_TYPE, USER_TYPE_REGULAR);
 }
 
 static gchar* get_session(void)
@@ -1125,8 +1187,7 @@ static gchar* get_session(void)
 static void set_session(const gchar* session)
 {
     GtkTreeIter iter;
-    if(session && get_model_iter_str(get_widget_model(greeter.ui.sessions_widget),
-                                     SESSION_COLUMN_NAME, session, &iter))
+    if(session && get_model_iter_str(greeter.ui.sessions_model, SESSION_COLUMN_NAME, session, &iter))
     {
         set_widget_active_iter(greeter.ui.sessions_widget, &iter);
         return;
@@ -1148,8 +1209,7 @@ static gchar* get_language(void)
 static void set_language(const gchar* language)
 {
     GtkTreeIter iter;
-    if(language && get_model_iter_str(get_widget_model(greeter.ui.languages_widget),
-                                      LANGUAGE_COLUMN_CODE, language, &iter))
+    if(language && get_model_iter_str(greeter.ui.languages_model, LANGUAGE_COLUMN_CODE, language, &iter))
     {
         set_widget_active_iter(greeter.ui.languages_widget, &iter);
         return;
@@ -1204,7 +1264,7 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
 
     greeter.state.password_required = (type == LIGHTDM_PROMPT_TYPE_SECRET);
     greeter.state.prompted = TRUE;
-    set_widget_text(greeter.ui.prompt_text, dgettext("Linux-PAM", text));
+    set_prompt_text(dgettext("Linux-PAM", text));
     gtk_entry_set_text(GTK_ENTRY(greeter.ui.prompt_entry), "");
     gtk_entry_set_visibility(GTK_ENTRY(greeter.ui.prompt_entry),
                              !greeter.state.password_required || greeter.state.show_password);
@@ -1213,11 +1273,9 @@ static void on_show_prompt(LightDMGreeter* greeter_ptr,
     set_widget_toggled(greeter.ui.password_toggle_widget,
                        config.appearance.invert_password_state ? !greeter.state.show_password : greeter.state.show_password,
                        G_CALLBACK(on_password_toggled));
-    gtk_widget_show(greeter.ui.prompt_box);
-    gtk_widget_show(greeter.ui.login_box);
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, TRUE);
     gtk_widget_set_sensitive(greeter.ui.login_widget, TRUE);
-    gtk_widget_grab_focus(greeter.ui.prompt_entry);
+    focus_main_window();
 }
 
 static void on_show_message(LightDMGreeter* greeter_ptr,
@@ -1225,7 +1283,7 @@ static void on_show_message(LightDMGreeter* greeter_ptr,
                             LightDMMessageType type)
 {
     g_debug("LightDM signal: show-message(%d: %s)", type, text);
-    set_message_label(text);
+    set_message_text(text);
 }
 
 static void on_authentication_complete(LightDMGreeter* greeter_ptr)
@@ -1239,9 +1297,8 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
         return;
     }
 
-    gtk_widget_hide(greeter.ui.prompt_box);
-    gtk_widget_hide(greeter.ui.password_toggle_box);
-    gtk_widget_show(greeter.ui.login_box);
+    set_prompt_text(NULL);
+    focus_main_window();
 
     #ifdef _DEBUG_
     return;
@@ -1256,12 +1313,12 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
     {
         if(greeter.state.prompted)
         {
-            set_message_label(_("Incorrect password, please try again"));
+            set_message_text(_("Incorrect password, please try again"));
             lightdm_greeter_authenticate(greeter.greeter, lightdm_greeter_get_authentication_user(greeter.greeter));
         }
         else
         {
-            set_message_label(_("Failed to authenticate"));
+            set_message_text(_("Failed to authenticate"));
             gchar* user_name = get_user_name();
             start_authentication(user_name);
             g_free(user_name);
@@ -1280,7 +1337,7 @@ static void on_user_added(LightDMUserList* user_list,
                           LightDMUser* user)
 {
     g_debug("LightDM signal: user-added");
-    append_user(get_widget_model(greeter.ui.users_widget), user, TRUE);
+    append_user(user, TRUE);
 }
 
 static void on_user_changed(LightDMUserList* user_list,
@@ -1288,12 +1345,11 @@ static void on_user_changed(LightDMUserList* user_list,
 {
     g_debug("LightDM signal: user-changed");
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
     const gchar* name = lightdm_user_get_name(user);
-    if(!get_model_iter_str(model, USER_COLUMN_NAME, name, &iter))
+    if(!get_model_iter_str(greeter.ui.users_model, USER_COLUMN_NAME, name, &iter))
         return;
 
-    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+    gtk_list_store_set(greeter.ui.users_model, &iter,
                        USER_COLUMN_NAME, name,
                        USER_COLUMN_DISPLAY_NAME, lightdm_user_get_display_name(user),
                        USER_COLUMN_WEIGHT, lightdm_user_get_logged_in(user) ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL,
@@ -1305,11 +1361,10 @@ void on_user_removed(LightDMUserList* user_list,
 {
     g_debug("LightDM signal: user-removed");
     GtkTreeIter iter;
-    GtkTreeModel* model = get_widget_model(greeter.ui.users_widget);
     const gchar* name = lightdm_user_get_name(user);
-    if(!get_model_iter_str(model, USER_COLUMN_NAME, name, &iter))
+    if(!get_model_iter_str(greeter.ui.users_model, USER_COLUMN_NAME, name, &iter))
         return;
-    gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+    gtk_list_store_remove(greeter.ui.users_model, &iter);
 }
 
 /* ------------------------------------------------------------------------- *
@@ -1344,7 +1399,7 @@ void on_login_clicked(GtkWidget* widget,
     }
     gtk_widget_set_sensitive(greeter.ui.prompt_entry, FALSE);
     gtk_widget_set_sensitive(greeter.ui.login_widget, FALSE);
-    set_message_label(NULL);
+    set_message_text(NULL);
 }
 
 void on_cancel_clicked(GtkWidget* widget,
@@ -1373,13 +1428,21 @@ void on_user_selection_changed(GtkWidget* widget,
                                         gdk_pixbuf_get_width(image), gdk_pixbuf_get_height(image));
         gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), image);
     }
-    set_message_label(NULL);
+    set_message_text(NULL);
     start_authentication(user_name);
-    gtk_widget_grab_focus(greeter.ui.users_widget);
     #ifdef _DEBUG_
-    on_authentication_complete(greeter.greeter);
-    if(get_user_type() != USER_TYPE_OTHER && !lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
-        on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
+    if(get_user_type() == USER_TYPE_OTHER ||
+       !lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
+    {
+        gboolean prompt(gpointer data)
+        {
+            on_show_prompt(greeter.greeter, "[debug] password:", LIGHTDM_PROMPT_TYPE_SECRET);
+            return FALSE;
+        }
+        g_timeout_add(75, prompt, NULL);
+    }
+    else
+        on_authentication_complete(greeter.greeter);
     #endif
     g_free(user_name);
 }
@@ -1403,16 +1466,17 @@ gboolean on_prompt_key_press(GtkWidget* widget,
                              GdkEventKey* event,
                              gpointer data)
 {
-    if(event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down)
+    if(!greeter.state.no_users_list &&
+       (event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down))
     {
         GtkTreeIter iter;
         if(!get_widget_active_iter(greeter.ui.users_widget, &iter))
             return FALSE;
         gboolean has_next;
         if(event->keyval == GDK_KEY_Up)
-            has_next = gtk_tree_model_iter_previous(get_widget_model(greeter.ui.users_widget), &iter);
+            has_next = gtk_tree_model_iter_previous(GTK_TREE_MODEL(greeter.ui.users_model), &iter);
         else
-            has_next = gtk_tree_model_iter_next(get_widget_model(greeter.ui.users_widget), &iter);
+            has_next = gtk_tree_model_iter_next(GTK_TREE_MODEL(greeter.ui.users_model), &iter);
         if(has_next)
             set_widget_active_iter(greeter.ui.users_widget, &iter);
         return TRUE;
@@ -1493,7 +1557,7 @@ gboolean on_special_key_press(GtkWidget* widget,
             take_screenshot();
             break;
         case GDK_KEY_PowerOff:
-            power_shutdown();
+            do_power_action(config.power.button_press_action);
             break;
         default:
             return FALSE;
@@ -1531,6 +1595,8 @@ void on_screen_changed(GtkWidget* widget,
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
+    gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
+    gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), geometry.x, geometry.y);
     if(update_layout)
         update_main_window_layout();
 }
@@ -1539,7 +1605,6 @@ void on_main_content_size_allocate(GtkWidget *widget,
                                    GdkRectangle *allocation,
                                    gpointer data)
 {
-
     static GdkRectangle old_allocation;
     if(allocation->width != old_allocation.width || allocation->height != old_allocation.height ||
        allocation->x != old_allocation.x || allocation->y != old_allocation.y)
