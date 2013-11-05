@@ -30,7 +30,7 @@ GreeterData greeter = {NULL, };
 const gchar* const USER_GUEST           = "*guest";
 const gchar* const USER_OTHER           = "*other";
 const gchar* const APP_NAME             = "lightdm-another-gtk-greeter";
-const gchar* const DEFAULT_USER_ICON    = "avatar-default";
+const gchar* const default_user_image    = "avatar-default";
 const gchar* const ACTION_TEXT_LOGIN    = N_("Login");
 const gchar* const ACTION_TEXT_UNLOCK   = N_("Unlock");
 

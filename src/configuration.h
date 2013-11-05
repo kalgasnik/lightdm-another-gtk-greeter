@@ -104,6 +104,7 @@ typedef struct
             gint         size;   /* Only for list_image */
         } user_image, list_image;
         gboolean        invert_password_state; /* set to 1 if gui provide "hide password" widget instead of "show password" */
+        gchar*          default_user_image;
     } appearance;
 
     struct
@@ -197,6 +198,8 @@ void set_state_value_int         (const gchar* section,
 
 /* Apply Gtk theme and load all CSS fixes for it from greeter themes */
 void apply_gtk_theme             (GtkSettings* settings,
+                                  const gchar* gtk_theme);
+void apply_icon_theme            (GtkSettings* settings,
                                   const gchar* gtk_theme);
 
 #endif // _CONFIGURAION_H_INCLUDED_

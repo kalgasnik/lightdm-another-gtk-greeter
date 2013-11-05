@@ -125,6 +125,8 @@ static gchar* read_value_path                      (GKeyFile* key_file,
 static GtkStyleProvider* read_css_file             (const gchar* path,
                                                     GdkScreen* screen);
 
+void update_default_user_image                     (void);
+
 /* Static variables */
 
 static struct
@@ -190,6 +192,7 @@ void load_settings(void)
     config.appearance.position                = WINDOW_POSITION_CENTER;
     config.appearance.position_is_relative    = FALSE;
     config.appearance.hide_prompt_text        = FALSE;
+    config.appearance.default_user_image      = "#avatar-default";
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
     config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
@@ -326,6 +329,13 @@ void apply_gtk_theme(GtkSettings* settings,
     greeter.state.theming.gtk_theme_applied = TRUE;
 }
 
+void apply_icon_theme(GtkSettings* settings,
+                      const gchar* icon_theme)
+{
+    g_object_set(settings, "gtk-icon-theme-name", icon_theme, NULL);
+    update_default_user_image();
+}
+
 /* ---------------------------------------------------------------------------*
  * Definitions: static
  * -------------------------------------------------------------------------- */
@@ -406,6 +416,7 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.position                = read_value_wp      (cfg, SECTION, "position", &config.appearance.position);
     config.appearance.position_is_relative    = read_value_bool    (cfg, SECTION, "position-is-relative", config.appearance.position_is_relative);
     config.appearance.hide_prompt_text        = read_value_bool    (cfg, SECTION, "hide-prompt-text", config.appearance.hide_prompt_text);
+    config.appearance.default_user_image      = read_value_path    (cfg, SECTION, "default-user-image", config.appearance.default_user_image, GREETER_DATA_DIR);
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,

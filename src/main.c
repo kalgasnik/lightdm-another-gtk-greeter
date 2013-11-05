@@ -76,6 +76,9 @@ static void set_session                     (const gchar* session);
 static gchar* get_language                  (void);
 static void set_language                    (const gchar* language);
 
+void update_default_user_image              (void);
+static void update_user_image               (void);
+
 static GdkPixbuf* fit_image                 (GdkPixbuf* source,
                                              gint size,
                                              UserImageFit fit);
@@ -410,16 +413,12 @@ static gboolean init_gui(void)
         gtk_widget_get_preferred_width(greeter.ui.user_image_widget, &width, NULL);
         gtk_widget_get_preferred_height(greeter.ui.user_image_widget, &height, NULL);
         greeter.state.user_image.size = MIN(width, height);
-        greeter.state.user_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), DEFAULT_USER_ICON,
-                                                                          greeter.state.user_image.size, 0, NULL);
     }
 
     if(config.appearance.list_image.enabled)
-    {
         greeter.state.list_image.size = config.appearance.list_image.size;
-        greeter.state.list_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), DEFAULT_USER_ICON,
-                                                                          greeter.state.list_image.size, 0, NULL);
-    }
+
+    update_default_user_image();
 
     if(!load_languages_list() || !config.greeter.show_language_selector)
         gtk_widget_hide(greeter.ui.languages_box);
@@ -1224,6 +1223,75 @@ static void set_language(const gchar* language)
         set_widget_active_first(greeter.ui.languages_widget);
 }
 
+void update_default_user_image(void)
+{
+    static gboolean is_file_and_readed = FALSE;
+
+    if(is_file_and_readed || !(config.appearance.user_image.enabled || config.appearance.list_image.enabled))
+        return;
+
+    GdkPixbuf* old_user_image = greeter.state.user_image.default_image;
+    GdkPixbuf* old_list_image = greeter.state.list_image.default_image;
+
+    if(config.appearance.default_user_image[0] == '#')
+    {
+        const gchar* name = config.appearance.default_user_image + 1;
+        greeter.state.user_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), name,
+                                                                          greeter.state.user_image.size, 0, NULL);
+        greeter.state.list_image.default_image = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), name,
+                                                                          greeter.state.list_image.size, 0, NULL);
+    }
+    else
+    {
+        GdkPixbuf* image = gdk_pixbuf_new_from_file(config.appearance.default_user_image, NULL);
+        if(image)
+        {
+            if(config.appearance.user_image.enabled)
+                greeter.state.user_image.default_image = fit_image(image, greeter.state.user_image.size, config.appearance.user_image.fit);
+            if(config.appearance.list_image.enabled)
+                greeter.state.list_image.default_image = fit_image(image, greeter.state.list_image.size, config.appearance.list_image.fit);
+            g_object_unref(image);
+        }
+        is_file_and_readed = TRUE;
+    }
+    GtkTreeIter iter;
+    if(!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(greeter.ui.users_model), &iter))
+        return;
+    do
+    {
+        GdkPixbuf* user_image;
+        GdkPixbuf* list_image;
+        gtk_tree_model_get(GTK_TREE_MODEL(greeter.ui.users_model), &iter,
+                           USER_COLUMN_USER_IMAGE, &user_image,
+                           USER_COLUMN_LIST_IMAGE, &list_image, -1);
+        if(config.appearance.user_image.enabled &&
+           user_image == old_user_image)
+        {
+            gtk_list_store_set(greeter.ui.users_model, &iter, USER_COLUMN_USER_IMAGE, greeter.state.user_image.default_image, -1);
+            g_object_unref(user_image);
+        }
+        if(config.appearance.list_image.enabled &&
+           list_image == old_list_image)
+        {
+            gtk_list_store_set(greeter.ui.users_model, &iter, USER_COLUMN_LIST_IMAGE, greeter.state.list_image.default_image, -1);
+            g_object_unref(list_image);
+        }
+    } while(gtk_tree_model_iter_next(GTK_TREE_MODEL(greeter.ui.users_model), &iter));
+    update_user_image();
+}
+
+static void update_user_image(void)
+{
+    if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)
+    {
+        GdkPixbuf* image = get_widget_selection_image(greeter.ui.users_widget, USER_COLUMN_USER_IMAGE, NULL);
+        if(config.appearance.user_image.fit == USER_IMAGE_FIT_NONE)
+            gtk_widget_set_size_request(greeter.ui.user_image_widget,
+                                        gdk_pixbuf_get_width(image), gdk_pixbuf_get_height(image));
+        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), image);
+    }
+}
+
 static GdkPixbuf* fit_image(GdkPixbuf* source,
                             gint new_size,
                             UserImageFit fit)
@@ -1420,14 +1488,7 @@ void on_user_selection_changed(GtkWidget* widget,
     gchar* user_name = get_user_name();
     g_debug("User selection changed: %s", user_name);
 
-    if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)
-    {
-        GdkPixbuf* image = get_widget_selection_image(greeter.ui.users_widget, USER_COLUMN_USER_IMAGE, NULL);
-        if(config.appearance.user_image.fit == USER_IMAGE_FIT_NONE)
-            gtk_widget_set_size_request(greeter.ui.user_image_widget,
-                                        gdk_pixbuf_get_width(image), gdk_pixbuf_get_height(image));
-        gtk_image_set_from_pixbuf(GTK_IMAGE(greeter.ui.user_image_widget), image);
-    }
+    update_user_image();
     set_message_text(NULL);
     start_authentication(user_name);
     #ifdef _DEBUG_

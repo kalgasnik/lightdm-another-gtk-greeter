@@ -256,8 +256,7 @@ void a11y_toggle_contrast()
 
     GtkSettings* settings = gtk_settings_get_default();
     apply_gtk_theme(settings, a11y.state.contrast ? config.a11y.contrast.gtk_theme : config.appearance.gtk_theme);
-    g_object_set(settings, "gtk-icon-theme-name",
-                 a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme, NULL);
+    apply_icon_theme(settings, a11y.state.contrast ? config.a11y.contrast.icon_theme : config.appearance.icon_theme);
     set_state_value_int("a11y", "contrast", a11y.state.contrast);
 }
 

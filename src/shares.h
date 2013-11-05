@@ -260,7 +260,7 @@ extern GreeterData greeter;
 extern const gchar* const USER_GUEST;
 extern const gchar* const USER_OTHER;
 extern const gchar* const APP_NAME;
-extern const gchar* const DEFAULT_USER_ICON;
+extern const gchar* const default_user_image;
 extern const gchar* const ACTION_TEXT_LOGIN;
 extern const gchar* const ACTION_TEXT_UNLOCK;
 
