@@ -1,0 +1,6 @@
+GtkMenuBar,
+GtkMenuBar > .menuitem
+{
+    background: transparent;
+    color: @fg_color;
+}

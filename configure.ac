@@ -80,6 +80,8 @@ AC_CONFIG_FILES([
     data/themes/gtk-greeter-150/Makefile
     data/themes/gtk-greeter-160/Makefile
     data/themes/gtk-greeter-160/gtk-themes-fixes/Makefile
+    data/themes/panel/Makefile
+    data/themes/panel/gtk-themes-fixes/Makefile
     src/Makefile
     po/Makefile.in])
 AC_OUTPUT

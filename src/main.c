@@ -245,114 +245,112 @@ static gboolean init_gui(void)
         GtkWidget**  pwidget;
         /* Widget ID in .ui file */
         const gchar* name;
-        /* If widget is missing and needed is true then program terminates with error message */
-        gboolean     needed;
         GtkWidget**  default_widget;
     };
 
     const struct BuilderWidget WIDGETS[] =
     {
-        {&greeter.ui.screen_window,             "screen_window",                FALSE, NULL},
-        {&greeter.ui.screen_layout,             "screen_layout",                FALSE, NULL},
+        {&greeter.ui.screen_window,             "screen_window",                NULL},
+        {&greeter.ui.screen_layout,             "screen_layout",                NULL},
 
-        {&greeter.ui.main_content,              "main_content",                 FALSE, NULL},
-        {&greeter.ui.main_layout,               "main_layout",                  FALSE, &greeter.ui.main_content},
-        {&greeter.ui.panel_content,             "panel_content",                FALSE, NULL},
-        {&greeter.ui.panel_layout,              "panel_layout",                 FALSE, &greeter.ui.panel_content},
-        {&greeter.ui.panel_menubar,             "panel_menubar",                FALSE, NULL},
-        {&greeter.ui.onboard_content,           "onboard_content",              FALSE, NULL},
-        {&greeter.ui.onboard_layout,            "onboard_layout",               FALSE, &greeter.ui.onboard_content},
-        {&greeter.ui.messagebox_content,        "messagebox_content",           FALSE, NULL},
-        {&greeter.ui.messagebox_layout,         "messagebox_layout",            FALSE, &greeter.ui.messagebox_content},
-        {&greeter.ui.messagebox_title,          "messagebox_title",             FALSE, NULL},
-        {&greeter.ui.messagebox_text,           "messagebox_text",              FALSE, NULL},
-        {&greeter.ui.messagebox_buttons,        "messagebox_buttons",           FALSE, NULL},
-        {&greeter.ui.messagebox_icon,           "messagebox_icon",              FALSE, NULL},
+        {&greeter.ui.main_content,              "main_content",                 NULL},
+        {&greeter.ui.main_layout,               "main_layout",                  &greeter.ui.main_content},
+        {&greeter.ui.panel_content,             "panel_content",                NULL},
+        {&greeter.ui.panel_layout,              "panel_layout",                 &greeter.ui.panel_content},
+        {&greeter.ui.panel_menubar,             "panel_menubar",                NULL},
+        {&greeter.ui.onboard_content,           "onboard_content",              NULL},
+        {&greeter.ui.onboard_layout,            "onboard_layout",               &greeter.ui.onboard_content},
+        {&greeter.ui.messagebox_content,        "messagebox_content",           NULL},
+        {&greeter.ui.messagebox_layout,         "messagebox_layout",            &greeter.ui.messagebox_content},
+        {&greeter.ui.messagebox_title,          "messagebox_title",             NULL},
+        {&greeter.ui.messagebox_text,           "messagebox_text",              NULL},
+        {&greeter.ui.messagebox_buttons,        "messagebox_buttons",           NULL},
+        {&greeter.ui.messagebox_icon,           "messagebox_icon",              NULL},
 
-        {&greeter.ui.login_widget,              "login_widget",                 FALSE, NULL},
-        {&greeter.ui.login_label,               "login_label",                  FALSE, &greeter.ui.login_widget},
-        {&greeter.ui.login_box,                 "login_box",                    FALSE, &greeter.ui.login_widget},
+        {&greeter.ui.login_widget,              "login_widget",                 NULL},
+        {&greeter.ui.login_label,               "login_label",                  &greeter.ui.login_widget},
+        {&greeter.ui.login_box,                 "login_box",                    &greeter.ui.login_widget},
 
-        {&greeter.ui.no_prompt_login_widget,    "no_prompt_login_widget",       FALSE, NULL},
-        {&greeter.ui.no_prompt_login_label,     "no_prompt_login_label",        FALSE, &greeter.ui.no_prompt_login_widget},
-        {&greeter.ui.no_prompt_login_box,       "no_prompt_login_box",          FALSE, &greeter.ui.no_prompt_login_widget},
+        {&greeter.ui.no_prompt_login_widget,    "no_prompt_login_widget",       NULL},
+        {&greeter.ui.no_prompt_login_label,     "no_prompt_login_label",        &greeter.ui.no_prompt_login_widget},
+        {&greeter.ui.no_prompt_login_box,       "no_prompt_login_box",          &greeter.ui.no_prompt_login_widget},
 
-        {&greeter.ui.cancel_widget,             "cancel_widget",                FALSE, NULL},
-        {&greeter.ui.cancel_box,                "cancel_box",                   FALSE, &greeter.ui.cancel_widget},
+        {&greeter.ui.cancel_widget,             "cancel_widget",                NULL},
+        {&greeter.ui.cancel_box,                "cancel_box",                   &greeter.ui.cancel_widget},
 
-        {&greeter.ui.message_widget,            "message_widget",               FALSE, NULL},
-        {&greeter.ui.message_box,               "message_box",                  FALSE, &greeter.ui.message_widget},
+        {&greeter.ui.message_widget,            "message_widget",               NULL},
+        {&greeter.ui.message_box,               "message_box",                  &greeter.ui.message_widget},
 
-        {&greeter.ui.prompt_entry,              "prompt_entry",                 FALSE, NULL},
-        {&greeter.ui.prompt_text,               "prompt_text",                  FALSE, NULL},
-        {&greeter.ui.prompt_box,                "prompt_box",                   FALSE, NULL},
+        {&greeter.ui.prompt_entry,              "prompt_entry",                 NULL},
+        {&greeter.ui.prompt_text,               "prompt_text",                  NULL},
+        {&greeter.ui.prompt_box,                "prompt_box",                   NULL},
 
-        {&greeter.ui.authentication_widget,     "authentication_widget",        FALSE, NULL},
-        {&greeter.ui.authentication_box,        "authentication_box",           FALSE, &greeter.ui.authentication_widget},
+        {&greeter.ui.authentication_widget,     "authentication_widget",        NULL},
+        {&greeter.ui.authentication_box,        "authentication_box",           &greeter.ui.authentication_widget},
 
-        {&greeter.ui.users_widget,              "users_widget",                 FALSE, NULL},
-        {&greeter.ui.users_text,                "users_text",                   FALSE, &greeter.ui.users_widget},
-        {&greeter.ui.users_box,                 "users_box",                    FALSE, &greeter.ui.users_widget},
-        {(GtkWidget**)(&greeter.ui.users_model),"users_model",                 FALSE, NULL},
+        {&greeter.ui.users_widget,              "users_widget",                 NULL},
+        {&greeter.ui.users_text,                "users_text",                   &greeter.ui.users_widget},
+        {&greeter.ui.users_box,                 "users_box",                    &greeter.ui.users_widget},
+        {(GtkWidget**)(&greeter.ui.users_model),"users_model",                  NULL},
 
-        {&greeter.ui.sessions_widget,           "sessions_widget",              FALSE, NULL},
-        {&greeter.ui.sessions_text,             "sessions_text",                FALSE, &greeter.ui.sessions_widget},
-        {&greeter.ui.sessions_box,              "sessions_box",                 FALSE, &greeter.ui.sessions_widget},
-        {(GtkWidget**)(&greeter.ui.sessions_model), "sessions_model",           FALSE, NULL},
+        {&greeter.ui.sessions_widget,           "sessions_widget",              NULL},
+        {&greeter.ui.sessions_text,             "sessions_text",                &greeter.ui.sessions_widget},
+        {&greeter.ui.sessions_box,              "sessions_box",                 &greeter.ui.sessions_widget},
+        {(GtkWidget**)(&greeter.ui.sessions_model), "sessions_model",           NULL},
 
-        {&greeter.ui.languages_widget,          "languages_widget",             FALSE, NULL},
-        {&greeter.ui.languages_text,            "languages_text",               FALSE, &greeter.ui.languages_widget},
-        {&greeter.ui.languages_box,             "languages_box",                FALSE, &greeter.ui.languages_widget},
-        {(GtkWidget**)(&greeter.ui.languages_model), "languages_model",         FALSE, NULL},
+        {&greeter.ui.languages_widget,          "languages_widget",             NULL},
+        {&greeter.ui.languages_text,            "languages_text",               &greeter.ui.languages_widget},
+        {&greeter.ui.languages_box,             "languages_box",                &greeter.ui.languages_widget},
+        {(GtkWidget**)(&greeter.ui.languages_model), "languages_model",         NULL},
 
-        {&greeter.ui.user_image_widget,         "user_image_widget",            FALSE, NULL},
-        {&greeter.ui.user_image_box,            "user_image_box",               FALSE, &greeter.ui.user_image_widget},
+        {&greeter.ui.user_image_widget,         "user_image_widget",            NULL},
+        {&greeter.ui.user_image_box,            "user_image_box",               &greeter.ui.user_image_widget},
 
-        {&greeter.ui.date_widget,               "date_widget",                  FALSE, NULL},
-        {&greeter.ui.date_box,                  "date_box",                     FALSE, &greeter.ui.date_widget},
+        {&greeter.ui.date_widget,               "date_widget",                  NULL},
+        {&greeter.ui.date_box,                  "date_box",                     &greeter.ui.date_widget},
 
-        {&greeter.ui.host_widget,               "host_widget",                  FALSE, NULL},
-        {&greeter.ui.host_box,                  "host_box",                     FALSE, &greeter.ui.host_widget},
+        {&greeter.ui.host_widget,               "host_widget",                  NULL},
+        {&greeter.ui.host_box,                  "host_box",                     &greeter.ui.host_widget},
 
-        {&greeter.ui.logo_image_widget,         "logo_image_widget",            FALSE, NULL},
-        {&greeter.ui.logo_image_box,            "logo_image_box",               FALSE, &greeter.ui.logo_image_widget},
+        {&greeter.ui.logo_image_widget,         "logo_image_widget",            NULL},
+        {&greeter.ui.logo_image_box,            "logo_image_box",               &greeter.ui.logo_image_widget},
 
-        {&greeter.ui.power.widget,              "power_widget",                 FALSE, NULL},
-        {&greeter.ui.power.box,                 "power_box",                    FALSE, &greeter.ui.power.widget},
-        {&greeter.ui.power.menu,                "power_menu",                   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_ACTION_SUSPEND],  "power_suspend_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_ACTION_HIBERNATE],"power_hibernate_widget",   FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_ACTION_RESTART],  "power_restart_widget",     FALSE, NULL},
-        {&greeter.ui.power.actions[POWER_ACTION_SHUTDOWN], "power_shutdown_widget",    FALSE, NULL},
-        {&greeter.ui.power.actions_box[POWER_ACTION_SUSPEND],  "power_suspend_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_SUSPEND]},
-        {&greeter.ui.power.actions_box[POWER_ACTION_HIBERNATE],"power_hibernate_box",  FALSE, &greeter.ui.power.actions[POWER_ACTION_HIBERNATE]},
-        {&greeter.ui.power.actions_box[POWER_ACTION_RESTART],  "power_restart_box",    FALSE, &greeter.ui.power.actions[POWER_ACTION_RESTART]},
-        {&greeter.ui.power.actions_box[POWER_ACTION_SHUTDOWN], "power_shutdown_box",   FALSE, &greeter.ui.power.actions[POWER_ACTION_SHUTDOWN]},
+        {&greeter.ui.power.widget,              "power_widget",                 NULL},
+        {&greeter.ui.power.box,                 "power_box",                    &greeter.ui.power.widget},
+        {&greeter.ui.power.menu,                "power_menu",                   NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_SUSPEND],  "power_suspend_widget",     NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_HIBERNATE],"power_hibernate_widget",   NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_RESTART],  "power_restart_widget",     NULL},
+        {&greeter.ui.power.actions[POWER_ACTION_SHUTDOWN], "power_shutdown_widget",    NULL},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SUSPEND],  "power_suspend_box",    &greeter.ui.power.actions[POWER_ACTION_SUSPEND]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_HIBERNATE],"power_hibernate_box",  &greeter.ui.power.actions[POWER_ACTION_HIBERNATE]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_RESTART],  "power_restart_box",    &greeter.ui.power.actions[POWER_ACTION_RESTART]},
+        {&greeter.ui.power.actions_box[POWER_ACTION_SHUTDOWN], "power_shutdown_box",   &greeter.ui.power.actions[POWER_ACTION_SHUTDOWN]},
 
-        {&greeter.ui.a11y.widget,               "a11y_widget",                  FALSE, NULL},
-        {&greeter.ui.a11y.box,                  "a11y_box",                     FALSE, &greeter.ui.a11y.widget},
-        {&greeter.ui.a11y.menu,                 "a11y_menu",                    FALSE, NULL},
-        {&greeter.ui.a11y.osk_widget,           "a11y_osk_widget",              FALSE, NULL},
-        {&greeter.ui.a11y.osk_box,              "a11y_osk_box",                 FALSE, &greeter.ui.a11y.osk_widget},
-        {&greeter.ui.a11y.contrast_widget,      "a11y_contrast_widget",         FALSE, NULL},
-        {&greeter.ui.a11y.contrast_box,         "a11y_contrast_box",            FALSE, &greeter.ui.a11y.contrast_widget},
-        {&greeter.ui.a11y.font_widget,          "a11y_font_widget",             FALSE, NULL},
-        {&greeter.ui.a11y.font_box,             "a11y_font_box",                FALSE, &greeter.ui.a11y.font_widget},
-        {&greeter.ui.a11y.dpi_widget,           "a11y_dpi_widget",              FALSE, NULL},
-        {&greeter.ui.a11y.dpi_box,              "a11y_dpi_box",                 FALSE, &greeter.ui.a11y.dpi_widget},
+        {&greeter.ui.a11y.widget,               "a11y_widget",                  NULL},
+        {&greeter.ui.a11y.box,                  "a11y_box",                     &greeter.ui.a11y.widget},
+        {&greeter.ui.a11y.menu,                 "a11y_menu",                    NULL},
+        {&greeter.ui.a11y.osk_widget,           "a11y_osk_widget",              NULL},
+        {&greeter.ui.a11y.osk_box,              "a11y_osk_box",                 &greeter.ui.a11y.osk_widget},
+        {&greeter.ui.a11y.contrast_widget,      "a11y_contrast_widget",         NULL},
+        {&greeter.ui.a11y.contrast_box,         "a11y_contrast_box",            &greeter.ui.a11y.contrast_widget},
+        {&greeter.ui.a11y.font_widget,          "a11y_font_widget",             NULL},
+        {&greeter.ui.a11y.font_box,             "a11y_font_box",                &greeter.ui.a11y.font_widget},
+        {&greeter.ui.a11y.dpi_widget,           "a11y_dpi_widget",              NULL},
+        {&greeter.ui.a11y.dpi_box,              "a11y_dpi_box",                 &greeter.ui.a11y.dpi_widget},
 
-        {&greeter.ui.clock.time_widget,         "clock_time_widget",            FALSE, NULL},
-        {&greeter.ui.clock.time_box,            "clock_time_box",               FALSE, &greeter.ui.clock.time_widget},
-        {&greeter.ui.clock.time_menu,           "clock_time_menu",              FALSE, NULL},
-        {&greeter.ui.clock.date_widget,         "clock_date_widget",            FALSE, NULL},
-        {&greeter.ui.clock.date_box,            "clock_date_box",               FALSE, &greeter.ui.clock.date_widget},
+        {&greeter.ui.clock.time_widget,         "clock_time_widget",            NULL},
+        {&greeter.ui.clock.time_box,            "clock_time_box",               &greeter.ui.clock.time_widget},
+        {&greeter.ui.clock.time_menu,           "clock_time_menu",              NULL},
+        {&greeter.ui.clock.date_widget,         "clock_date_widget",            NULL},
+        {&greeter.ui.clock.date_box,            "clock_date_box",               &greeter.ui.clock.date_widget},
 
-        {&greeter.ui.layout.widget,             "layout_widget",                FALSE, NULL},
-        {&greeter.ui.layout.box,                "layout_box",                   FALSE, &greeter.ui.layout.widget},
-        {&greeter.ui.layout.menu,               "layout_menu",                  FALSE, NULL},
+        {&greeter.ui.layout.widget,             "layout_widget",                NULL},
+        {&greeter.ui.layout.box,                "layout_box",                   &greeter.ui.layout.widget},
+        {&greeter.ui.layout.menu,               "layout_menu",                  NULL},
 
-        {&greeter.ui.password_toggle_widget,    "password_toggle_widget",       FALSE, NULL},
-        {&greeter.ui.password_toggle_box,       "password_toggle_box",          FALSE, &greeter.ui.password_toggle_widget},
+        {&greeter.ui.password_toggle_widget,    "password_toggle_widget",       NULL},
+        {&greeter.ui.password_toggle_box,       "password_toggle_box",          &greeter.ui.password_toggle_widget},
         {NULL, NULL, FALSE}
     };
 
@@ -361,22 +359,16 @@ static gboolean init_gui(void)
         *w->pwidget = GTK_WIDGET(gtk_builder_get_object(builder, w->name));
         if(!*w->pwidget && w->default_widget)
             *w->pwidget = *w->default_widget;
-        if(!*w->pwidget)
+        if(*w->pwidget)
         {
-            if(w->needed)
-            {
-                g_critical("Widget is not found: %s\n", w->name);
-                show_message_dialog(GTK_MESSAGE_ERROR, _("Loading UI: error"),
-                                    _("Widget '%s' is not found"), w->name);
-                return FALSE;
-            }
-            else
-                g_warning("Widget is not found: %s\n", w->name);
-        }
-        else
             if(GTK_IS_IMAGE_MENU_ITEM(*w->pwidget) &&
                gtk_image_menu_item_get_image(GTK_IMAGE_MENU_ITEM(*w->pwidget)))
                 fix_image_menu_item_if_empty(GTK_IMAGE_MENU_ITEM(*w->pwidget));
+        }
+        else
+        {
+            g_warning("Widget is not found: %s", w->name);
+        }
     }
 
     void update_widget_name(GObject* object,
