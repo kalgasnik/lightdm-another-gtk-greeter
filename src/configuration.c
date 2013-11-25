@@ -386,8 +386,21 @@ static void read_appearance_section(GKeyFile* cfg,
         g_free(base_theme_name);
     }
 
+    if(read_value_bool(cfg, SECTION, "css-file-reset", FALSE))
+    {
+        void free_theme(LoadedGreeterConfig* theme)
+        {
+            g_free(theme->css_path);
+            g_free(theme->path);
+            g_free(theme);
+        }
+        g_slist_free_full(config.appearance.themes_stack, (GDestroyNotify)free_theme);
+        config.appearance.themes_stack = NULL;
+    }
+
     theme->path = g_strdup(path);
-    theme->css_path                           = read_value_path    (cfg, SECTION, "css-file", NULL, path);
+    theme->css_path = read_value_path(cfg, SECTION, "css-file", NULL, path);
+
     config.appearance.themes_stack            = g_slist_prepend    (config.appearance.themes_stack, theme);
     config.appearance.ui_file                 = read_value_path    (cfg, SECTION, "ui-file", config.appearance.ui_file, path);
     config.appearance.background              = read_value_path    (cfg, SECTION, "background", config.appearance.background, path);
@@ -618,7 +631,6 @@ static GtkStyleProvider* read_css_file(const gchar* path,
                                        GdkScreen* screen)
 {
     g_message("Loading CSS file: %s", path);
-
     GError* error = NULL;
     GtkCssProvider* provider = gtk_css_provider_new();
     gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider),
