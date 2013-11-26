@@ -1647,9 +1647,11 @@ void on_screen_changed(GtkWidget* widget,
     GdkRectangle geometry;
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(greeter.ui.screen_window));
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+    gtk_window_set_resizable(GTK_WINDOW(greeter.ui.screen_window), TRUE);
     gtk_window_set_default_size(GTK_WINDOW(greeter.ui.screen_window), geometry.width, geometry.height);
     gtk_widget_set_size_request(greeter.ui.screen_window, geometry.width, geometry.height);
     gtk_window_move(GTK_WINDOW(greeter.ui.screen_window), geometry.x, geometry.y);
+    gtk_window_set_resizable(GTK_WINDOW(greeter.ui.screen_window), FALSE);
     if(update_layout)
         update_main_window_layout();
 }
