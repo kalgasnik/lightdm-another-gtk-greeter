@@ -382,6 +382,9 @@ static gboolean init_gui(void)
     g_slist_foreach(builder_widgets, (GFunc)update_widget_name, NULL);
     g_slist_free(builder_widgets);
 
+    /* Disabling system F10 hotkey */
+    g_object_set(gtk_settings_get_default(), "gtk-menu-bar-accel", NULL, NULL);
+
     if(!greeter.ui.users_model)
         greeter.ui.users_model = GTK_LIST_STORE(get_widget_model(greeter.ui.users_widget));
     if(!greeter.ui.languages_model)
@@ -1545,9 +1548,9 @@ gboolean on_login_window_key_press(GtkWidget* widget,
     switch(event->keyval)
     {
         case GDK_KEY_F10:
-            if(greeter.ui.panel_menubar)
-                gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel_menubar), FALSE);
-            else
+            if(GTK_IS_MENU_SHELL(greeter.ui.panel_menubar))
+                gtk_menu_shell_select_first(GTK_MENU_SHELL(greeter.ui.panel_menubar), TRUE);
+            else if(greeter.ui.panel_menubar)
                 gtk_widget_grab_focus(greeter.ui.panel_content);
             break;
         case GDK_KEY_Escape:
