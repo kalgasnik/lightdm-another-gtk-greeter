@@ -70,7 +70,6 @@ typedef struct
         gboolean        show_language_selector;
         gboolean        show_session_icon;
         guint32         double_escape_time;
-        gchar**         autostart_command;
         gboolean        allow_password_toggle;
     } greeter;
 

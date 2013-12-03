@@ -451,16 +451,6 @@ static gboolean init_gui(void)
 
 static void run_gui(void)
 {
-    if(config.greeter.autostart_command)
-    {
-        GError* error;
-        if(!g_spawn_async(NULL, config.greeter.autostart_command, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &greeter.state.autostart_pid, &error))
-        {
-            g_warning("Autostart command failed with error: %s", error ? error->message : "unknown");
-            g_clear_error(&error);
-        }
-    }
-
     if(config.appearance.fixed_login_button_width)
         set_login_button_width();
 
