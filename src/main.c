@@ -1063,6 +1063,8 @@ static void start_authentication(const gchar* user_name)
 {
     g_message("Starting authentication for user \"%s\"", user_name);
 
+    set_state_value_str("greeter", "last-user", user_name);
+
     greeter.state.cancelling = FALSE;
     greeter.state.prompted = FALSE;
 
