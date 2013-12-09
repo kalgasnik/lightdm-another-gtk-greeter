@@ -98,6 +98,8 @@ static WindowPosition read_value_wp                (GKeyFile* key_file,
                                                     const gchar* section,
                                                     const gchar* key,
                                                     const WindowPosition* default_value);
+static gboolean read_value_wp_dimension            (const gchar *s,
+                                                    WindowPositionDimension *x);
 
 static int read_value_percents                     (GKeyFile* key_file,
                                                     const gchar* section,
@@ -533,29 +535,54 @@ static WindowPosition read_value_wp(GKeyFile* key_file,
                                     const gchar* key,
                                     const WindowPosition* default_value)
 {
-    WindowPosition p = *default_value;
     gchar* value = g_key_file_get_value(key_file, section, key, NULL);
     if(value)
     {
-        struct
-        {
-            int* value;
-            gboolean* is_absolute;
-        } items[] = {{&p.x, &p.x_is_absolute}, {&p.y, &p.y_is_absolute},
-                     {&p.anchor.width, NULL}, {&p.anchor.height, NULL},
-                     {NULL, NULL}};
-        gchar** a = g_strsplit(value, ",", 4);
-        gchar*  a_end;
-        for(int i = 0; items[i].value && a[i]; ++i)
-        {
-            *items[i].value = (int)g_strtod(a[i], &a_end);
-            if(items[i].is_absolute)
-                *items[i].is_absolute = a_end[0] != '%';
-        }
-        g_strfreev(a);
+        WindowPosition p;
+        gchar *x = value;
+        gchar *y = strchr(value, ' ');
+        if(y)
+            (y++)[0] = '\0';
+
+        if(read_value_wp_dimension(x, &p.x))
+            /* If there is no y-part then y = x */
+            if (!y || !read_value_wp_dimension(y, &p.y))
+                p.y = p.x;
+
         g_free(value);
+        return p;
     }
-    return p;
+    else
+        return *default_value;
+}
+
+static gboolean read_value_wp_dimension(const gchar *s,
+                                        WindowPositionDimension *x)
+{
+    WindowPositionDimension p;
+    gchar *end = NULL;
+    gchar **parts = g_strsplit(s, ",", 2);
+    if(parts[0])
+    {
+        p.value = g_ascii_strtoll(parts[0], &end, 10);
+        p.percentage = end && end[0] == '%';
+        p.sign = (p.value < 0 || (p.value == 0 && parts[0][0] == '-')) ? -1 : +1;
+        if(p.value < 0)
+            p.value *= -1;
+        if(g_strcmp0(parts[1], "start") == 0 || g_strcmp0(parts[1], "left") == 0)
+            p.anchor = -1;
+        else if(g_strcmp0(parts[1], "center") == 0)
+            p.anchor = 0;
+        else if(g_strcmp0(parts[1], "end") == 0 || g_strcmp0(parts[1], "right") == 0)
+            p.anchor = +1;
+        else
+            p.anchor = p.sign > 0 ? -1 : +1;
+        *x = p;
+    }
+    else
+        x = NULL;
+    g_strfreev (parts);
+    return x != NULL;
 }
 
 static int read_value_percents(GKeyFile* key_file,

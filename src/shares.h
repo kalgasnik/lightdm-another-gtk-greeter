@@ -28,17 +28,18 @@
 
 typedef struct
 {
-    gboolean x_is_absolute;
-    gboolean y_is_absolute;
+    gint value;
+    /* +0 and -0 */
+    gint sign;
+    /* interpret 'value' as percentage of screen width/height */
+    gboolean percentage;
+    /* -1: left/top, 0: center, +1: right,bottom */
+    gint anchor;
+} WindowPositionDimension;
 
-    struct
-    {
-        /* -1: start, 0: center, +1: end */
-        int width;
-        int height;
-    } anchor;
-    int x;
-    int y;
+typedef struct
+{
+    WindowPositionDimension x, y;
 } WindowPosition;
 
 typedef enum
@@ -265,8 +266,6 @@ extern const gchar* const ACTION_TEXT_LOGIN;
 extern const gchar* const ACTION_TEXT_UNLOCK;
 
 extern const WindowPosition WINDOW_POSITION_CENTER;
-extern const WindowPosition WINDOW_POSITION_TOP;
-extern const WindowPosition WINDOW_POSITION_BOTTOM;
 
 #ifdef _DEBUG_
 extern gchar* GETTEXT_PACKAGE;

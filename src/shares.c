@@ -34,26 +34,7 @@ const gchar* const default_user_image    = "avatar-default";
 const gchar* const ACTION_TEXT_LOGIN    = N_("Login");
 const gchar* const ACTION_TEXT_UNLOCK   = N_("Unlock");
 
-const WindowPosition WINDOW_POSITION_CENTER =
-{
-    .x_is_absolute = FALSE, .x = 50,
-    .y_is_absolute = FALSE, .y = 50,
-    .anchor = {.width=0, .height=0}
-};
-
-const WindowPosition WINDOW_POSITION_TOP =
-{
-    .x_is_absolute = FALSE, .x = 50,
-    .y_is_absolute = TRUE,  .y = 0,
-    .anchor = {.width=0, .height=-1}
-};
-
-const WindowPosition WINDOW_POSITION_BOTTOM =
-{
-    .x_is_absolute = FALSE, .x = 50,
-    .y_is_absolute = FALSE, .y = 100,
-    .anchor = {.width=0, .height=1}
-};
+const WindowPosition WINDOW_POSITION_CENTER = { .x = {50, +1, TRUE, 0}, .y = {50, +1, TRUE, 0} };
 
 #ifdef _DEBUG_
 gchar* GETTEXT_PACKAGE = "lightdm-another-gtk-greeter";
@@ -90,6 +71,10 @@ typedef struct
 } MenuBinding;
 
 /* Static functions */
+
+static gint get_absolute_windows_position   (const WindowPositionDimension *p,
+                                             gint screen,
+                                             gint window);
 
 static void stop_messagebox_loop            (MessageBoxRunInfo* info,
                                              gint response);
@@ -242,8 +227,9 @@ void rearrange_grid_child(GtkGrid* grid,
 }
 
 void set_window_position(GtkWidget* window,
-                         const WindowPosition* p)
+                         const WindowPosition* pos)
 {
+    /*
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(window));
     GtkRequisition size;
     GdkRectangle geometry;
@@ -259,6 +245,16 @@ void set_window_position(GtkWidget* window,
     dy -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
 
     gtk_window_move(GTK_WINDOW(window), geometry.x + dx, geometry.y + dy);
+    */
+    GdkScreen *screen = gtk_window_get_screen(window);
+    GtkRequisition size;
+    GdkRectangle geometry;
+
+    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
+    gtk_widget_get_preferred_size(window, NULL, &size);
+    gtk_window_move(window,
+                    geometry.x + get_absolute_windows_position(&pos->x, geometry.width, size.width),
+                    geometry.y + get_absolute_windows_position(&pos->y, geometry.height, size.height));
 }
 
 void set_widget_text(GtkWidget* widget,
@@ -503,11 +499,8 @@ void update_main_window_layout(void)
     else
         gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
 
-    x = geometry.x + !p->x_is_absolute ? geometry.width*p->x/100.0  : (p->x < 0) ? geometry.width + p->x  : p->x;
-    y = geometry.x + !p->y_is_absolute ? geometry.height*p->y/100.0 : (p->y < 0) ? geometry.height + p->y : p->y;
-
-    x -= (p->anchor.width == 0) ? size.width/2 : (p->anchor.width > 0) ? size.width : 0;
-    y -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
+    x = get_absolute_windows_position(&p->x, geometry.width, size.width);
+    y = get_absolute_windows_position(&p->y, geometry.height, size.height);
 
     if(!config.appearance.position_is_relative)
         gtk_widget_translate_coordinates(greeter.ui.screen_window, greeter.ui.main_layout,
@@ -590,6 +583,19 @@ GtkTreePath* get_menu_widget_active_path(GtkWidget* widget)
 /* ---------------------------------------------------------------------------*
  * Definitions: static
  * -------------------------------------------------------------------------- */
+
+static gint get_absolute_windows_position(const WindowPositionDimension *p,
+                                          gint screen,
+                                          gint window)
+{
+    gint x = p->percentage ? (screen*p->value)/100 : p->value;
+    x = p->sign < 0 ? screen - x : x;
+    if (p->anchor > 0)
+        x -= window;
+    else if (p->anchor == 0)
+        x -= window/2;
+    return x;
+}
 
 static void stop_messagebox_loop(MessageBoxRunInfo* info,
                                  gint response)
