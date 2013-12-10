@@ -461,12 +461,12 @@ static void run_gui(void)
     }
 
     on_screen_changed(greeter.ui.screen_window, NULL, FALSE);
+    init_user_selection();
     gtk_widget_show(greeter.ui.screen_window);
     update_main_window_layout();
     focus_main_window();
     if(config.appearance.background && !config.appearance.user_background)
         set_background(config.appearance.background);
-    init_user_selection();
     gtk_main();
 }
 
