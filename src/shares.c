@@ -229,30 +229,13 @@ void rearrange_grid_child(GtkGrid* grid,
 void set_window_position(GtkWidget* window,
                          const WindowPosition* pos)
 {
-    /*
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(window));
     GtkRequisition size;
     GdkRectangle geometry;
-    gint dx, dy;
 
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
     gtk_widget_get_preferred_size(window, NULL, &size);
-
-    dx = !p->x_is_absolute ? geometry.width*p->x/100.0  : (p->x < 0) ? geometry.width + p->x  : p->x;
-    dy = !p->y_is_absolute ? geometry.height*p->y/100.0 : (p->y < 0) ? geometry.height + p->y : p->y;
-
-    dx -= (p->anchor.width == 0) ? size.width/2 : (p->anchor.width > 0) ? size.width : 0;
-    dy -= (p->anchor.height == 0) ? size.height/2 : (p->anchor.height > 0) ? size.height : 0;
-
-    gtk_window_move(GTK_WINDOW(window), geometry.x + dx, geometry.y + dy);
-    */
-    GdkScreen *screen = gtk_window_get_screen(window);
-    GtkRequisition size;
-    GdkRectangle geometry;
-
-    gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &geometry);
-    gtk_widget_get_preferred_size(window, NULL, &size);
-    gtk_window_move(window,
+    gtk_window_move(GTK_WINDOW(window),
                     geometry.x + get_absolute_windows_position(&pos->x, geometry.width, size.width),
                     geometry.y + get_absolute_windows_position(&pos->y, geometry.height, size.height));
 }
