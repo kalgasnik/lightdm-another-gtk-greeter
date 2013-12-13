@@ -127,6 +127,8 @@ static gchar* read_value_path                      (GKeyFile* key_file,
 static GtkStyleProvider* read_css_file             (const gchar* path,
                                                     GdkScreen* screen);
 
+static void read_templates                         (void);
+
 void update_default_user_image                     (void);
 
 /* Static variables */
@@ -142,7 +144,20 @@ static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
 static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
+static const gchar* SESSION_COLUMN_STRINGS[]   = {"name", "display-name", "image", "comment", NULL};
+static const gchar* LANGUAGE_COLUMN_STRINGS[]  = {"code", "display-name", NULL};
+static const gchar* USER_COLUMN_STRINGS[]      = {"name", "type", "display-name", "font-weight", "user-image", "list-image", NULL};
 
+static const ModelPropertyBinding SESSION_TEMPLATE_DEFAULT_BINDINGS[]  = {{NULL, "text",   SESSION_COLUMN_DISPLAY_NAME},
+                                                                          {NULL, "pixbuf", SESSION_COLUMN_IMAGE},
+                                                                          {NULL, NULL,     -1}};
+
+static const ModelPropertyBinding LANGUAGE_TEMPLATE_DEFAULT_BINDINGS[] = {{NULL, "text", LANGUAGE_COLUMN_DISPLAY_NAME},
+                                                                          {NULL, NULL,   -1}};
+
+static const ModelPropertyBinding USER_TEMPLATE_DEFAULT_BINDINGS[]     = {{NULL, "text",   USER_COLUMN_DISPLAY_NAME},
+                                                                          {NULL, "pixbuf", USER_COLUMN_LIST_IMAGE},
+                                                                          {NULL, NULL,     -1}};
 /* ---------------------------------------------------------------------------*
  * Definitions: public
  * -------------------------------------------------------------------------- */
@@ -195,8 +210,20 @@ void load_settings(void)
     config.appearance.hide_prompt_text        = FALSE;
     config.appearance.default_user_image      = "#avatar-default";
 
+    config.appearance.templates.session.bindings  = NULL;
+    config.appearance.templates.session.data      = NULL;
+    config.appearance.templates.session.ui_file   = NULL;
+    config.appearance.templates.language.bindings = NULL;
+    config.appearance.templates.language.data     = NULL;
+    config.appearance.templates.language.ui_file  = NULL;
+    config.appearance.templates.user.bindings     = NULL;
+    config.appearance.templates.user.data         = NULL;
+    config.appearance.templates.user.ui_file      = NULL;
+
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
     config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
+
+    read_templates();
 
     SECTION = "panel";
     config.panel.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -358,6 +385,41 @@ static void save_key_file(GKeyFile* key_file,
     g_free(data);
 }
 
+static GSList* read_template_section(GKeyFile* cfg,
+                                     const gchar* SECTION,
+                                     const gchar** COLUMN_STRINGS,
+                                     GSList* default_value)
+{
+    gchar** keys = g_key_file_get_keys(cfg, SECTION, NULL, NULL);
+    if(!keys)
+        return default_value;
+
+    GSList* list = NULL;
+    gint list_size = 0;
+    for(gchar** key = keys; *key != NULL; ++key)
+    {
+        if(g_strcmp0(*key, "ui-file") == 0)
+            continue;
+        gint column = read_value_enum(cfg, SECTION, *key, COLUMN_STRINGS, -1);
+        if(column >= 0)
+        {
+            ModelPropertyBinding* binding = g_malloc(sizeof(ModelPropertyBinding));
+            list = g_slist_prepend(list, binding);
+            list_size++;
+
+            /* split key to "widget" and "property" */
+            const gchar* key_del = g_strstr_len(*key, -1, ".");
+            binding->widget = key_del ? g_strndup(*key, key_del - *key) : NULL;
+            binding->prop = key_del ? g_strdup(key_del + 1) : g_strdup(*key);
+            binding->column = column;
+        }
+    }
+
+    g_strfreev(keys);
+    g_slist_free_full(default_value, free_model_property_binding);
+    return list;
+}
+
 static void read_appearance_section(GKeyFile* cfg,
                                     const gchar* SECTION,
                                     const gchar* path,
@@ -431,6 +493,19 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.position_is_relative    = read_value_bool    (cfg, SECTION, "position-is-relative", config.appearance.position_is_relative);
     config.appearance.hide_prompt_text        = read_value_bool    (cfg, SECTION, "hide-prompt-text", config.appearance.hide_prompt_text);
     config.appearance.default_user_image      = read_value_path    (cfg, SECTION, "default-user-image", config.appearance.default_user_image, GREETER_DATA_DIR);
+
+    config.appearance.templates.session.bindings  = read_template_section(cfg, "appearance.session-template", SESSION_COLUMN_STRINGS,
+                                                                          config.appearance.templates.session.bindings);
+    config.appearance.templates.session.ui_file   = read_value_path(cfg, "appearance.session-template", "ui-file",
+                                                                    config.appearance.templates.session.ui_file, path);
+    config.appearance.templates.language.bindings = read_template_section(cfg, "appearance.language-template", LANGUAGE_COLUMN_STRINGS,
+                                                                          config.appearance.templates.language.bindings);
+    config.appearance.templates.language.ui_file  = read_value_path(cfg, "appearance.language-template", "ui-file",
+                                                                    config.appearance.templates.language.ui_file, path);
+    config.appearance.templates.user.bindings     = read_template_section(cfg, "appearance.user-template", USER_COLUMN_STRINGS,
+                                                                          config.appearance.templates.user.bindings);
+    config.appearance.templates.user.ui_file      = read_value_path(cfg, "appearance.user-template", "ui-file",
+                                                                    config.appearance.templates.user.ui_file, path);
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,
@@ -667,4 +742,76 @@ static GtkStyleProvider* read_css_file(const gchar* path,
         g_clear_error(&error);
     }
     return GTK_STYLE_PROVIDER(provider);
+}
+
+/* TODO: move it to shares.c and mark "conf" chnages */
+static void read_templates(void)
+{
+    struct Template
+    {
+        GBytes** data;
+        GSList** bindings;
+        gchar* ui_file;
+        const ModelPropertyBinding* default_bindings;
+    };
+
+    struct Template templates[] =
+    {
+        {
+            &config.appearance.templates.session.data,
+            &config.appearance.templates.session.bindings,
+            config.appearance.templates.session.ui_file,
+            SESSION_TEMPLATE_DEFAULT_BINDINGS
+        },
+        {
+            &config.appearance.templates.language.data,
+            &config.appearance.templates.language.bindings,
+            config.appearance.templates.language.ui_file,
+            LANGUAGE_TEMPLATE_DEFAULT_BINDINGS
+        },
+        {
+            &config.appearance.templates.user.data,
+            &config.appearance.templates.user.bindings,
+            config.appearance.templates.user.ui_file,
+            USER_TEMPLATE_DEFAULT_BINDINGS
+        },
+        {NULL, NULL}
+    };
+
+    GHashTableIter iter;
+    gchar* key;
+    GHashTable* table = g_hash_table_new(g_str_hash, g_str_equal);
+
+    for(struct Template* template = templates; template->data != NULL; template++)
+        if(template->ui_file)
+            g_hash_table_insert(table, template->ui_file, NULL);
+
+    g_hash_table_iter_init(&iter, table);
+    while(g_hash_table_iter_next(&iter, (gpointer)&key, NULL))
+        if(key)
+        {
+            gchar* str;
+            gsize str_size;
+            if(g_file_get_contents(key, &str, &str_size, NULL))
+                g_hash_table_iter_replace(&iter, g_bytes_new_take(str, str_size));
+        }
+
+    for(struct Template* template = templates; template->data != NULL; template++)
+    {
+        if(template->ui_file)
+            *template->data = g_hash_table_lookup(table, template->ui_file);
+        /* Default bindings for non-composite implementations */
+        if(!*template->data && template->default_bindings)
+        {
+            if(*template->bindings)
+            {
+                g_slist_free_full(*template->bindings, free_model_property_binding);
+                *template->bindings = NULL;
+            }
+            for(const ModelPropertyBinding* bind = template->default_bindings; bind->prop != NULL; bind++)
+                *template->bindings = g_slist_prepend(*template->bindings, g_memdup(bind, sizeof(ModelPropertyBinding)));
+        }
+    }
+
+    g_hash_table_unref(table);
 }

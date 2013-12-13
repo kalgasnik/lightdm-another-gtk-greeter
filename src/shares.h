@@ -210,6 +210,13 @@ typedef struct
     gint id;
 } MessageButtonOptions;
 
+typedef struct
+{
+    gchar* widget;
+    gchar* prop;
+    gint   column;
+} ModelPropertyBinding;
+
 typedef enum
 {
     USER_COLUMN_NAME = 0,
@@ -254,6 +261,7 @@ enum
 };
 
 typedef void (*SetWidgetLabelFunc)(GtkWidget*, const gchar* label);
+typedef GtkWidget* (*NewWidgetFunc)(void);
 
 /* Variables */
 
@@ -331,14 +339,18 @@ void clear_container                   (GtkContainer* container);
 void update_main_window_layout         (void);
 void focus_main_window                 (void);
 
-#define IS_MENU_WIDGET(widget) (GTK_IS_MENU_BUTTON(widget) || GTK_IS_MENU_ITEM(widget))
+void free_model_property_binding       (gpointer data);
 
-GtkTreeModel* get_menu_widget_model    (GtkWidget* widget);
-void bind_menu_widget_model            (GtkWidget* widget,
-                                        GtkWidget* label,
+#define IS_MENU_WIDGET(widget) (GTK_IS_MENU_BUTTON(widget) || GTK_IS_MENU_ITEM(widget))
+void bind_menu_widget_model            (GtkWidget*    widget,
+                                        NewWidgetFunc new_widget,
                                         GtkListStore* model,
-                                        gint model_column,
-                                        GCallback on_changed);
+                                        /* List of ModelPropertyBinding */
+                                        GSList*       model_bindings,
+                                        GtkWidget*    label,
+                                        gint          label_column,
+                                        GCallback     on_changed);
+GtkTreeModel* get_menu_widget_model    (GtkWidget* widget);
 void set_menu_widget_active_path       (GtkWidget* widget,
                                         GtkTreePath* path);
 GtkTreePath* get_menu_widget_active_path(GtkWidget* widget);

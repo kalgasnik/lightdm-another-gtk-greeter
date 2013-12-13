@@ -104,6 +104,16 @@ typedef struct
         } user_image, list_image;
         gboolean        invert_password_state; /* set to 1 if gui provide "hide password" widget instead of "show password" */
         gchar*          default_user_image;
+
+        struct
+        {
+            struct
+            {
+                GSList* bindings;
+                GBytes* data;
+                gchar*  ui_file;
+            } session, language, user;
+        } templates;
     } appearance;
 
     struct

@@ -35,6 +35,7 @@
 #include "indicator_a11y.h"
 #include "indicator_clock.h"
 #include "indicator_layout.h"
+#include "composite_widgets.h"
 
 /* Static functions */
 
@@ -393,14 +394,29 @@ static gboolean init_gui(void)
         greeter.ui.sessions_model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
 
     if(IS_MENU_WIDGET(greeter.ui.users_widget))
-        bind_menu_widget_model(greeter.ui.users_widget, greeter.ui.users_text, greeter.ui.users_model,
-                               USER_COLUMN_DISPLAY_NAME, G_CALLBACK(on_user_selection_changed));
+        bind_menu_widget_model(greeter.ui.users_widget,
+                               session_widget_new,
+                               greeter.ui.users_model,
+                               config.appearance.templates.user.bindings,
+                               greeter.ui.users_text,
+                               USER_COLUMN_DISPLAY_NAME,
+                               NULL);
     if(IS_MENU_WIDGET(greeter.ui.languages_widget))
-        bind_menu_widget_model(greeter.ui.languages_widget, greeter.ui.languages_text, greeter.ui.languages_model,
-                               LANGUAGE_COLUMN_DISPLAY_NAME, NULL);
+        bind_menu_widget_model(greeter.ui.languages_widget,
+                               language_widget_new,
+                               greeter.ui.languages_model,
+                               config.appearance.templates.language.bindings,
+                               greeter.ui.languages_text,
+                               LANGUAGE_COLUMN_DISPLAY_NAME,
+                               NULL);
     if(IS_MENU_WIDGET(greeter.ui.sessions_widget))
-        bind_menu_widget_model(greeter.ui.sessions_widget, greeter.ui.sessions_text, greeter.ui.sessions_model,
-                               SESSION_COLUMN_DISPLAY_NAME, NULL);
+        bind_menu_widget_model(greeter.ui.sessions_widget,
+                               session_widget_new,
+                               greeter.ui.sessions_model,
+                               config.appearance.templates.session.bindings,
+                               greeter.ui.sessions_text,
+                               SESSION_COLUMN_DISPLAY_NAME,
+                               NULL);
 
     if(config.appearance.user_image.enabled)
     {
@@ -446,6 +462,7 @@ static gboolean init_gui(void)
     gtk_widget_hide(greeter.ui.messagebox_layout);
 
     gtk_builder_connect_signals(builder, greeter.greeter);
+
     return TRUE;
 }
 
