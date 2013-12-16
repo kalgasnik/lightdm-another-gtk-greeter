@@ -18,9 +18,9 @@
  */
 
 #include <gtk/gtk.h>
-#include "session_widget.h"
 #include "shares.h"
 #include "configuration.h"
+#include "composite_widgets.h"
 
 struct _CompositeWidgetPrivate
 {
@@ -114,7 +114,7 @@ static void session_widget_init_successor(CompositeWidget* widget,
         widget->priv->image_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
         gtk_box_pack_start(GTK_BOX(widget->priv->image_box), widget->priv->image, FALSE, TRUE, 0);
         gtk_box_pack_start(GTK_BOX(widget), widget->priv->label, TRUE, TRUE, 0);
-        gtk_box_pack_end(GTK_BOX(widget), widget->priv->image_box, TRUE, TRUE, 0);
+        gtk_box_pack_end(GTK_BOX(widget), widget->priv->image_box, FALSE, TRUE, 0);
         gtk_widget_set_halign(widget->priv->label, GTK_ALIGN_START);
         gtk_widget_show(widget->priv->label);
         gtk_widget_show(widget->priv->image);
