@@ -259,7 +259,6 @@ enum
     UI_LAYOUT_ROW_PANEL_BOTTOM,
 };
 
-typedef void (*SetWidgetLabelFunc)(GtkWidget*, const gchar* label);
 typedef GtkWidget* (*NewWidgetFunc)(void);
 
 /* Variables */
@@ -338,19 +337,5 @@ void update_main_window_layout         (void);
 void focus_main_window                 (void);
 
 void free_model_property_binding       (gpointer data);
-
-#define IS_MENU_WIDGET(widget) (GTK_IS_MENU_BUTTON(widget) || GTK_IS_MENU_ITEM(widget))
-void bind_menu_widget_model            (GtkWidget*    widget,
-                                        NewWidgetFunc new_widget,
-                                        GtkListStore* model,
-                                        /* List of ModelPropertyBinding */
-                                        GSList*       model_bindings,
-                                        GtkWidget*    label,
-                                        gint          label_column,
-                                        GCallback     on_changed);
-GtkTreeModel* get_menu_widget_model    (GtkWidget* widget);
-void set_menu_widget_active_path       (GtkWidget*   widget,
-                                        GtkTreePath* path);
-GtkTreePath* get_menu_widget_active_path(GtkWidget* widget);
 
 #endif // _SHARES_H_INCLUDED_

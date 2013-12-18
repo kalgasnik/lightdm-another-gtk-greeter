@@ -30,12 +30,13 @@
 #include <lightdm.h>
 
 #include "shares.h"
+#include "composite_widgets.h"
 #include "configuration.h"
 #include "indicator_power.h"
 #include "indicator_a11y.h"
 #include "indicator_clock.h"
 #include "indicator_layout.h"
-#include "composite_widgets.h"
+#include "model_menu.h"
 
 /* Static functions */
 
