@@ -75,33 +75,33 @@ typedef struct
 
 /* Static functions */
 
-static gint get_absolute_windows_position   (const WindowPositionDimension *p,
-                                             gint screen,
-                                             gint window);
+static gint get_absolute_windows_position   (const WindowPositionDimension* p,
+                                             gint                           screen,
+                                             gint                           window);
 
 static void stop_messagebox_loop            (MessageBoxRunInfo* info,
-                                             gint response);
-static gboolean on_messagebox_key_press     (GtkWidget* widget,
-                                             GdkEventKey* event,
+                                             gint               response);
+static gboolean on_messagebox_key_press     (GtkWidget*         widget,
+                                             GdkEventKey*       event,
                                              MessageBoxRunInfo* info);
-static void on_messagebox_button_clicked    (GtkWidget* widget,
+static void on_messagebox_button_clicked    (GtkWidget*               widget,
                                              MessageBoxButtonRunInfo* button_info);
 
 /* For g_slist_find_custom */
-static gint compare_menu_widget_item_path   (GObject* obj,
+static gint compare_menu_widget_item_path   (GObject*     obj,
                                              GtkTreePath* path);
 static void on_menu_widget_row_changed      (GtkTreeModel* model,
-                                             GtkTreePath* path,
-                                             GtkTreeIter* iter,
-                                             MenuBinding* binding);
+                                             GtkTreePath*  path,
+                                             GtkTreeIter*  iter,
+                                             MenuBinding*  binding);
 static void on_menu_widget_row_deleted      (GtkTreeModel* model,
-                                             GtkTreePath* path,
-                                             MenuBinding* binding);
+                                             GtkTreePath*  path,
+                                             MenuBinding*  binding);
 static gboolean on_menu_widget_row_inserted (GtkTreeModel* model,
-                                             GtkTreePath* path,
-                                             GtkTreeIter* iter,
-                                             MenuBinding* binding);
-static void on_menu_widget_item_toggled     (GtkWidget* widget,
+                                             GtkTreePath*  path,
+                                             GtkTreeIter*  iter,
+                                             MenuBinding*  binding);
+static void on_menu_widget_item_toggled     (GtkWidget*   widget,
                                              MenuBinding* binding);
 
 static const gchar* MENU_WIDGET_BINDING_PROP = "model-binding";
@@ -112,8 +112,8 @@ static const gchar* MENU_ITEM_PATH_PROP      = "model-path";
  * -------------------------------------------------------------------------- */
 
 void show_message_dialog(GtkMessageType type,
-                         const gchar* title,
-                         const gchar* message_format,
+                         const gchar*   title,
+                         const gchar*   message_format,
                          ...)
 {
     gchar* message;
@@ -146,12 +146,12 @@ void show_message_dialog(GtkMessageType type,
     focus_main_window();
 }
 
-gint show_message(const gchar* title,
-                  const gchar* message_format,
-                  const gchar* icon_name,
+gint show_message(const gchar*                title,
+                  const gchar*                message_format,
+                  const gchar*                icon_name,
                   const MessageButtonOptions* buttons,
-                  gint default_id,
-                  gint cancel_id,
+                  gint                        default_id,
+                  gint                        cancel_id,
                   ...)
 {
     gchar* message;
@@ -212,15 +212,15 @@ gint show_message(const gchar* title,
     return info.response;
 }
 
-void rearrange_grid_child(GtkGrid* grid,
+void rearrange_grid_child(GtkGrid*   grid,
                           GtkWidget* child,
-                          gint row)
+                          gint       row)
 {
     gtk_container_remove(GTK_CONTAINER(grid), child);
     gtk_grid_attach(grid, child, 0, row, 1, 1);
 }
 
-void set_window_position(GtkWidget* window,
+void set_window_position(GtkWidget*            window,
                          const WindowPosition* pos)
 {
     GdkScreen* screen = gtk_window_get_screen(GTK_WINDOW(window));
@@ -234,7 +234,7 @@ void set_window_position(GtkWidget* window,
                     geometry.y + get_absolute_windows_position(&pos->y, geometry.height, size.height));
 }
 
-void set_widget_text(GtkWidget* widget,
+void set_widget_text(GtkWidget*   widget,
                      const gchar* text)
 {
     if(GTK_IS_MENU_ITEM(widget))
@@ -259,7 +259,7 @@ void set_widget_text(GtkWidget* widget,
 }
 
 void set_widget_sensitive(GtkWidget* widget,
-                          gboolean value)
+                          gboolean   value)
 {
     if(GTK_IS_MENU(widget))
         gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)gtk_widget_set_sensitive, GINT_TO_POINTER(value));
@@ -280,8 +280,8 @@ GtkListStore* get_widget_model(GtkWidget* widget)
     g_return_val_if_reached(NULL);
 }
 
-gchar* get_widget_selection_str(GtkWidget* widget,
-                                gint column,
+gchar* get_widget_selection_str(GtkWidget*   widget,
+                                gint         column,
                                 const gchar* default_value)
 {
     GtkTreeIter iter;
@@ -293,7 +293,7 @@ gchar* get_widget_selection_str(GtkWidget* widget,
 }
 
 GdkPixbuf* get_widget_selection_image(GtkWidget* widget,
-                                      gint column,
+                                      gint       column,
                                       GdkPixbuf* default_value)
 {
     GtkTreeIter iter;
@@ -305,8 +305,8 @@ GdkPixbuf* get_widget_selection_image(GtkWidget* widget,
 }
 
 gint get_widget_selection_int(GtkWidget* widget,
-                              gint column,
-                              gint default_value)
+                              gint       column,
+                              gint       default_value)
 {
     GtkTreeIter iter;
     if(get_widget_active_iter(widget, &iter))
@@ -314,7 +314,7 @@ gint get_widget_selection_int(GtkWidget* widget,
     return default_value;
 }
 
-gboolean get_widget_active_iter(GtkWidget* widget,
+gboolean get_widget_active_iter(GtkWidget*   widget,
                                 GtkTreeIter* iter)
 {
     if(GTK_IS_COMBO_BOX(widget))
@@ -343,7 +343,7 @@ gboolean get_widget_active_iter(GtkWidget* widget,
     g_return_val_if_reached(FALSE);
 }
 
-void set_widget_active_iter(GtkWidget* widget,
+void set_widget_active_iter(GtkWidget*   widget,
                             GtkTreeIter* iter)
 {
     if(GTK_IS_COMBO_BOX(widget))
@@ -391,9 +391,9 @@ void set_widget_active_first(GtkWidget* widget)
 }
 
 gboolean get_model_iter_str(GtkListStore* model,
-                            int column,
-                            const gchar* value,
-                            GtkTreeIter* iter)
+                            int           column,
+                            const gchar*  value,
+                            GtkTreeIter*  iter)
 {
     if(!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(model), iter))
         return FALSE;
@@ -435,8 +435,8 @@ gboolean get_widget_toggled(GtkWidget* widget)
 }
 
 void set_widget_toggled(GtkWidget* widget,
-                        gboolean state,
-                        GCallback suppress_callback)
+                        gboolean   state,
+                        GCallback  suppress_callback)
 {
     if(suppress_callback)
         g_signal_handlers_block_matched(widget, G_SIGNAL_MATCH_FUNC, 0, 0, 0, suppress_callback, NULL);
@@ -581,9 +581,9 @@ GtkTreePath* get_menu_widget_active_path(GtkWidget* widget)
  * Definitions: static
  * -------------------------------------------------------------------------- */
 
-static gint get_absolute_windows_position(const WindowPositionDimension *p,
-                                          gint screen,
-                                          gint window)
+static gint get_absolute_windows_position(const WindowPositionDimension* p,
+                                          gint                           screen,
+                                          gint                           window)
 {
     gint x = p->percentage ? (screen*p->value)/100 : p->value;
     x = p->sign < 0 ? screen - x : x;
@@ -595,15 +595,15 @@ static gint get_absolute_windows_position(const WindowPositionDimension *p,
 }
 
 static void stop_messagebox_loop(MessageBoxRunInfo* info,
-                                 gint response)
+                                 gint               response)
 {
     if(g_main_loop_is_running(info->loop))
         g_main_loop_quit(info->loop);
     info->response = response;
 }
 
-static gboolean on_messagebox_key_press(GtkWidget* widget,
-                                        GdkEventKey* event,
+static gboolean on_messagebox_key_press(GtkWidget*         widget,
+                                        GdkEventKey*       event,
                                         MessageBoxRunInfo* info)
 {
     if(event->keyval == GDK_KEY_Escape)
@@ -615,21 +615,21 @@ static gboolean on_messagebox_key_press(GtkWidget* widget,
     return FALSE;
 }
 
-static void on_messagebox_button_clicked(GtkWidget* widget,
+static void on_messagebox_button_clicked(GtkWidget*               widget,
                                          MessageBoxButtonRunInfo* button_info)
 {
     stop_messagebox_loop(button_info->info, button_info->id);
 }
 
-static gint compare_menu_widget_item_path(GObject* obj,
+static gint compare_menu_widget_item_path(GObject*     obj,
                                           GtkTreePath* path)
 {
     return gtk_tree_path_compare(path, g_object_get_data(obj, MENU_ITEM_PATH_PROP));
 }
 
 static void on_menu_widget_row_deleted(GtkTreeModel* tree_model,
-                                       GtkTreePath* path,
-                                       MenuBinding* binding)
+                                       GtkTreePath*  path,
+                                       MenuBinding*  binding)
 {
     GList* items = gtk_container_get_children(GTK_CONTAINER(binding->menu));
     GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
@@ -676,9 +676,9 @@ static void on_menu_widget_row_changed(GtkTreeModel* model,
 }
 
 static gboolean on_menu_widget_row_inserted(GtkTreeModel* model,
-                                            GtkTreePath* path,
-                                            GtkTreeIter* iter,
-                                            MenuBinding* binding)
+                                            GtkTreePath*  path,
+                                            GtkTreeIter*  iter,
+                                            MenuBinding*  binding)
 {
     const gint* indices = gtk_tree_path_get_indices(path);
     GtkWidget* item = gtk_radio_menu_item_new(binding->menu_group);
@@ -695,7 +695,7 @@ static gboolean on_menu_widget_row_inserted(GtkTreeModel* model,
     return FALSE;
 }
 
-static void on_menu_widget_item_toggled(GtkWidget* widget,
+static void on_menu_widget_item_toggled(GtkWidget*   widget,
                                         MenuBinding* binding)
 {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))

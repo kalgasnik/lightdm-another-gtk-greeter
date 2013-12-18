@@ -285,28 +285,28 @@ extern gchar* PACKAGE_VERSION;
 /* Functions */
 
 void show_message_dialog               (GtkMessageType type,
-                                        const gchar* title,
-                                        const gchar* message_format,
+                                        const gchar*   title,
+                                        const gchar*   message_format,
                                         ...) G_GNUC_PRINTF (3, 4);
-gint show_message                      (const gchar* title,
-                                        const gchar* message,
-                                        const gchar* icon_name,
+gint show_message                      (const gchar*                title,
+                                        const gchar*                message,
+                                        const gchar*                icon_name,
                                         const MessageButtonOptions* buttons,
-                                        gint default_id,
-                                        gint cancel_id,
+                                        gint                        default_id,
+                                        gint                        cancel_id,
                                         ...) G_GNUC_PRINTF (1, 7);
-void rearrange_grid_child              (GtkGrid* grid,
+void rearrange_grid_child              (GtkGrid*   grid,
                                         GtkWidget* child,
-                                        gint row);
-void set_window_position               (GtkWidget* window,
+                                        gint       row);
+void set_window_position               (GtkWidget*            window,
                                         const WindowPosition* p);
-void set_widget_text                   (GtkWidget* widget,
+void set_widget_text                   (GtkWidget*   widget,
                                         const gchar* text);
 void set_widget_sensitive              (GtkWidget* widget,
-                                        gboolean value);
+                                        gboolean   value);
 GtkListStore* get_widget_model         (GtkWidget* widget);
-gchar* get_widget_selection_str        (GtkWidget* widget,
-                                        gint column,
+gchar* get_widget_selection_str        (GtkWidget*   widget,
+                                        gint         column,
                                         const gchar* default_value);
 GdkPixbuf* get_widget_selection_image  (GtkWidget* widget,
                                         gint column,
@@ -330,8 +330,8 @@ gboolean get_model_iter_str            (GtkListStore* model,
 void fix_image_menu_item_if_empty      (GtkImageMenuItem* widget);
 gboolean get_widget_toggled            (GtkWidget* widget);
 void set_widget_toggled                (GtkWidget* widget,
-                                        gboolean state,
-                                        GCallback suppress_callback);
+                                        gboolean   state,
+                                        GCallback  suppress_callback);
 void clear_container                   (GtkContainer* container);
 /* Set positions of main window according to settings and current program state */
 void update_main_window_layout         (void);
@@ -349,7 +349,7 @@ void bind_menu_widget_model            (GtkWidget*    widget,
                                         gint          label_column,
                                         GCallback     on_changed);
 GtkTreeModel* get_menu_widget_model    (GtkWidget* widget);
-void set_menu_widget_active_path       (GtkWidget* widget,
+void set_menu_widget_active_path       (GtkWidget*   widget,
                                         GtkTreePath* path);
 GtkTreePath* get_menu_widget_active_path(GtkWidget* widget);
 
