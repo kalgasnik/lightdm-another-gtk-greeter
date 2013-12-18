@@ -51,6 +51,8 @@ GtkWidget* composite_widget_new            (void);
 void composite_widget_set_text             (CompositeWidget* widget,
                                             const gchar*     text);
 const gchar* composite_widget_get_text     (CompositeWidget* widget);
+void composite_widget_set_text_weight      (CompositeWidget* widget,
+                                            PangoWeight weight);
 void composite_widget_set_image_from_pixbuf(CompositeWidget* widget,
                                             GdkPixbuf*       pixbuf);
 GdkPixbuf* composite_widget_get_pixbuf     (CompositeWidget*   widget);

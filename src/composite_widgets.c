@@ -33,6 +33,7 @@ enum
 {
     COMPOSITE_PROP_0,
     COMPOSITE_PROP_TEXT,
+    COMPOSITE_PROP_TEXT_WEIGHT,
     COMPOSITE_PROP_PIXBUF
 };
 
@@ -48,6 +49,9 @@ static void composite_widget_set_property(GObject*      object,
     {
         case COMPOSITE_PROP_TEXT:
             composite_widget_set_text(widget, g_value_get_string(value));
+            break;
+        case COMPOSITE_PROP_TEXT_WEIGHT:
+            composite_widget_set_text_weight(widget, g_value_get_int(value));
             break;
         case COMPOSITE_PROP_PIXBUF:
             composite_widget_set_image_from_pixbuf(widget, g_value_get_object(value));
@@ -137,6 +141,12 @@ static void composite_widget_class_init(CompositeWidgetClass* klass)
                                                         NULL,
                                                         G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class,
+                                    COMPOSITE_PROP_TEXT_WEIGHT,
+                                    g_param_spec_int("text-weight", "Text weight",
+                                                     "Text weight of the widget",
+                                                      0, G_MAXINT, 0,
+                                                      G_PARAM_WRITABLE));
+    g_object_class_install_property(gobject_class,
                                     COMPOSITE_PROP_PIXBUF,
                                     g_param_spec_object("pixbuf", "Pixbuf",
                                                         "Pixbuf for widget image",
@@ -170,10 +180,31 @@ const gchar* composite_widget_get_text(CompositeWidget* widget)
     return gtk_label_get_label(GTK_LABEL(widget->priv->label));
 }
 
+void composite_widget_set_text_weight(CompositeWidget* widget,
+                                      PangoWeight weight)
+{
+    g_return_if_fail(IS_COMPOSITE_WIDGET(widget));
+    g_return_if_fail(GTK_IS_LABEL(widget->priv->label));
+
+    GtkLabel* label = GTK_LABEL(widget->priv->label);
+    PangoAttribute* attribute = pango_attr_weight_new(weight);
+    PangoAttrList* attributes_to_unref = NULL;
+    PangoAttrList* attributes = gtk_label_get_attributes(label);
+    if(!attributes)
+        attributes = attributes_to_unref = pango_attr_list_new();
+    pango_attr_list_change(attributes, attribute);
+    gtk_label_set_attributes(label, attributes);
+    pango_attr_list_unref(attributes_to_unref);
+
+    g_object_notify(G_OBJECT(widget), "text-weight");
+}
+
 void composite_widget_set_image_from_pixbuf(CompositeWidget* widget,
                                           GdkPixbuf*     pixbuf)
 {
     g_return_if_fail(IS_COMPOSITE_WIDGET(widget));
+    g_return_if_fail(GTK_IS_IMAGE(widget->priv->image));
+
     if(widget->priv->image)
     {
         gtk_image_set_from_pixbuf(GTK_IMAGE(widget->priv->image), pixbuf);
@@ -186,7 +217,8 @@ void composite_widget_set_image_from_pixbuf(CompositeWidget* widget,
 GdkPixbuf* composite_widget_get_pixbuf(CompositeWidget* widget)
 {
     g_return_val_if_fail(IS_COMPOSITE_WIDGET(widget), NULL);
-    return widget->priv->image ? gtk_image_get_pixbuf(GTK_IMAGE(widget->priv->image)) : NULL;
+    g_return_val_if_fail(GTK_IS_IMAGE(widget->priv->image), NULL);
+    return gtk_image_get_pixbuf(GTK_IMAGE(widget->priv->image));
 }
 
 /* SessionWidget */

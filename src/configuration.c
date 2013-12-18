@@ -155,8 +155,9 @@ static const ModelPropertyBinding SESSION_TEMPLATE_DEFAULT_BINDINGS[]  = {{NULL,
 static const ModelPropertyBinding LANGUAGE_TEMPLATE_DEFAULT_BINDINGS[] = {{NULL, "text", LANGUAGE_COLUMN_DISPLAY_NAME},
                                                                           {NULL, NULL,   -1}};
 
-static const ModelPropertyBinding USER_TEMPLATE_DEFAULT_BINDINGS[]     = {{NULL, "text",   USER_COLUMN_DISPLAY_NAME},
-                                                                          {NULL, "pixbuf", USER_COLUMN_LIST_IMAGE},
+static const ModelPropertyBinding USER_TEMPLATE_DEFAULT_BINDINGS[]     = {{NULL, "text",        USER_COLUMN_DISPLAY_NAME},
+                                                                          {NULL, "text-weight", USER_COLUMN_WEIGHT},
+                                                                          {NULL, "pixbuf",      USER_COLUMN_LIST_IMAGE},
                                                                           {NULL, NULL,     -1}};
 /* ---------------------------------------------------------------------------*
  * Definitions: public
