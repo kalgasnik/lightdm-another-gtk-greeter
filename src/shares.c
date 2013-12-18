@@ -149,7 +149,6 @@ void show_message_dialog(GtkMessageType type,
 gint show_message(const gchar* title,
                   const gchar* message_format,
                   const gchar* icon_name,
-                  const gchar* icon_stock,
                   const MessageButtonOptions* buttons,
                   gint default_id,
                   gint cancel_id,
@@ -172,15 +171,9 @@ gint show_message(const gchar* title,
     clear_container(GTK_CONTAINER(greeter.ui.messagebox_buttons));
     for(const MessageButtonOptions* button = buttons; button->id != GTK_RESPONSE_NONE; ++button)
     {
-        GtkWidget* widget;
-        if(button->stock)
-            widget = gtk_button_new_from_stock(button->stock);
-        else
-        {
-            widget = gtk_button_new_with_label(_(button->text));
-            if(button->text_stock_icon)
-                gtk_button_set_image(GTK_BUTTON(widget), gtk_image_new_from_icon_name(button->text_stock_icon, GTK_ICON_SIZE_BUTTON));
-        }
+        GtkWidget* widget = gtk_button_new_with_mnemonic(button->text);
+        if(button->icon_name)
+            gtk_button_set_image(GTK_BUTTON(widget), gtk_image_new_from_icon_name(button->icon_name, GTK_ICON_SIZE_BUTTON));
         gtk_widget_set_name(widget, button->name);
         gtk_widget_show(widget);
         gtk_container_add(GTK_CONTAINER(greeter.ui.messagebox_buttons), widget);
@@ -198,8 +191,6 @@ gint show_message(const gchar* title,
     set_widget_text(greeter.ui.messagebox_text, message);
     if(icon_name)
         gtk_image_set_from_icon_name(GTK_IMAGE(greeter.ui.messagebox_icon), icon_name, GTK_ICON_SIZE_DIALOG);
-    else if(icon_stock)
-        gtk_image_set_from_stock(GTK_IMAGE(greeter.ui.messagebox_icon), icon_stock, GTK_ICON_SIZE_DIALOG);
 
     key_press_handler = g_signal_connect(greeter.ui.messagebox_content, "key-press-event",
                                          G_CALLBACK(on_messagebox_key_press), &info);

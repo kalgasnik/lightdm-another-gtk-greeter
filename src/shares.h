@@ -205,8 +205,7 @@ typedef struct
 {
     const gchar* name;
     const gchar* text;
-    const gchar* text_stock_icon;
-    const gchar* stock;
+    const gchar* icon_name;
     gint id;
 } MessageButtonOptions;
 
@@ -292,11 +291,10 @@ void show_message_dialog               (GtkMessageType type,
 gint show_message                      (const gchar* title,
                                         const gchar* message,
                                         const gchar* icon_name,
-                                        const gchar* icon_stock,
                                         const MessageButtonOptions* buttons,
                                         gint default_id,
                                         gint cancel_id,
-                                        ...) G_GNUC_PRINTF (1, 8);
+                                        ...) G_GNUC_PRINTF (1, 7);
 void rearrange_grid_child              (GtkGrid* grid,
                                         GtkWidget* child,
                                         gint row);

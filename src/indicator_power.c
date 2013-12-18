@@ -143,11 +143,11 @@ static void power_action(const PowerActionData* action)
     {
         const MessageButtonOptions buttons[] =
         {
-            {.id = GTK_RESPONSE_CANCEL, .text = _("Return to Login"), .text_stock_icon = "gtk-cancel"},
-            {.id = GTK_RESPONSE_YES,    .stock = "gtk-yes", .name = action->button_name},
+            {.id = GTK_RESPONSE_CANCEL, .text = _("Return to Login")},
+            {.id = GTK_RESPONSE_YES,    .text = g_dgettext("gtk30", "_Yes"), .name = action->button_name},
             {.id = GTK_RESPONSE_NONE}
         };
-        if(show_message(_(action->name), _(action->prompt), action->icon, NULL, buttons,
+        if(show_message(_(action->name), _(action->prompt), action->icon, buttons,
                         GTK_RESPONSE_CANCEL, GTK_RESPONSE_CANCEL) != GTK_RESPONSE_YES)
             return;
     }
