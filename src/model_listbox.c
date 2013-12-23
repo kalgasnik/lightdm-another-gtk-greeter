@@ -39,9 +39,6 @@ static const gchar* LISTBOX_ITEM_PATH_PROP  = "private-model-path";
 static void on_listbox_row_selected         (GtkListBox*      list_box,
                                              GtkListBoxRow*   row,
                                              PrivateListBoxData* data);
-static void on_listbox_row_activated        (GtkListBox*      list_box,
-                                             GtkListBoxRow*   row,
-                                             PrivateListBoxData* data);
 static void on_listbox_row_changed          (GtkTreeModel*    model,
                                              GtkTreePath*     path,
                                              GtkTreeIter*     iter,
@@ -78,7 +75,6 @@ void bind_listbox_model(GtkListBox*   widget,
 
     g_object_set_data(G_OBJECT(widget), LISTBOX_BINDING_PROP, data);
     g_signal_connect(widget, "row-selected", G_CALLBACK(on_listbox_row_selected), data);
-    g_signal_connect(widget, "row-activated", G_CALLBACK(on_listbox_row_activated), data);
     gtk_tree_model_foreach(GTK_TREE_MODEL(model), (GtkTreeModelForeachFunc)on_listbox_row_inserted, data);
     g_signal_connect(model, "row-changed", G_CALLBACK(on_listbox_row_changed), data);
     g_signal_connect(model, "row-deleted", G_CALLBACK(on_listbox_row_deleted), data);
@@ -117,14 +113,6 @@ static void on_listbox_row_selected(GtkListBox*         list_box,
     data->active = row;
     if(data->on_changed)
         ((GtkCallback)data->on_changed)(GTK_WIDGET(data->widget), NULL);
-}
-
-static void on_listbox_row_activated(GtkListBox*         list_box,
-                                     GtkListBoxRow*      row,
-                                     PrivateListBoxData* data)
-{
-    if(data->on_activated)
-        ((GtkCallback)data->on_activated)(GTK_WIDGET(data->widget), NULL);
 }
 
 /* Model signals */
