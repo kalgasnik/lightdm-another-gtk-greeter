@@ -690,11 +690,15 @@ static gchar** read_value_command(GKeyFile* key_file,
                                   const gchar* section,
                                   const gchar* key)
 {
-    gchar** array = NULL;
-    gchar*  s = read_value_str(key_file, section, key, NULL);
-    g_shell_parse_argv(s, NULL, &array, NULL);
-    g_free(s);
-    return array;
+    gchar* value = read_value_str(key_file, section, key, NULL);
+    if(value)
+    {
+        gchar** array = NULL;
+        g_shell_parse_argv(value, NULL, &array, NULL);
+        g_free(value);
+        return array;
+    }
+    return NULL;
 }
 
 static gint read_value_dpi_gtk(GKeyFile* key_file,

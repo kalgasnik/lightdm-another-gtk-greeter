@@ -456,7 +456,7 @@ static gboolean init_gui(void)
                                model->on_activated);
     }
 
-    if(config.appearance.user_image.enabled)
+    if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)
     {
         gint width, height;
         gtk_widget_get_preferred_width(greeter.ui.user_image_widget, &width, NULL);
@@ -1340,6 +1340,8 @@ static GdkPixbuf* fit_image(GdkPixbuf* source,
                             gint new_size,
                             UserImageFit fit)
 {
+    if(new_size == 0)
+        return NULL;
     gint width = gdk_pixbuf_get_width(source);
     gint height = gdk_pixbuf_get_height(source);
     gint src_size = MAX(width, height);
