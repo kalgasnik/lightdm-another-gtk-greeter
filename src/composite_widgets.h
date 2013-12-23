@@ -57,6 +57,34 @@ void composite_widget_set_image_from_pixbuf(CompositeWidget* widget,
                                             GdkPixbuf*       pixbuf);
 GdkPixbuf* composite_widget_get_pixbuf     (CompositeWidget*   widget);
 
+/* User widget */
+
+#define USER_WIDGET_TYPE                (user_widget_get_type ())
+#define USER_WIDGET(obj)                (G_TYPE_CHECK_INSTANCE_CAST ((obj), USER_WIDGET_TYPE, UserWidget))
+#define USER_WIDGET_CLASS(klass)        (G_TYPE_CHECK_CLASS_CAST ((klass),  USER_WIDGET_TYPE, UserWidgetClass))
+#define IS_USER_WIDGET(obj)             (G_TYPE_CHECK_INSTANCE_TYPE ((obj), USER_WIDGET_TYPE))
+#define IS_USER_CLASS(klass)            (G_TYPE_CHECK_CLASS_TYPE ((klass),  USER_WIDGET_TYPE))
+#define USER_GET_CLASS(obj)             (G_TYPE_INSTANCE_GET_CLASS ((obj),  USER_WIDGET_TYPE, UserWidgetClass))
+
+typedef struct _UserWidget               UserWidget;
+typedef struct _UserWidgetClass          UserWidgetClass;
+typedef struct _UserWidgetPrivate        UserWidgetPrivate;
+
+struct _UserWidget
+{
+    CompositeWidget composite;
+    struct _UserWidgetPrivate* priv;
+};
+
+struct _UserWidgetClass
+{
+    CompositeWidgetClass parent_class;
+};
+
+GtkWidget* user_widget_new              (void);
+
+G_END_DECLS
+
 /* Session widget */
 
 #define SESSION_WIDGET_TYPE             (session_widget_get_type ())
@@ -68,10 +96,12 @@ GdkPixbuf* composite_widget_get_pixbuf     (CompositeWidget*   widget);
 
 typedef struct _SessionWidget            SessionWidget;
 typedef struct _SessionWidgetClass       SessionWidgetClass;
+typedef struct _CompositeWidgetPrivate   SessionWidgetPrivate;
 
 struct _SessionWidget
 {
     CompositeWidget composite;
+    struct _CompositeWidgetPrivate* priv;
 };
 
 struct _SessionWidgetClass
@@ -92,10 +122,12 @@ GtkWidget* session_widget_new           (void);
 
 typedef struct _LanguageWidget           LanguageWidget;
 typedef struct _LanguageWidgetClass      LanguageWidgetClass;
+typedef struct _CompositeWidgetPrivate   LanguageWidgetPrivate;
 
 struct _LanguageWidget
 {
     CompositeWidget composite;
+    struct _CompositeWidgetPrivate* priv;
 };
 
 struct _LanguageWidgetClass

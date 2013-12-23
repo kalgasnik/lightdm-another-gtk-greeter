@@ -200,7 +200,7 @@ static gchar** get_layouts(Display* display)
                                     &prop);
 
     g_return_val_if_fail(status == Success, NULL);
-    g_return_val_if_fail(nitems >= LAYOUTS_PROP_NUM, NULL);
+    g_return_val_if_fail((int)nitems >= LAYOUTS_PROP_NUM, NULL);
     g_return_val_if_fail(format == 8, NULL);
     g_return_val_if_fail(type == XA_STRING, NULL);
 

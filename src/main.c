@@ -37,6 +37,7 @@
 #include "indicator_clock.h"
 #include "indicator_layout.h"
 #include "model_menu.h"
+#include "model_listbox.h"
 
 /* Static functions */
 
@@ -394,30 +395,66 @@ static gboolean init_gui(void)
     if(!greeter.ui.sessions_model)
         greeter.ui.sessions_model = GTK_LIST_STORE(get_widget_model(greeter.ui.sessions_widget));
 
-    if(IS_MENU_WIDGET(greeter.ui.users_widget))
-        bind_menu_widget_model(greeter.ui.users_widget,
-                               session_widget_new,
-                               greeter.ui.users_model,
-                               config.appearance.templates.user.bindings,
-                               greeter.ui.users_text,
-                               USER_COLUMN_DISPLAY_NAME,
-                               NULL);
-    if(IS_MENU_WIDGET(greeter.ui.languages_widget))
-        bind_menu_widget_model(greeter.ui.languages_widget,
-                               language_widget_new,
-                               greeter.ui.languages_model,
-                               config.appearance.templates.language.bindings,
-                               greeter.ui.languages_text,
-                               LANGUAGE_COLUMN_DISPLAY_NAME,
-                               NULL);
-    if(IS_MENU_WIDGET(greeter.ui.sessions_widget))
-        bind_menu_widget_model(greeter.ui.sessions_widget,
-                               session_widget_new,
-                               greeter.ui.sessions_model,
-                               config.appearance.templates.session.bindings,
-                               greeter.ui.sessions_text,
-                               SESSION_COLUMN_DISPLAY_NAME,
-                               NULL);
+    struct ModelBindingData
+    {
+        GtkWidget*    widget;
+        NewWidgetFunc new_widget;
+        GtkListStore* model;
+        GSList*       model_bindings;
+        GtkWidget*    label;
+        gint          label_column;
+        GCallback     on_changed, on_activated;
+    }
+    models[] =
+    {
+        {
+            greeter.ui.users_widget,
+            user_widget_new,
+            greeter.ui.users_model,
+            config.appearance.templates.user.bindings,
+            greeter.ui.users_text,
+            USER_COLUMN_DISPLAY_NAME,
+            G_CALLBACK(on_user_selection_changed),
+            G_CALLBACK(on_login_clicked)
+        },
+        {
+            greeter.ui.languages_widget,
+            language_widget_new,
+            greeter.ui.languages_model,
+            config.appearance.templates.language.bindings,
+            greeter.ui.languages_text,
+            LANGUAGE_COLUMN_DISPLAY_NAME,
+            NULL,
+            NULL
+        },
+        {
+            greeter.ui.sessions_widget,
+            session_widget_new,
+            greeter.ui.sessions_model,
+            config.appearance.templates.session.bindings,
+            greeter.ui.sessions_text,
+            SESSION_COLUMN_DISPLAY_NAME,
+            NULL,
+            NULL
+        },
+        {NULL, NULL, NULL, NULL, NULL, -1, NULL, NULL}
+    };
+
+    for(struct ModelBindingData* model = models; model->widget != NULL; model++)
+    {
+        if(IS_MENU_WIDGET(model->widget))
+            bind_menu_widget_model(model->widget,
+                                   model->new_widget,
+                                   model->model, model->model_bindings,
+                                   model->label, model->label_column,
+                                   model->on_changed);
+        else if(GTK_IS_LIST_BOX(model->widget))
+            bind_listbox_model(GTK_LIST_BOX(model->widget),
+                               model->new_widget,
+                               model->model, model->model_bindings,
+                               model->on_changed,
+                               model->on_activated);
+    }
 
     if(config.appearance.user_image.enabled)
     {
@@ -570,6 +607,7 @@ static void append_user(LightDMUser* user,
                        USER_COLUMN_WEIGHT, lightdm_user_get_logged_in(user) ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL,
                        USER_COLUMN_USER_IMAGE, user_image,
                        USER_COLUMN_LIST_IMAGE, list_image,
+                       USER_COLUMN_LOGGED_IN, lightdm_user_get_logged_in(user),
                        -1);
     g_free(display_name);
 }
@@ -589,6 +627,7 @@ static void append_custom_user(gint type,
                        USER_COLUMN_WEIGHT, PANGO_WEIGHT_NORMAL,
                        USER_COLUMN_USER_IMAGE, greeter.state.user_image.default_image,
                        USER_COLUMN_LIST_IMAGE, greeter.state.list_image.default_image,
+                       USER_COLUMN_LOGGED_IN, FALSE,
                        -1);
 }
 

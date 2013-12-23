@@ -3,12 +3,23 @@ bin_PROGRAMS = lightdm-another-gtk-greeter
 lightdm_another_gtk_greeter_SOURCES = \
 	main.c \
 	shares.c \
+	shares.h \
 	configuration.c \
+	configuration.h \
+	composite_widgets.c \
+	composite_widgets.h \
+	model_listbox.c \
+	model_listbox.h \
+	model_menu.c \
+	model_menu.h \
 	indicator_a11y.c \
+	indicator_a11y.h \
 	indicator_layout.c \
+	indicator_layout.h \
 	indicator_power.c \
+	indicator_power.h \
 	indicator_clock.c \
-	configuration.h indicator_layout.h indicator_clock.h indicator_a11y.h indicator_power.h shares.h
+	indicator_clock.h
 
 
 lightdm_another_gtk_greeter_CFLAGS = \

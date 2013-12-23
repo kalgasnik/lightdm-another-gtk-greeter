@@ -146,7 +146,8 @@ static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smal
 static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
 static const gchar* SESSION_COLUMN_STRINGS[]   = {"name", "display-name", "image", "comment", NULL};
 static const gchar* LANGUAGE_COLUMN_STRINGS[]  = {"code", "display-name", NULL};
-static const gchar* USER_COLUMN_STRINGS[]      = {"name", "type", "display-name", "font-weight", "user-image", "list-image", NULL};
+static const gchar* USER_COLUMN_STRINGS[]      = {"name", "type", "display-name", "font-weight", "user-image", "list-image",
+                                                  "logged-in", NULL};
 
 static const ModelPropertyBinding SESSION_TEMPLATE_DEFAULT_BINDINGS[]  = {{NULL, "text",   SESSION_COLUMN_DISPLAY_NAME},
                                                                           {NULL, "pixbuf", SESSION_COLUMN_IMAGE},
@@ -776,7 +777,7 @@ static void read_templates(void)
             config.appearance.templates.user.ui_file,
             USER_TEMPLATE_DEFAULT_BINDINGS
         },
-        {NULL, NULL}
+        {NULL, NULL, NULL, NULL}
     };
 
     GHashTableIter iter;

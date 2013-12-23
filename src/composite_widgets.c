@@ -22,6 +22,11 @@
 #include "configuration.h"
 #include "composite_widgets.h"
 
+static void bind_template_automated_children(GtkWidgetClass*  widget_class,
+                                             GBytes*          template_data,
+                                             GSList*          bindings);
+static void create_default_widget           (CompositeWidget* widget);
+
 struct _CompositeWidgetPrivate
 {
     GtkWidget* label;
@@ -37,6 +42,35 @@ enum
     COMPOSITE_PROP_PIXBUF
 };
 
+static void bind_template_automated_children(GtkWidgetClass*  widget_class,
+                                             GBytes*          template_data,
+                                             GSList*          bindings)
+{
+    for(GSList* item = bindings; item != NULL; item = item->next)
+    {
+        ModelPropertyBinding* bind = item->data;
+        if(bind->widget)
+            gtk_widget_class_bind_template_child_full(widget_class, bind->widget, FALSE, 0);
+    }
+}
+
+static void create_default_widget(CompositeWidget* widget)
+{
+    widget->priv->label = gtk_label_new(NULL);
+    widget->priv->image = gtk_image_new();
+    widget->priv->image_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_style_context_add_class(gtk_widget_get_style_context(widget->priv->label), "label");
+    gtk_style_context_add_class(gtk_widget_get_style_context(widget->priv->image), "image");
+
+    gtk_box_pack_start(GTK_BOX(widget->priv->image_box), widget->priv->image, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(widget), widget->priv->label, TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(widget), widget->priv->image_box, FALSE, TRUE, 0);
+    gtk_widget_set_halign(widget->priv->label, GTK_ALIGN_START);
+    gtk_widget_show(widget->priv->label);
+    gtk_widget_show(widget->priv->image);
+}
+
+GType composite_widget_get_type(void);
 G_DEFINE_TYPE_WITH_PRIVATE(CompositeWidget, composite_widget, GTK_TYPE_BOX);
 
 static void composite_widget_set_property(GObject*      object,
@@ -82,54 +116,9 @@ static void composite_widget_get_property(GObject*    object,
     }
 }
 
-static void composite_widget_class_init_successor(GtkWidgetClass*  widget_class,
-                                                  GBytes*          template_data,
-                                                  GSList*          bindings)
-{
-    if(template_data)
-    {
-        gtk_widget_class_set_template(widget_class, template_data);
-
-        gtk_widget_class_bind_template_child_private(widget_class, CompositeWidget, label);
-        gtk_widget_class_bind_template_child_private(widget_class, CompositeWidget, image);
-        gtk_widget_class_bind_template_child_private(widget_class, CompositeWidget, image_box);
-
-        for(GSList* item = bindings; item != NULL; item = item->next)
-        {
-            ModelPropertyBinding* bind = item->data;
-            if(bind->widget)
-                gtk_widget_class_bind_template_child_full(widget_class, bind->widget, FALSE, 0);
-        }
-    }
-}
-
-static void session_widget_init_successor(CompositeWidget* widget,
-                                          GBytes*          template_data,
-                                          GSList*          bindings)
-{
-    if(template_data)
-    {
-        gtk_widget_init_template(GTK_WIDGET(widget));
-    }
-    else
-    {
-        widget->priv->label = gtk_label_new(NULL);
-        widget->priv->image = gtk_image_new();
-        widget->priv->image_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-        gtk_box_pack_start(GTK_BOX(widget->priv->image_box), widget->priv->image, FALSE, TRUE, 0);
-        gtk_box_pack_start(GTK_BOX(widget), widget->priv->label, TRUE, TRUE, 0);
-        gtk_box_pack_end(GTK_BOX(widget), widget->priv->image_box, FALSE, TRUE, 0);
-        gtk_widget_set_halign(widget->priv->label, GTK_ALIGN_START);
-        gtk_widget_show(widget->priv->label);
-        gtk_widget_show(widget->priv->image);
-    }
-}
-
 static void composite_widget_class_init(CompositeWidgetClass* klass)
 {
-    GObjectClass* gobject_class;
-
-    gobject_class = G_OBJECT_CLASS(klass);
+    GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
 
     gobject_class->set_property = composite_widget_set_property;
     gobject_class->get_property = composite_widget_get_property;
@@ -152,8 +141,6 @@ static void composite_widget_class_init(CompositeWidgetClass* klass)
                                                         "Pixbuf for widget image",
                                                         GDK_TYPE_PIXBUF,
                                                         G_PARAM_READWRITE));
-
-    g_type_class_add_private(gobject_class, sizeof(CompositeWidgetPrivate));
 }
 
 static void composite_widget_init(CompositeWidget* widget)
@@ -221,22 +208,86 @@ GdkPixbuf* composite_widget_get_pixbuf(CompositeWidget* widget)
     return gtk_image_get_pixbuf(GTK_IMAGE(widget->priv->image));
 }
 
+/* UserWidget */
+
+struct _UserWidgetPrivate
+{
+    GtkWidget* label;
+    GtkWidget* image;
+    GtkWidget* image_box;
+};
+
+GType user_widget_get_type(void);
+G_DEFINE_TYPE_WITH_PRIVATE(UserWidget, user_widget, COMPOSITE_WIDGET_TYPE);
+
+static void user_widget_class_init(UserWidgetClass* klass)
+{
+    if(config.appearance.templates.user.data)
+    {
+        GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
+
+        gtk_widget_class_set_template(widget_class, config.appearance.templates.user.data);
+        gtk_widget_class_bind_template_child_private(widget_class, UserWidget, label);
+        gtk_widget_class_bind_template_child_private(widget_class, UserWidget, image);
+        gtk_widget_class_bind_template_child_private(widget_class, UserWidget, image_box);
+
+        bind_template_automated_children(widget_class,
+                                         config.appearance.templates.user.data,
+                                         config.appearance.templates.user.bindings);
+    }
+}
+
+static void user_widget_init(UserWidget* widget)
+{
+    if(config.appearance.templates.user.data)
+    {
+        gtk_widget_init_template(GTK_WIDGET(widget));
+        widget->priv = G_TYPE_INSTANCE_GET_PRIVATE(widget, USER_WIDGET_TYPE, UserWidgetPrivate);
+        widget->composite.priv->label = widget->priv->label;
+        widget->composite.priv->image = widget->priv->image;
+        widget->composite.priv->image_box = widget->priv->image_box;
+    }
+    else
+        create_default_widget(COMPOSITE_WIDGET(widget));
+}
+
+GtkWidget* user_widget_new(void)
+{
+    return g_object_new(USER_WIDGET_TYPE, NULL);
+}
+
 /* SessionWidget */
 
+GType session_widget_get_type(void);
 G_DEFINE_TYPE(SessionWidget, session_widget, COMPOSITE_WIDGET_TYPE)
 
 static void session_widget_class_init(SessionWidgetClass* klass)
 {
-    composite_widget_class_init_successor(GTK_WIDGET_CLASS(klass),
-                                          config.appearance.templates.session.data,
-                                          config.appearance.templates.session.bindings);
+    if(config.appearance.templates.session.data)
+    {
+        GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
+
+        gtk_widget_class_set_template(widget_class, config.appearance.templates.session.data);
+        gtk_widget_class_bind_template_child_private(widget_class, SessionWidget, label);
+        gtk_widget_class_bind_template_child_private(widget_class, SessionWidget, image);
+        gtk_widget_class_bind_template_child_private(widget_class, SessionWidget, image_box);
+
+        bind_template_automated_children(widget_class,
+                                         config.appearance.templates.session.data,
+                                         config.appearance.templates.session.bindings);
+    }
 }
 
 static void session_widget_init(SessionWidget* widget)
 {
-    session_widget_init_successor(COMPOSITE_WIDGET(widget),
-                                  config.appearance.templates.session.data,
-                                  config.appearance.templates.session.bindings);
+    if(config.appearance.templates.session.data)
+    {
+        gtk_widget_init_template(GTK_WIDGET(widget));
+        widget->priv = G_TYPE_INSTANCE_GET_PRIVATE(widget, USER_WIDGET_TYPE, SessionWidgetPrivate);
+        *widget->composite.priv = *widget->priv;
+    }
+    else
+        create_default_widget(COMPOSITE_WIDGET(widget));
 }
 
 GtkWidget* session_widget_new(void)
@@ -246,20 +297,36 @@ GtkWidget* session_widget_new(void)
 
 /* LanguageWidget */
 
+GType language_widget_get_type(void);
 G_DEFINE_TYPE(LanguageWidget, language_widget, COMPOSITE_WIDGET_TYPE)
 
 static void language_widget_class_init(LanguageWidgetClass* klass)
 {
-    composite_widget_class_init_successor(GTK_WIDGET_CLASS(klass),
-                                          config.appearance.templates.language.data,
-                                          config.appearance.templates.language.bindings);
+    if(config.appearance.templates.language.data)
+    {
+        GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
+
+        gtk_widget_class_set_template(widget_class, config.appearance.templates.language.data);
+        gtk_widget_class_bind_template_child_private(widget_class, LanguageWidget, label);
+        gtk_widget_class_bind_template_child_private(widget_class, LanguageWidget, image);
+        gtk_widget_class_bind_template_child_private(widget_class, LanguageWidget, image_box);
+
+        bind_template_automated_children(widget_class,
+                                         config.appearance.templates.language.data,
+                                         config.appearance.templates.language.bindings);
+    }
 }
 
 static void language_widget_init(LanguageWidget* widget)
 {
-    session_widget_init_successor(COMPOSITE_WIDGET(widget),
-                                  config.appearance.templates.language.data,
-                                  config.appearance.templates.language.bindings);
+    if(config.appearance.templates.language.data)
+    {
+        gtk_widget_init_template(GTK_WIDGET(widget));
+        widget->priv = G_TYPE_INSTANCE_GET_PRIVATE(widget, USER_WIDGET_TYPE, LanguageWidgetPrivate);
+        *widget->composite.priv = *widget->priv;
+    }
+    else
+        create_default_widget(COMPOSITE_WIDGET(widget));
 }
 
 GtkWidget* language_widget_new(void)

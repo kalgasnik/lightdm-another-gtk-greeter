@@ -171,7 +171,7 @@ void a11y_toggle_osk()
 
     a11y.state.osk = !a11y.state.osk;
     gtk_widget_hide(greeter.ui.main_content);
-    if(greeter.ui.a11y.osk_widget);
+    if(greeter.ui.a11y.osk_widget)
         set_widget_toggled(greeter.ui.a11y.osk_widget, a11y.state.osk, G_CALLBACK(on_a11y_osk_toggled));
     if(a11y.state.osk)
         a11y.onscreen_keyboard->open();
