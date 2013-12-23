@@ -144,6 +144,7 @@ static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
 static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
+
 static const gchar* SESSION_COLUMN_STRINGS[]   = {"name", "display-name", "image", "comment", NULL};
 static const gchar* LANGUAGE_COLUMN_STRINGS[]  = {"code", "display-name", NULL};
 static const gchar* USER_COLUMN_STRINGS[]      = {"name", "type", "display-name", "font-weight", "user-image", "list-image",

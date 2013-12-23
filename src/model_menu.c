@@ -27,6 +27,9 @@ typedef struct
     GtkWidget*         active;
     GtkTreeModel*      model;
     GSList*            model_bindings;
+    /* HashTable<GtkTreePath, GtkWidget>
+       gtk_widget_destroy() used as "value_destroy_func */
+    GHashTable*        model_mapping;
     GtkMenuShell*      menu;
     GSList*            menu_group;
 
@@ -40,8 +43,6 @@ static const gchar* MENU_ITEM_PATH_PROP      = "private-model-path";
 /* Static functions */
 
 /* For g_slist_find_custom */
-static gint compare_menu_widget_item_path   (GObject*         obj,
-                                             GtkTreePath*     path);
 static void on_menu_widget_row_changed      (GtkTreeModel*    model,
                                              GtkTreePath*     path,
                                              GtkTreeIter*     iter,
@@ -55,6 +56,16 @@ static gboolean on_menu_widget_row_inserted (GtkTreeModel*    model,
                                              PrivateMenuData* data);
 static void on_menu_widget_item_toggled     (GtkWidget*       widget,
                                              PrivateMenuData* data);
+
+static gboolean gtk_tree_path_equal(GtkTreePath* a, GtkTreePath* b)
+{
+    return gtk_tree_path_compare(a, b) == 0;
+}
+
+static guint gtk_tree_path_hash(GtkTreePath* path)
+{
+    return gtk_tree_path_get_indices(path)[0];
+}
 
 /* ---------------------------------------------------------------------------*
  * Definitions: public
@@ -84,6 +95,8 @@ void bind_menu_widget_model(GtkWidget*    widget,
     data->active         = NULL;
     data->model          = GTK_TREE_MODEL(model);
     data->model_bindings = model_bindings;
+    data->model_mapping  = g_hash_table_new_full((GHashFunc)gtk_tree_path_hash, (GEqualFunc)gtk_tree_path_equal,
+                                                 (GDestroyNotify)gtk_tree_path_free, (GDestroyNotify)gtk_widget_destroy);
     data->menu_group     = NULL;
     data->new_widget     = new_widget;
     data->on_changed     = on_changed;
@@ -106,17 +119,14 @@ void set_menu_widget_active_path(GtkWidget* widget,
                                  GtkTreePath* path)
 {
     PrivateMenuData* data = g_object_get_data(G_OBJECT(widget), MENU_WIDGET_BINDING_PROP);
-    GList* items = gtk_container_get_children(GTK_CONTAINER(data->menu));
-    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
+    GtkCheckMenuItem* item = g_hash_table_lookup(data->model_mapping, path);
     if(item)
     {
-        GtkCheckMenuItem* widget = GTK_CHECK_MENU_ITEM(item->data);
-        if(gtk_check_menu_item_get_active(widget))
-            gtk_check_menu_item_toggled(widget);
+        if(gtk_check_menu_item_get_active(item))
+            gtk_check_menu_item_toggled(item);
         else
-            gtk_check_menu_item_set_active(widget, TRUE);
+            gtk_check_menu_item_set_active(item, TRUE);
     }
-    g_list_free(items);
 }
 
 GtkTreePath* get_menu_widget_active_path(GtkWidget* widget)
@@ -130,23 +140,14 @@ GtkTreePath* get_menu_widget_active_path(GtkWidget* widget)
  * Definitions: static
  * -------------------------------------------------------------------------- */
 
-
-static gint compare_menu_widget_item_path(GObject*     obj,
-                                          GtkTreePath* path)
-{
-    return gtk_tree_path_compare(path, g_object_get_data(obj, MENU_ITEM_PATH_PROP));
-}
+/* Model events */
 
 static void on_menu_widget_row_deleted(GtkTreeModel*    tree_model,
                                        GtkTreePath*     path,
                                        PrivateMenuData* data)
 {
-    GList* items = gtk_container_get_children(GTK_CONTAINER(data->menu));
-    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
-    if(item)
-        /* TODO: update menu_group */
-        gtk_widget_destroy(GTK_WIDGET(item->data));
-    g_list_free(items);
+    /* TODO: update menu_group */
+    g_hash_table_remove(data->model_mapping, path);
 }
 
 static void on_menu_widget_row_changed(GtkTreeModel*    model,
@@ -154,11 +155,10 @@ static void on_menu_widget_row_changed(GtkTreeModel*    model,
                                        GtkTreeIter*     iter,
                                        PrivateMenuData* data)
 {
-    GList* items = gtk_container_get_children(GTK_CONTAINER(data->menu));
-    GList* item = g_list_find_custom(items, path, (GCompareFunc)compare_menu_widget_item_path);
+    GtkWidget* item = g_hash_table_lookup(data->model_mapping, path);
     if(item)
     {
-        GtkWidget* content = gtk_bin_get_child(item->data);
+        GtkWidget* content = gtk_bin_get_child(GTK_BIN(item));
         for(GSList* item = data->model_bindings; item != NULL; item = item->next)
         {
             const ModelPropertyBinding* bind = item->data;
@@ -174,7 +174,7 @@ static void on_menu_widget_row_changed(GtkTreeModel*    model,
                 g_object_set_property(G_OBJECT(content), bind->prop, &value);
             g_value_unset(&value);
         }
-        if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item->data)))
+        if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item)))
         {
             gchar* label = NULL;
             gtk_tree_model_get(model, iter, data->label_column, &label, -1);
@@ -182,7 +182,6 @@ static void on_menu_widget_row_changed(GtkTreeModel*    model,
             g_free(label);
         }
     }
-    g_list_free(items);
 }
 
 static gboolean on_menu_widget_row_inserted(GtkTreeModel*    model,
@@ -193,9 +192,11 @@ static gboolean on_menu_widget_row_inserted(GtkTreeModel*    model,
     const gint* indices = gtk_tree_path_get_indices(path);
     GtkWidget* item = gtk_radio_menu_item_new(data->menu_group);
     GtkWidget* content =  data->new_widget();
+    GtkTreePath* path_copy = gtk_tree_path_copy(path);
 
     data->menu_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
-    g_object_set_data(G_OBJECT(item), MENU_ITEM_PATH_PROP, gtk_tree_model_get_path(model, iter));
+    g_hash_table_insert(data->model_mapping, path_copy, item);
+    g_object_set_data(G_OBJECT(item), MENU_ITEM_PATH_PROP, path_copy);
     g_signal_connect(item, "toggled", G_CALLBACK(on_menu_widget_item_toggled), data);
 
     gtk_container_add(GTK_CONTAINER(item), content);
