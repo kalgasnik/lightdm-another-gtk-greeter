@@ -594,8 +594,8 @@ static void append_user(LightDMUser* user,
                 user_image = fit_image(image, greeter.state.user_image.size, config.appearance.user_image.fit);
             if(config.appearance.list_image.enabled)
                 list_image = fit_image(image, greeter.state.list_image.size, config.appearance.list_image.fit);
+            g_object_unref(image);
         }
-        g_object_unref(image);
     }
 
     GtkTreeIter iter;

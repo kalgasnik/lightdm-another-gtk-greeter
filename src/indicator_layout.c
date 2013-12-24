@@ -154,7 +154,7 @@ static KeyboardInfo* init_xkb()
     int groups_count;
 
     display = XkbOpenDisplay(NULL, NULL, NULL, NULL, NULL, NULL);
-    g_return_val_if_fail(display != NULL && 0, NULL);
+    g_return_val_if_fail(display != NULL, NULL);
     engine = xkl_engine_get_instance(display);
     g_return_val_if_fail(display != NULL, NULL);
     groups = get_groups(display, &groups_count);
