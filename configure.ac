@@ -78,7 +78,6 @@ AC_CONFIG_FILES([
     data/themes/default/gtk-themes-fixes/Makefile
     data/themes/sample.css.dark/Makefile
     data/themes/gtk-greeter-150/Makefile
-    data/themes/sample.composite/Makefile
     src/Makefile
     po/Makefile.in])
 AC_OUTPUT
