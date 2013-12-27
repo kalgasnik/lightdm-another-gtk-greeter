@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.0 on Tue Oct 15 11:54:58 2013 -->
+<!-- Generated with glade 3.16.0 on Fri Dec 27 12:46:06 2013 -->
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkImage" id="image1">
@@ -16,7 +16,7 @@
     <columns>
       <!-- column-name code -->
       <column type="gchararray"/>
-      <!-- column-name display_name -->
+      <!-- column-name display-name -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -24,28 +24,12 @@
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>
-      <!-- column-name display_name -->
+      <!-- column-name display-name -->
       <column type="gchararray"/>
       <!-- column-name image -->
       <column type="GdkPixbuf"/>
       <!-- column-name comment -->
       <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="users_model">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-      <!-- column-name type -->
-      <column type="gint"/>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name weight -->
-      <column type="gint"/>
-      <!-- column-name image -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name image_scaled -->
-      <column type="GdkPixbuf"/>
     </columns>
   </object>
   <object class="GtkWindow" id="screen_window">
@@ -769,5 +753,23 @@
   <object class="GtkMenu" id="time_menu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
+  </object>
+  <object class="GtkListStore" id="users_model">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name type -->
+      <column type="gint"/>
+      <!-- column-name display-name -->
+      <column type="gchararray"/>
+      <!-- column-name weight -->
+      <column type="gint"/>
+      <!-- column-name image -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name image-scaled -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name logged-in -->
+      <column type="gboolean"/>
+    </columns>
   </object>
 </interface>

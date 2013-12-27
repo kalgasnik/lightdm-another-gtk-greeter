@@ -22,9 +22,11 @@
 #include "configuration.h"
 #include "composite_widgets.h"
 
+#if GTK_CHECK_VERSION(3, 10, 0)
 static void bind_template_automated_children(GtkWidgetClass*  widget_class,
                                              GBytes*          template_data,
                                              GSList*          bindings);
+#endif
 static void create_default_widget           (CompositeWidget* widget);
 
 struct _CompositeWidgetPrivate
@@ -42,6 +44,7 @@ enum
     COMPOSITE_PROP_PIXBUF
 };
 
+#if GTK_CHECK_VERSION(3, 10, 0)
 static void bind_template_automated_children(GtkWidgetClass*  widget_class,
                                              GBytes*          template_data,
                                              GSList*          bindings)
@@ -53,6 +56,7 @@ static void bind_template_automated_children(GtkWidgetClass*  widget_class,
             gtk_widget_class_bind_template_child_full(widget_class, bind->widget, FALSE, 0);
     }
 }
+#endif
 
 static void create_default_widget(CompositeWidget* widget)
 {
@@ -222,6 +226,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(UserWidget, user_widget, COMPOSITE_WIDGET_TYPE);
 
 static void user_widget_class_init(UserWidgetClass* klass)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.user.data)
     {
         GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
@@ -235,10 +240,12 @@ static void user_widget_class_init(UserWidgetClass* klass)
                                          config.appearance.templates.user.data,
                                          config.appearance.templates.user.bindings);
     }
+    #endif
 }
 
 static void user_widget_init(UserWidget* widget)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.user.data)
     {
         gtk_widget_init_template(GTK_WIDGET(widget));
@@ -248,7 +255,10 @@ static void user_widget_init(UserWidget* widget)
         widget->composite.priv->image_box = widget->priv->image_box;
     }
     else
+    #endif
+    {
         create_default_widget(COMPOSITE_WIDGET(widget));
+    }
 }
 
 GtkWidget* user_widget_new(void)
@@ -263,6 +273,7 @@ G_DEFINE_TYPE(SessionWidget, session_widget, COMPOSITE_WIDGET_TYPE)
 
 static void session_widget_class_init(SessionWidgetClass* klass)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.session.data)
     {
         GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
@@ -276,10 +287,12 @@ static void session_widget_class_init(SessionWidgetClass* klass)
                                          config.appearance.templates.session.data,
                                          config.appearance.templates.session.bindings);
     }
+    #endif
 }
 
 static void session_widget_init(SessionWidget* widget)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.session.data)
     {
         gtk_widget_init_template(GTK_WIDGET(widget));
@@ -287,7 +300,10 @@ static void session_widget_init(SessionWidget* widget)
         *widget->composite.priv = *widget->priv;
     }
     else
+    #endif
+    {
         create_default_widget(COMPOSITE_WIDGET(widget));
+    }
 }
 
 GtkWidget* session_widget_new(void)
@@ -302,6 +318,7 @@ G_DEFINE_TYPE(LanguageWidget, language_widget, COMPOSITE_WIDGET_TYPE)
 
 static void language_widget_class_init(LanguageWidgetClass* klass)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.language.data)
     {
         GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
@@ -315,10 +332,12 @@ static void language_widget_class_init(LanguageWidgetClass* klass)
                                          config.appearance.templates.language.data,
                                          config.appearance.templates.language.bindings);
     }
+    #endif
 }
 
 static void language_widget_init(LanguageWidget* widget)
 {
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(config.appearance.templates.language.data)
     {
         gtk_widget_init_template(GTK_WIDGET(widget));
@@ -326,7 +345,10 @@ static void language_widget_init(LanguageWidget* widget)
         *widget->composite.priv = *widget->priv;
     }
     else
+    #endif
+    {
         create_default_widget(COMPOSITE_WIDGET(widget));
+    }
 }
 
 GtkWidget* language_widget_new(void)

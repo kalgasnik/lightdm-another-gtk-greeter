@@ -440,7 +440,7 @@ static gboolean init_gui(void)
         {NULL, NULL, NULL, NULL, NULL, -1, NULL, NULL}
     };
 
-    for(struct ModelBindingData* model = models; model->widget != NULL; model++)
+    for(struct ModelBindingData* model = models; model->new_widget != NULL; model++)
     {
         if(IS_MENU_WIDGET(model->widget))
             bind_menu_widget_model(model->widget,

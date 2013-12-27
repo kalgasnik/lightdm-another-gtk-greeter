@@ -19,6 +19,7 @@
 
 #include "configuration.h"
 
+#include <glib/gi18n.h>
 #include <string.h>
 
 /* Variables */
@@ -139,16 +140,25 @@ static struct
     gchar* path;
 } state_data;
 
+/* Hash set used to control infinite recursive configs reading
+   initialization and updating: read_appearance_section()
+   freed: load_settings() */
+static GHashTable* loaded_themes = NULL;
+
+/* Static constants */
+
 static const gchar* USER_NAME_FORMAT_STRINGS[] = {"name", "display-name", "both", NULL};
 static const gchar* PANEL_POSITION_STRINGS[]   = {"top", "bottom", NULL};
 static const gchar* ONBOARD_POSITION_STRINGS[] = {"top", "bottom", "panel", "opposite", NULL};
 static const gchar* USER_IMAGE_FIT_STRINGS[]   = {"none", "all", "bigger", "smaller", NULL};
 static const gchar* POWER_ACTION_STRINGS[]     = {"none", "suspend", "hibernate", "restart", "shutdown", NULL};
 
+#if GTK_CHECK_VERSION(3, 10, 0)
 static const gchar* SESSION_COLUMN_STRINGS[]   = {"name", "display-name", "image", "comment", NULL};
 static const gchar* LANGUAGE_COLUMN_STRINGS[]  = {"code", "display-name", NULL};
 static const gchar* USER_COLUMN_STRINGS[]      = {"name", "type", "display-name", "font-weight", "user-image", "list-image",
                                                   "logged-in", NULL};
+#endif
 
 static const ModelPropertyBinding SESSION_TEMPLATE_DEFAULT_BINDINGS[]  = {{NULL, "text",   SESSION_COLUMN_DISPLAY_NAME},
                                                                           {NULL, "pixbuf", SESSION_COLUMN_IMAGE},
@@ -214,19 +224,26 @@ void load_settings(void)
     config.appearance.default_user_image      = "#avatar-default";
 
     config.appearance.templates.session.bindings  = NULL;
+    config.appearance.templates.language.bindings = NULL;
+    config.appearance.templates.user.bindings     = NULL;
+    #if GTK_CHECK_VERSION(3, 10, 0)
     config.appearance.templates.session.data      = NULL;
     config.appearance.templates.session.ui_file   = NULL;
-    config.appearance.templates.language.bindings = NULL;
     config.appearance.templates.language.data     = NULL;
     config.appearance.templates.language.ui_file  = NULL;
-    config.appearance.templates.user.bindings     = NULL;
     config.appearance.templates.user.data         = NULL;
     config.appearance.templates.user.ui_file      = NULL;
+    #endif
 
     read_appearance_section(cfg, SECTION, GREETER_DATA_DIR, settings, "default");
     config.appearance.themes_stack = g_slist_reverse(config.appearance.themes_stack);
 
     read_templates();
+    if(loaded_themes)
+    {
+        g_hash_table_unref(loaded_themes);
+        loaded_themes = NULL;
+    }
 
     SECTION = "panel";
     config.panel.enabled                      = read_value_bool    (cfg, SECTION, "enabled", TRUE);
@@ -387,7 +404,7 @@ static void save_key_file(GKeyFile* key_file,
     }
     g_free(data);
 }
-
+#if GTK_CHECK_VERSION(3, 10, 0)
 static GSList* read_template_section(GKeyFile* cfg,
                                      const gchar* SECTION,
                                      const gchar** COLUMN_STRINGS,
@@ -422,6 +439,7 @@ static GSList* read_template_section(GKeyFile* cfg,
     g_slist_free_full(default_value, free_model_property_binding);
     return list;
 }
+#endif
 
 static void read_appearance_section(GKeyFile* cfg,
                                     const gchar* SECTION,
@@ -429,8 +447,21 @@ static void read_appearance_section(GKeyFile* cfg,
                                     GtkSettings* settings,
                                     const gchar* default_theme)
 {
-    LoadedGreeterConfig* theme = g_malloc(sizeof(LoadedGreeterConfig));
     gchar* base_theme_name = read_value_str(cfg, SECTION, "greeter-theme", default_theme);
+    if(loaded_themes && base_theme_name && g_hash_table_contains(loaded_themes, base_theme_name))
+    {
+        const gchar* first_load_path = g_hash_table_lookup(loaded_themes, base_theme_name);
+        g_warning("Reading base theme failed: theme \"%s\" already loaded, stopped to prevent infinite recursion. "
+                  "Current path: \"%s\", first load: \"%s\"", base_theme_name, path, first_load_path);
+        show_message_dialog(GTK_MESSAGE_ERROR, _("Error"),
+                            _("Reading base theme failed: theme \"%s\" already loaded, stopped to prevent infinite recursion.\n\n"
+                              "Current path: \"%s\"\n"
+                              "first load: \"%s\""), base_theme_name, path, first_load_path);
+        g_free(base_theme_name);
+        base_theme_name = NULL;
+    }
+
+    LoadedGreeterConfig* theme = g_malloc(sizeof(LoadedGreeterConfig));
     if(base_theme_name)
     {
         GError* error = NULL;
@@ -438,9 +469,13 @@ static void read_appearance_section(GKeyFile* cfg,
         gchar* theme_filename = g_build_filename(GREETER_DATA_DIR, "themes", base_theme_name, "theme.conf", NULL);
         if(g_key_file_load_from_file(theme_cfg, theme_filename, G_KEY_FILE_NONE, &error))
         {
-            gchar* path = g_build_filename(GREETER_DATA_DIR, "themes", base_theme_name, NULL);
-            read_appearance_section(theme_cfg, SECTION, path, settings, NULL);
-            g_free(path);
+            if(!loaded_themes)
+                loaded_themes = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+            g_hash_table_insert(loaded_themes, g_strdup(base_theme_name), g_strdup(path));
+
+            gchar* base_path = g_build_filename(GREETER_DATA_DIR, "themes", base_theme_name, NULL);
+            read_appearance_section(theme_cfg, SECTION, base_path, settings, NULL);
+            g_free(base_path);
         }
         else
         {
@@ -497,6 +532,7 @@ static void read_appearance_section(GKeyFile* cfg,
     config.appearance.hide_prompt_text        = read_value_bool    (cfg, SECTION, "hide-prompt-text", config.appearance.hide_prompt_text);
     config.appearance.default_user_image      = read_value_path    (cfg, SECTION, "default-user-image", config.appearance.default_user_image, GREETER_DATA_DIR);
 
+    #if GTK_CHECK_VERSION(3, 10, 0)
     config.appearance.templates.session.bindings  = read_template_section(cfg, "appearance.session-template", SESSION_COLUMN_STRINGS,
                                                                           config.appearance.templates.session.bindings);
     config.appearance.templates.session.ui_file   = read_value_path(cfg, "appearance.session-template", "ui-file",
@@ -509,6 +545,7 @@ static void read_appearance_section(GKeyFile* cfg,
                                                                           config.appearance.templates.user.bindings);
     config.appearance.templates.user.ui_file      = read_value_path(cfg, "appearance.user-template", "ui-file",
                                                                     config.appearance.templates.user.ui_file, path);
+    #endif
 }
 
 static gboolean read_value_bool(GKeyFile* key_file,
@@ -756,35 +793,50 @@ static void read_templates(void)
 {
     struct Template
     {
-        GBytes** data;
         GSList** bindings;
-        gchar* ui_file;
         const ModelPropertyBinding* default_bindings;
+        #if GTK_CHECK_VERSION(3, 10, 0)
+        GBytes** data;
+        gchar* ui_file;
+        #endif
     };
 
     struct Template templates[] =
     {
         {
-            &config.appearance.templates.session.data,
             &config.appearance.templates.session.bindings,
-            config.appearance.templates.session.ui_file,
-            SESSION_TEMPLATE_DEFAULT_BINDINGS
+            SESSION_TEMPLATE_DEFAULT_BINDINGS,
+            #if GTK_CHECK_VERSION(3, 10, 0)
+            &config.appearance.templates.session.data,
+            config.appearance.templates.session.ui_file
+            #endif
+
         },
         {
-            &config.appearance.templates.language.data,
             &config.appearance.templates.language.bindings,
-            config.appearance.templates.language.ui_file,
-            LANGUAGE_TEMPLATE_DEFAULT_BINDINGS
+            LANGUAGE_TEMPLATE_DEFAULT_BINDINGS,
+            #if GTK_CHECK_VERSION(3, 10, 0)
+            &config.appearance.templates.language.data,
+            config.appearance.templates.language.ui_file
+            #endif
+
         },
         {
-            &config.appearance.templates.user.data,
             &config.appearance.templates.user.bindings,
-            config.appearance.templates.user.ui_file,
-            USER_TEMPLATE_DEFAULT_BINDINGS
+            USER_TEMPLATE_DEFAULT_BINDINGS,
+            #if GTK_CHECK_VERSION(3, 10, 0)
+            &config.appearance.templates.user.data,
+            config.appearance.templates.user.ui_file
+            #endif
         },
+        #if GTK_CHECK_VERSION(3, 10, 0)
         {NULL, NULL, NULL, NULL}
+        #else
+        {NULL, NULL}
+        #endif
     };
 
+    #if GTK_CHECK_VERSION(3, 10, 0)
     GHashTableIter iter;
     gchar* key;
     GHashTable* table = g_hash_table_new(g_str_hash, g_str_equal);
@@ -802,13 +854,18 @@ static void read_templates(void)
             if(g_file_get_contents(key, &str, &str_size, NULL))
                 g_hash_table_iter_replace(&iter, g_bytes_new_take(str, str_size));
         }
+    #endif
 
-    for(struct Template* template = templates; template->data != NULL; template++)
+    for(struct Template* template = templates; template->bindings != NULL; template++)
     {
+        #if GTK_CHECK_VERSION(3, 10, 0)
         if(template->ui_file)
             *template->data = g_hash_table_lookup(table, template->ui_file);
         /* Default bindings for non-composite implementations */
         if(!*template->data && template->default_bindings)
+        #else
+        if(template->default_bindings)
+        #endif
         {
             if(*template->bindings)
             {
@@ -819,6 +876,7 @@ static void read_templates(void)
                 *template->bindings = g_slist_prepend(*template->bindings, g_memdup(bind, sizeof(ModelPropertyBinding)));
         }
     }
-
+    #if GTK_CHECK_VERSION(3, 10, 0)
     g_hash_table_unref(table);
+    #endif
 }
