@@ -367,6 +367,18 @@ void set_widget_active_first(GtkWidget* widget)
         gtk_icon_view_set_cursor(GTK_ICON_VIEW(widget), path, NULL, FALSE);
         gtk_tree_path_free(path);
     }
+    else if(IS_MENU_WIDGET(widget))
+    {
+        GtkTreePath* path = gtk_tree_path_new_first();
+        set_menu_widget_active_path(widget, path);
+        gtk_tree_path_free(path);
+    }
+    else if(GTK_IS_LIST_BOX(widget))
+    {
+        GtkTreePath* path = gtk_tree_path_new_first();
+        set_listbox_active_path(GTK_LIST_BOX(widget), path);
+        gtk_tree_path_free(path);
+    }
     else
         g_return_val_if_reached(NULL);
 }
