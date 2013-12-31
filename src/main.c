@@ -448,12 +448,14 @@ static gboolean init_gui(void)
                                    model->model, model->model_bindings,
                                    model->label, model->label_column,
                                    model->on_changed);
+        #if GTK_CHECK_VERSION(3, 10, 0)
         else if(GTK_IS_LIST_BOX(model->widget))
             bind_listbox_model(GTK_LIST_BOX(model->widget),
                                model->new_widget,
                                model->model, model->model_bindings,
                                model->on_changed,
                                model->on_activated);
+        #endif
     }
 
     if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)

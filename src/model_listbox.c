@@ -19,6 +19,8 @@
 
 #include "model_listbox.h"
 
+#if GTK_CHECK_VERSION(3, 10, 0)
+
 typedef struct
 {
     GtkListBox*        widget;
@@ -167,3 +169,5 @@ static gboolean on_listbox_row_inserted(GtkTreeModel*       model,
     gtk_widget_show_all(row);
     return FALSE;
 }
+
+#endif

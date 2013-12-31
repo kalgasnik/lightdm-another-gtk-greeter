@@ -164,6 +164,7 @@ static void on_menu_widget_row_changed(GtkTreeModel*    model,
             const ModelPropertyBinding* bind = item->data;
             GValue value = G_VALUE_INIT;
             gtk_tree_model_get_value(GTK_TREE_MODEL(model), iter, bind->column, &value);
+            #if GTK_CHECK_VERSION(3, 10, 0)
             if(bind->widget)
             {
                 GObject* child = gtk_widget_get_template_child(content, G_TYPE_FROM_INSTANCE(content), bind->widget);
@@ -171,7 +172,12 @@ static void on_menu_widget_row_changed(GtkTreeModel*    model,
                     g_object_set_property(child, bind->prop, &value);
             }
             else
+            #else
+            if(!bind->widget)
+            #endif
+            {
                 g_object_set_property(G_OBJECT(content), bind->prop, &value);
+            }
             g_value_unset(&value);
         }
         if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item)))

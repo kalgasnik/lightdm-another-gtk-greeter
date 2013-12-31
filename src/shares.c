@@ -243,8 +243,10 @@ GtkListStore* get_widget_model(GtkWidget* widget)
         return GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)));
     if(IS_MENU_WIDGET(widget))
         return GTK_LIST_STORE(get_menu_widget_model(widget));
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(GTK_IS_LIST_BOX(widget))
         return GTK_LIST_STORE(get_listbox_model(GTK_LIST_BOX(widget)));
+    #endif
     g_return_val_if_reached(NULL);
 }
 
@@ -308,6 +310,7 @@ gboolean get_widget_active_iter(GtkWidget*   widget,
         gtk_tree_path_free(path);
         return ok;
     }
+    #if GTK_CHECK_VERSION(3, 10, 0)
     if(GTK_IS_LIST_BOX(widget))
     {
         GtkTreePath* path = get_listbox_active_path(GTK_LIST_BOX(widget));
@@ -315,6 +318,7 @@ gboolean get_widget_active_iter(GtkWidget*   widget,
         gtk_tree_path_free(path);
         return ok;
     }
+    #endif
     g_return_val_if_reached(FALSE);
 }
 
@@ -341,12 +345,14 @@ void set_widget_active_iter(GtkWidget*   widget,
         set_menu_widget_active_path(widget, path);
         gtk_tree_path_free(path);
     }
+    #if GTK_CHECK_VERSION(3, 10, 0)
     else if(GTK_IS_LIST_BOX(widget))
     {
         GtkTreePath* path = gtk_tree_model_get_path(get_listbox_model(GTK_LIST_BOX(widget)), iter);
         set_listbox_active_path(GTK_LIST_BOX(widget), path);
         gtk_tree_path_free(path);
     }
+    #endif
     else
         g_return_val_if_reached(NULL);
 }
@@ -373,12 +379,14 @@ void set_widget_active_first(GtkWidget* widget)
         set_menu_widget_active_path(widget, path);
         gtk_tree_path_free(path);
     }
+    #if GTK_CHECK_VERSION(3, 10, 0)
     else if(GTK_IS_LIST_BOX(widget))
     {
         GtkTreePath* path = gtk_tree_path_new_first();
         set_listbox_active_path(GTK_LIST_BOX(widget), path);
         gtk_tree_path_free(path);
     }
+    #endif
     else
         g_return_val_if_reached(NULL);
 }

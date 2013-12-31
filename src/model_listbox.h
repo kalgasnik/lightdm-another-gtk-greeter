@@ -23,6 +23,8 @@
 #include <gtk/gtk.h>
 #include "shares.h"
 
+#if GTK_CHECK_VERSION(3, 10, 0)
+
 void bind_listbox_model                   (GtkListBox*   widget,
                                            NewWidgetFunc new_widget,
                                            GtkListStore* model,
@@ -34,5 +36,7 @@ GtkTreeModel* get_listbox_model           (GtkListBox*   widget);
 void set_listbox_active_path              (GtkListBox*   widget,
                                            GtkTreePath*  path);
 GtkTreePath* get_listbox_active_path      (GtkListBox*   widget);
+
+#endif
 
 #endif
