@@ -147,8 +147,8 @@ static void power_action(const PowerActionData* action)
             {.id = GTK_RESPONSE_YES,    .text = g_dgettext("gtk30", "_Yes"), .name = action->button_name},
             {.id = GTK_RESPONSE_NONE}
         };
-        if(show_message(_(action->name), _(action->prompt), action->icon, buttons,
-                        GTK_RESPONSE_CANCEL, GTK_RESPONSE_CANCEL) != GTK_RESPONSE_YES)
+        if(show_message(_(action->name), "%s", action->icon, buttons,
+                        GTK_RESPONSE_CANCEL, GTK_RESPONSE_CANCEL, _(action->prompt)) != GTK_RESPONSE_YES)
             return;
     }
 
