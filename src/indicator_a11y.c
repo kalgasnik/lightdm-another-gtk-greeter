@@ -397,7 +397,7 @@ static gboolean spawn_onboard(void)
         else
         {
             g_message("\"Onboard\" socket: %d", id);
-            gboolean at_top;
+            gboolean at_top = TRUE;
             switch(config.a11y.osk.onboard_position)
             {
             case ONBOARD_POS_TOP: at_top = TRUE; break;

@@ -151,7 +151,7 @@ static KeyboardInfo* init_xkb()
     Display* display;
     XklEngine* engine;
     GroupInfo* groups;
-    int groups_count;
+    int groups_count = 0;
 
     display = XkbOpenDisplay(NULL, NULL, NULL, NULL, NULL, NULL);
     g_return_val_if_fail(display != NULL, NULL);
