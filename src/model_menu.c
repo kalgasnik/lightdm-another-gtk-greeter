@@ -57,12 +57,13 @@ static gboolean on_menu_widget_row_inserted (GtkTreeModel*    model,
 static void on_menu_widget_item_toggled     (GtkWidget*       widget,
                                              PrivateMenuData* data);
 
-static gboolean gtk_tree_path_equal(GtkTreePath* a, GtkTreePath* b)
+static gboolean gtk_tree_path_equal         (GtkTreePath* a,
+                                             GtkTreePath* b)
 {
     return gtk_tree_path_compare(a, b) == 0;
 }
 
-static guint gtk_tree_path_hash(GtkTreePath* path)
+static guint gtk_tree_path_hash             (GtkTreePath* path)
 {
     return gtk_tree_path_get_indices(path)[0];
 }

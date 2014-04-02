@@ -48,6 +48,8 @@ struct _CompositeWidgetClass
 
 GtkWidget* composite_widget_new            (void);
 
+void composite_widget_set_selected_style   (CompositeWidget* widget,
+                                            gboolean selected);
 void composite_widget_set_text             (CompositeWidget* widget,
                                             const gchar*     text);
 const gchar* composite_widget_get_text     (CompositeWidget* widget);

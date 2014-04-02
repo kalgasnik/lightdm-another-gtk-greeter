@@ -155,6 +155,14 @@ static void on_listbox_row_changed(GtkTreeModel*       model,
     }
 }
 
+static gboolean on_child_focus(GtkWidget* widget,
+                               GtkWidget* child,
+                               gpointer   data)
+{
+    g_message(">>> %p: %s", widget, G_OBJECT_CLASS_NAME(child));
+    return FALSE;
+}
+
 static gboolean on_listbox_row_inserted(GtkTreeModel*       model,
                                         GtkTreePath*        path,
                                         GtkTreeIter*        iter,
@@ -163,6 +171,8 @@ static gboolean on_listbox_row_inserted(GtkTreeModel*       model,
     const gint* indices = gtk_tree_path_get_indices(path);
     GtkWidget* row = gtk_list_box_row_new();
     GtkWidget* content = data->new_widget();
+
+    g_signal_connect(content, "set-focus-child", G_CALLBACK(on_child_focus), data);
     gtk_container_add(GTK_CONTAINER(row), content);
     g_object_set_data(G_OBJECT(row), LISTBOX_ITEM_PATH_PROP, gtk_tree_model_get_path(data->model, iter));
     gtk_list_box_insert(data->widget, row, indices[0]);

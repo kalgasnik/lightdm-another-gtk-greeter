@@ -44,6 +44,8 @@ enum
     COMPOSITE_PROP_PIXBUF
 };
 
+static const gchar* STYLE_SELECTED_CLASS = "selected-item";
+
 #if GTK_CHECK_VERSION(3, 10, 0)
 static void bind_template_automated_children(GtkWidgetClass*  widget_class,
                                              GBytes*          template_data,
@@ -155,6 +157,16 @@ static void composite_widget_init(CompositeWidget* widget)
 GtkWidget* composite_widget_new(void)
 {
     return g_object_new(COMPOSITE_WIDGET_TYPE, NULL);
+}
+
+void composite_widget_set_selected_style(CompositeWidget* widget,
+                                         gboolean selected)
+{
+    GtkStyleContext* context = gtk_widget_get_style_context(GTK_WIDGET(widget));
+    if(selected)
+        gtk_style_context_add_class(context, STYLE_SELECTED_CLASS);
+    else
+        gtk_style_context_remove_class(context, STYLE_SELECTED_CLASS);
 }
 
 void composite_widget_set_text(CompositeWidget* widget,

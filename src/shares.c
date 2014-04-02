@@ -25,6 +25,7 @@
 #include "configuration.h"
 #include "model_menu.h"
 #include "model_listbox.h"
+#include "model_box.h"
 
 /* Variables */
 
@@ -243,6 +244,8 @@ GtkListStore* get_widget_model(GtkWidget* widget)
         return GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(widget)));
     if(IS_MENU_WIDGET(widget))
         return GTK_LIST_STORE(get_menu_widget_model(widget));
+    if(GTK_IS_BOX(widget))
+        return GTK_LIST_STORE(get_box_model(GTK_BOX(widget)));
     #if GTK_CHECK_VERSION(3, 10, 0)
     if(GTK_IS_LIST_BOX(widget))
         return GTK_LIST_STORE(get_listbox_model(GTK_LIST_BOX(widget)));
@@ -319,6 +322,13 @@ gboolean get_widget_active_iter(GtkWidget*   widget,
         return ok;
     }
     #endif
+    if(GTK_IS_BOX(widget))
+    {
+        GtkTreePath* path = get_box_active_path(GTK_BOX(widget));
+        gboolean ok = gtk_tree_model_get_iter(get_box_model(GTK_BOX(widget)), iter, path);
+        gtk_tree_path_free(path);
+        return ok;
+    }
     g_return_val_if_reached(FALSE);
 }
 
@@ -353,6 +363,12 @@ void set_widget_active_iter(GtkWidget*   widget,
         gtk_tree_path_free(path);
     }
     #endif
+    else if(GTK_IS_BOX(widget))
+    {
+        GtkTreePath* path = gtk_tree_model_get_path(get_box_model(GTK_BOX(widget)), iter);
+        set_box_active_path(GTK_BOX(widget), path);
+        gtk_tree_path_free(path);
+    }
     else
         g_return_val_if_reached(NULL);
 }
@@ -387,6 +403,12 @@ void set_widget_active_first(GtkWidget* widget)
         gtk_tree_path_free(path);
     }
     #endif
+    else if(GTK_IS_BOX(widget))
+    {
+        GtkTreePath* path = gtk_tree_path_new_first();
+        set_box_active_path(GTK_BOX(widget), path);
+        gtk_tree_path_free(path);
+    }
     else
         g_return_val_if_reached(NULL);
 }

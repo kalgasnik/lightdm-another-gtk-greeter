@@ -160,6 +160,53 @@ typedef struct
 
         struct
         {
+            GtkWidget*  login_widget;
+            GtkWidget*  login_label;
+            GtkWidget*  login_box;
+
+            GtkWidget*  no_prompt_login_widget;
+            GtkWidget*  no_prompt_login_label;
+            GtkWidget*  no_prompt_login_box;
+
+            GtkWidget*  cancel_widget;
+            GtkWidget*  cancel_box;
+
+            GtkWidget*  message_widget;
+            GtkWidget*  message_box;
+
+            GtkWidget*  prompt_entry;
+            GtkWidget*  prompt_text;
+            GtkWidget*  prompt_box;
+
+            GtkWidget*  sessions_widget;
+            GtkWidget*  sessions_text;
+            GtkWidget*  sessions_box;
+
+            GtkWidget*  languages_widget;
+            GtkWidget*  languages_text;
+            GtkWidget*  languages_box;
+
+            GtkWidget*  authentication_widget;
+            GtkWidget*  authentication_box;
+
+            GtkWidget*  user_image_widget;
+            GtkWidget*  user_image_box;
+
+            GtkWidget*  date_widget;
+            GtkWidget*  date_box;
+
+            GtkWidget*  host_widget;
+            GtkWidget*  host_box;
+
+            GtkWidget*  logo_image_widget;
+            GtkWidget*  logo_image_box;
+
+            GtkWidget*  password_toggle_widget;
+            GtkWidget*  password_toggle_box;
+        } current;
+
+        struct
+        {
             GtkWidget*  widget;
             GtkWidget*  box;
             GtkWidget*  menu;

@@ -38,6 +38,7 @@
 #include "indicator_layout.h"
 #include "model_menu.h"
 #include "model_listbox.h"
+#include "model_box.h"
 
 /* Static functions */
 
@@ -456,6 +457,12 @@ static gboolean init_gui(void)
                                model->on_changed,
                                model->on_activated);
         #endif
+        else if(GTK_LIST_BOX(model->widget))
+            bind_box_model(GTK_BOX(model->widget),
+                           model->new_widget,
+                           model->model, model->model_bindings,
+                           model->on_changed,
+                           model->on_activated);
     }
 
     if(config.appearance.user_image.enabled && greeter.ui.user_image_widget)
@@ -662,7 +669,6 @@ static gboolean load_users_list(void)
         g_warning("No users to display");
         return FALSE;
     }
-
     return TRUE;
 }
 
@@ -1540,8 +1546,11 @@ void on_user_selection_changed(GtkWidget* widget,
     set_message_text(NULL);
     start_authentication(user_name);
     #ifdef _DEBUG_
-    if(get_user_type() == USER_TYPE_OTHER ||
-       !lightdm_user_get_logged_in(lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name)))
+    LightDMUser* user = NULL;
+    if(get_user_type() != USER_TYPE_OTHER)
+        user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
+    g_assert(get_user_type() == USER_TYPE_OTHER || user != NULL);
+    if(get_user_type() == USER_TYPE_OTHER || !lightdm_user_get_logged_in(user))
     {
         gboolean prompt(gpointer data)
         {
