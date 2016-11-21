@@ -15,7 +15,7 @@ LT_INIT
 AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "_PACKAGE_VERSION")
 
 GOBJECT_INTROSPECTION_CHECK(0.9.5)
-GNOME_COMPILE_WARNINGS(maximum)
+GNOME_COMPILE_WARNINGS(minimum)
 
 # #############################################################################
 # Checks
