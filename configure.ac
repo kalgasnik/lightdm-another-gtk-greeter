@@ -37,13 +37,17 @@ AC_ARG_ENABLE(ido-calendar,
 # Dependencies
 
 PKG_CHECK_MODULES(GREETER, [
-    liblightdm-gobject-1
     gtk+-3.0
     gthread-2.0
     x11
     gmodule-export-2.0
     libxklavier
 ])
+
+PKG_CHECK_MODULES([LIGHTDMGOBJECT], [liblightdm-gobject-1 >= 1.19.2],
+  [AC_DEFINE([HAVE_LIBLIGHTDMGOBJECT_1_19_2], [1], [Building with liblightdmgobject 1.19.2])],
+  [PKG_CHECK_MODULES([LIGHTDMGOBJECT], [liblightdm-gobject-1 >= 1.3.5])]
+)
 
 AS_IF([test "x$enable_ido_calendar" = "xyes"], [
     PKG_CHECK_MODULES(IDO, [libido3-0.1])

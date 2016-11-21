@@ -29,6 +29,7 @@
 #include <X11/Xatom.h>
 #include <lightdm.h>
 
+#include "config.h"
 #include "shares.h"
 #include "composite_widgets.h"
 #include "configuration.h"
@@ -1129,13 +1130,25 @@ static void start_authentication(const gchar* user_name)
 
     LightDMUser* user = NULL;
     if(g_strcmp0(user_name, USER_OTHER) == 0)
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_authenticate(greeter.greeter, NULL, NULL);
+#else
         lightdm_greeter_authenticate(greeter.greeter, NULL);
+#endif
     else if(g_strcmp0(user_name, USER_GUEST) == 0)
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_authenticate_as_guest(greeter.greeter, NULL);
+#else
         lightdm_greeter_authenticate_as_guest(greeter.greeter);
+#endif
     else
     {
         user = lightdm_user_list_get_user_by_name(lightdm_user_list_get_instance(), user_name);
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_authenticate(greeter.greeter, user_name, NULL);
+#else
         lightdm_greeter_authenticate(greeter.greeter, user_name);
+#endif
     }
     load_user_options(user);
     set_login_button_state(user && lightdm_user_get_logged_in(user));
@@ -1151,7 +1164,11 @@ static void cancel_authentication(void)
     if(lightdm_greeter_get_in_authentication(greeter.greeter))
     {
         greeter.state.cancelling = TRUE;
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_cancel_authentication(greeter.greeter, NULL);
+#else
         lightdm_greeter_cancel_authentication(greeter.greeter);
+#endif
         set_message_text(NULL);
     }
 
@@ -1173,7 +1190,11 @@ static void start_session(void)
     gchar* language = get_language();
     if(language)
     {
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_set_language(greeter.greeter, language, NULL);
+#else
         lightdm_greeter_set_language(greeter.greeter, language);
+#endif 
         g_free(language);
     }
 
@@ -1430,7 +1451,11 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
         if(greeter.state.prompted)
         {
             set_message_text(_("Incorrect password, please try again"));
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+            lightdm_greeter_authenticate(greeter.greeter, lightdm_greeter_get_authentication_user(greeter.greeter), NULL);
+#else
             lightdm_greeter_authenticate(greeter.greeter, lightdm_greeter_get_authentication_user(greeter.greeter));
+#endif
         }
         else
         {
@@ -1446,7 +1471,11 @@ static void on_authentication_complete(LightDMGreeter* greeter_ptr)
 static void on_autologin_timer_expired(LightDMGreeter* greeter_ptr)
 {
     g_debug("LightDM signal: autologin-timer-expired");
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+    lightdm_greeter_authenticate_autologin(greeter_ptr, NULL);
+#else
     lightdm_greeter_authenticate_autologin(greeter_ptr);
+#endif
 }
 
 static void on_user_added(LightDMUserList* user_list,
@@ -1495,7 +1524,11 @@ void on_login_clicked(GtkWidget* widget,
     else if(lightdm_greeter_get_in_authentication(greeter.greeter))
     {
         const gchar* text = gtk_entry_get_text(GTK_ENTRY(greeter.ui.prompt_entry));
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+        lightdm_greeter_respond(greeter.greeter, text, NULL);
+#else
         lightdm_greeter_respond(greeter.greeter, text);
+#endif
         gtk_widget_show(greeter.ui.cancel_box);
         if(get_user_type() == USER_TYPE_OTHER  && gtk_entry_get_visibility(GTK_ENTRY(greeter.ui.prompt_entry)))
         {
