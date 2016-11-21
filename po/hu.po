@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: lightdm-another-gtk-greeter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-11-21 02:23+0000\n"
-"PO-Revision-Date: 2015-01-24 19:06+0100\n"
+"PO-Revision-Date: 2016-11-21 03:45+0100\n"
 "Last-Translator: rezso <rezso@rezso.net>\n"
 "Language-Team: <NONE> <LL@li.org>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.8.9\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../data/themes/default/greeter.ui.h:1
@@ -96,6 +96,11 @@ msgid ""
 "Current path: \"%s\"\n"
 "first load: \"%s\""
 msgstr ""
+"Az alap téma olvasása sikertelen: \"%s\" téma már betöltve, leállítva a "
+"végtelen ciklus megelőzése érdekében.\n"
+"\n"
+"Jelenlegi útvonal: \"%s\"\n"
+"első betöltés: \"%s\""
 
 #: ../src/indicator_a11y.c:328
 #, c-format
@@ -139,7 +144,7 @@ msgstr "Vissza a bejelentkezéshez"
 
 #: ../src/indicator_power.c:147
 msgid "_Yes"
-msgstr ""
+msgstr "_Igen"
 
 #: ../src/indicator_power.c:160
 #, c-format
@@ -193,9 +198,3 @@ msgstr "A hitelesítés sikertelen"
 #: ../src/shares.c:37
 msgid "Unlock"
 msgstr "Feloldás"
-
-#~ msgid "Loading UI: error"
-#~ msgstr "UI betöltése: hiba"
-
-#~ msgid "Widget '%s' is not found"
-#~ msgstr "'%s' widget nem található"
