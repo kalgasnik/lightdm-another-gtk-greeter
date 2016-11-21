@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lightdm-another-gtk-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-10-13 02:14+0300\n"
+"POT-Creation-Date: 2016-11-21 02:23+0000\n"
 "PO-Revision-Date: 2015-01-24 19:06+0100\n"
 "Last-Translator: rezso <rezso@rezso.net>\n"
 "Language-Team: <NONE> <LL@li.org>\n"
@@ -19,50 +19,42 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../data/themes/default/greeter.ui.h:1
-#: ../data/themes/gtk-greeter-150/greeter.ui.h:1
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:5 ../src/indicator_power.c:57
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:1 ../src/indicator_power.c:57
 msgid "Suspend"
 msgstr "Felfüggesztés"
 
 #: ../data/themes/default/greeter.ui.h:2
-#: ../data/themes/gtk-greeter-150/greeter.ui.h:2
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:6 ../src/indicator_power.c:66
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:2 ../src/indicator_power.c:66
 msgid "Hibernate"
 msgstr "Hibernálás"
 
 #: ../data/themes/default/greeter.ui.h:3
-#: ../data/themes/gtk-greeter-150/greeter.ui.h:3
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:7 ../src/indicator_power.c:75
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:3 ../src/indicator_power.c:75
 msgid "Restart"
 msgstr "Újraindítás"
 
 #: ../data/themes/default/greeter.ui.h:4
-#: ../data/themes/gtk-greeter-150/greeter.ui.h:4
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:8 ../src/indicator_power.c:84
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:4 ../src/indicator_power.c:84
 msgid "Shutdown"
 msgstr "Leállítás"
 
 #: ../data/themes/default/greeter.ui.h:5
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:5
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:1
 msgid "Large font"
 msgstr "Nagy betűméret"
 
 #: ../data/themes/default/greeter.ui.h:6
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:6
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:2
 msgid "High contrast"
 msgstr "Nagy kontraszt"
 
 #: ../data/themes/default/greeter.ui.h:7
-#: ../data/themes/gtk-greeter-150/greeter.ui.h:7
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:3 ../src/indicator_a11y.c:328
+#: ../data/themes/gtk-greeter-150/greeter.ui.h:7 ../src/indicator_a11y.c:327
 msgid "On-screen keyboard"
 msgstr "Képernyő-billentyűzet"
 
 #: ../data/themes/default/greeter.ui.h:8
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:8
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:4
 msgid "Large dpi"
 msgstr "Nagy dpi"
 
@@ -72,20 +64,17 @@ msgstr "Bejelentkezési opciók"
 
 #: ../data/themes/default/greeter.ui.h:10
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:9
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:11
 msgid "Show password"
 msgstr "Jelszó megjelenítése"
 
 #: ../data/themes/default/greeter.ui.h:11
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:11
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:10
-#: ../data/themes/sample.css.dark/greeter.ui.h:2 ../src/shares.c:34
+#: ../data/themes/sample.css.dark/greeter.ui.h:2 ../src/shares.c:36
 msgid "Login"
 msgstr "Bejelentkezés"
 
 #: ../data/themes/default/greeter.ui.h:12
 #: ../data/themes/gtk-greeter-150/greeter.ui.h:10
-#: ../data/themes/gtk-greeter-160/greeter.ui.h:9
 msgid "Cancel"
 msgstr "Mégse"
 
@@ -93,7 +82,22 @@ msgstr "Mégse"
 msgid "Authentication, press <Escape> to cancel..."
 msgstr "Azonosítás, <Esc> a megszakításhoz..."
 
-#: ../src/indicator_a11y.c:329
+#: ../src/configuration.c:456 ../src/main.c:204 ../src/main.c:227
+#: ../src/main.c:239
+msgid "Error"
+msgstr "Hiba"
+
+#: ../src/configuration.c:457
+#, c-format
+msgid ""
+"Reading base theme failed: theme \"%s\" already loaded, stopped to prevent "
+"infinite recursion.\n"
+"\n"
+"Current path: \"%s\"\n"
+"first load: \"%s\""
+msgstr ""
+
+#: ../src/indicator_a11y.c:328
 #, c-format
 msgid ""
 "Failed to start keyboard command:\n"
@@ -102,11 +106,11 @@ msgstr ""
 "Billentyűzet parancs indítása sikertelen:\n"
 "%s"
 
-#: ../src/indicator_a11y.c:452
+#: ../src/indicator_a11y.c:451
 msgid "Onboard"
 msgstr "Onboard"
 
-#: ../src/indicator_a11y.c:453
+#: ../src/indicator_a11y.c:452
 msgid "Failed to start 'onboard', see logs for details."
 msgstr "'onboard' indítása sikertelen, részletek a naplóban."
 
@@ -129,29 +133,29 @@ msgid "Are you sure you want to close all programs and shutdown the computer?"
 msgstr ""
 "Biztos benne, hogy bezárja az összes programot, és leállítja a számítógépet?"
 
-#: ../src/indicator_power.c:145
+#: ../src/indicator_power.c:146
 msgid "Return to Login"
 msgstr "Vissza a bejelentkezéshez"
 
-#: ../src/indicator_power.c:159
+#: ../src/indicator_power.c:147
+msgid "_Yes"
+msgstr ""
+
+#: ../src/indicator_power.c:160
 #, c-format
 msgid "Action \"%s\" failed with error: %s."
 msgstr "\"%s\" művelet nem sikerült: %s."
 
-#: ../src/main.c:197 ../src/main.c:220 ../src/main.c:232
-msgid "Error"
-msgstr "Hiba"
-
-#: ../src/main.c:197
+#: ../src/main.c:204
 #, c-format
 msgid "Connection to LightDM failed: %s"
 msgstr "A LighDM-hez csatlakozás nem sikerült: %s"
 
-#: ../src/main.c:198
+#: ../src/main.c:205
 msgid "unknown error"
 msgstr "Ismeretlen hiba"
 
-#: ../src/main.c:221 ../src/main.c:233
+#: ../src/main.c:228 ../src/main.c:240
 #, c-format
 msgid ""
 "Error loading UI file:\n"
@@ -162,39 +166,36 @@ msgstr ""
 "\n"
 "%s"
 
-#: ../src/main.c:366
-msgid "Loading UI: error"
-msgstr "UI betöltése: hiba"
-
-#: ../src/main.c:367
-#, c-format
-msgid "Widget '%s' is not found"
-msgstr "'%s' widget nem található"
-
-#: ../src/main.c:613
+#: ../src/main.c:656
 msgid "Guest Account"
 msgstr "Vendég munkamenet"
 
-#: ../src/main.c:616
+#: ../src/main.c:659
 msgid "Other..."
 msgstr "Egyéb..."
 
-#: ../src/main.c:1068
+#: ../src/main.c:1109
 msgid "Screenshot"
 msgstr "Képernyőkép készítése"
 
-#: ../src/main.c:1163
+#: ../src/main.c:1226
 msgid "Failed to start session"
 msgstr "A munkamenet indítása meghiúsult"
 
-#: ../src/main.c:1318
+#: ../src/main.c:1453
 msgid "Incorrect password, please try again"
 msgstr "Hibás jelszó, próbálja újra"
 
-#: ../src/main.c:1323
+#: ../src/main.c:1462
 msgid "Failed to authenticate"
 msgstr "A hitelesítés sikertelen"
 
-#: ../src/shares.c:35
+#: ../src/shares.c:37
 msgid "Unlock"
 msgstr "Feloldás"
+
+#~ msgid "Loading UI: error"
+#~ msgstr "UI betöltése: hiba"
+
+#~ msgid "Widget '%s' is not found"
+#~ msgstr "'%s' widget nem található"
