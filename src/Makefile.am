@@ -29,8 +29,9 @@ lightdm_another_gtk_greeter_CFLAGS = \
 	-DGREETER_DATA_DIR=\""$(datadir)/lightdm-another-gtk-greeter"\" \
 	-DCONFIG_FILE=\""$(sysconfdir)/lightdm/lightdm-another-gtk-greeter.conf"\" \
 	$(GREETER_CFLAGS) \
+	$(LIGHTDMGOBJECT_CFLAGS) \
 	$(IDO_CFLAGS) \
 	$(WARN_CFLAGS)
 
 lightdm_another_gtk_greeter_LDADD = \
-	$(GREETER_LIBS) $(IDO_LIBS)
+	$(GREETER_LIBS) $(LIGHTDMGOBJECT_LIBS) $(IDO_LIBS)
